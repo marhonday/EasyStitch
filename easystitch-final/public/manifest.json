@@ -1,0 +1,9 @@
+{
+  "name": "EasyStitch",
+  "short_name": "EasyStitch",
+  "description": "Turn any photo into a crochet pattern",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf3e7",
+  "theme_color": "#faf3e7"
+}
