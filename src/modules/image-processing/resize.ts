@@ -78,7 +78,6 @@ export async function resizeToGrid(
   const { targetWidth, targetHeight } = options
 
   const img = await loadImage(dataUrl)
-  console.log('RESIZE INPUT:', img.naturalWidth, 'x', img.naturalHeight, '→ grid:', targetWidth, 'x', targetHeight)
 
   // Fill the full grid — user crop already decided the framing
   // Stretching slightly to fit the grid aspect ratio is acceptable

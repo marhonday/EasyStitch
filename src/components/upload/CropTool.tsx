@@ -30,7 +30,6 @@ export default function CropTool({ imageUrl, onConfirm, onSkip }: CropToolProps)
       const w = img.clientWidth
       const h = img.clientHeight
       if (!w || !h) return
-      console.log('IMG LOADED', { clientW: w, clientH: h, natW: img.naturalWidth, natH: img.naturalHeight })
       // Default to full image — user drags inward to crop
       setBox({ x: 0, y: 0, w, h })
       setReady(true)
@@ -122,14 +121,10 @@ export default function CropTool({ imageUrl, onConfirm, onSkip }: CropToolProps)
     const natH  = img.naturalHeight
     if (!dispW || !dispH || !natW || !natH) return
 
-    console.log('CONFIRM', { box, dispW, dispH, natW, natH })
-
     const sx = Math.round(box.x * natW / dispW)
     const sy = Math.round(box.y * natH / dispH)
     const sw = Math.max(1, Math.round(box.w * natW / dispW))
     const sh = Math.max(1, Math.round(box.h * natH / dispH))
-
-    console.log('CROP RECT', { sx, sy, sw, sh })
 
     const canvas = document.createElement('canvas')
     canvas.width = sw; canvas.height = sh

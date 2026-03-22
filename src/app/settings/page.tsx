@@ -88,7 +88,6 @@ export default function SettingsPage() {
   )
 
   async function handleGenerate() {
-    console.log('=== GENERATE CLICKED === raw:', state.rawImage?.length, 'enhanced:', state.enhancedImage?.length)
     const succeeded = await generate()
     if (succeeded) router.push('/preview')
   }
@@ -497,3 +496,4 @@ export default function SettingsPage() {
     </main>
   )
 }
+// BUILD_MARKER_1774196984

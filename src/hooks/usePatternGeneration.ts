@@ -28,8 +28,6 @@ export function usePatternGeneration(): UsePatternGenerationResult {
     const rawImage = rawImageRef.current
     const settings = settingsRef.current
 
-    console.log('=== GENERATE using rawImage length:', rawImage?.length)
-
     if (!rawImage) {
       setError('No image available. Please upload a photo first.')
       return false
@@ -40,7 +38,6 @@ export function usePatternGeneration(): UsePatternGenerationResult {
     dispatch({ type: 'SET_GENERATING', payload: true })
 
     try {
-      console.log('USING IMAGE length:', rawImage?.length)
       const patternData = await generatePattern(rawImage, settings)
       dispatch({ type: 'SET_PATTERN_DATA', payload: patternData })
       return true
