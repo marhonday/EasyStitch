@@ -77,6 +77,11 @@ export async function generatePattern(
   settings:     PatternSettings
 ): Promise<PatternData> {
   console.log('GENERATE PATTERN called, image length:', imageDataUrl?.length, 'type:', settings.imageType)
+
+  // Verify what image we actually have
+  const verifyImg = new Image()
+  verifyImg.onload = () => console.log('ACTUAL IMAGE DIMS:', verifyImg.naturalWidth, 'x', verifyImg.naturalHeight)
+  verifyImg.src = imageDataUrl
   const { gridSize, maxColors, stitchStyle, imageType } = settings
   const backgroundColor = settings.backgroundColor ?? '#ffffff'
   const borderLayers    = settings.borderLayers    ?? []
