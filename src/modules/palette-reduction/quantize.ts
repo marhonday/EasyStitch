@@ -27,13 +27,18 @@ export interface QuantizeResult {
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
-function buildColorMap(grid: PixelGrid, palette: ColorEntry[]): ColorMap {
+function buildColorMap(
+  grid: PixelGrid,
+  palette: ColorEntry[],
+  transparentColorIndex?: number
+): ColorMap {
   const colorMap   = new Uint8Array(grid.width * grid.height)
   const paletteLab = palette.map(e => rgbToLab(e.r, e.g, e.b))
+  const alphaThreshold = 220
   let idx = 0
   for (let i = 0; i < grid.data.length; i += 4) {
-    if (grid.data[i + 3] < 128) {
-      colorMap[idx] = palette.length - 1
+    if (grid.data[i + 3] < alphaThreshold && typeof transparentColorIndex === 'number') {
+      colorMap[idx] = transparentColorIndex
     } else {
       const lab = rgbToLab(grid.data[i], grid.data[i + 1], grid.data[i + 2])
       let bestIdx = 0, bestDist = Infinity
@@ -84,6 +89,13 @@ function ensureBackgroundColorInPalette(
       { r, g, b, hex: wantedHex, symbol: COLOR_SYMBOLS[nextIndex] ?? String(nextIndex + 1) },
     ],
   }
+}
+
+function hasTransparentPixels(grid: PixelGrid): boolean {
+  for (let i = 3; i < grid.data.length; i += 4) {
+    if (grid.data[i] < 245) return true
+  }
+  return false
 }
 
 function applyBackgroundPreference(
@@ -667,16 +679,29 @@ export function quantizeImage(
   backgroundColor: string    = '#ffffff'
 ): QuantizeResult {
   if (maxColors < 1 || maxColors > 256) throw new Error(`maxColors must be 1–256, got ${maxColors}`)
+  const useTransparencyMask = hasTransparentPixels(grid)
 
   if (imageType === 'graphic') {
-    const palette  = kMeansExtract(grid, maxColors)
-    const colorMap = buildColorMap(grid, palette)
+    let palette = kMeansExtract(grid, maxColors)
+    let backgroundIndex: number | undefined
+    if (useTransparencyMask) {
+      const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
+      palette = withBg.palette
+      backgroundIndex = withBg.bgIndex
+    }
+    const colorMap = buildColorMap(grid, palette, backgroundIndex)
     return applyBackgroundPreference(grid, palette, colorMap, backgroundColor)
   }
 
   // Photo mode — pass backgroundColor so it always gets a dedicated slot
-  const palette  = saliencyMedianCut(grid, maxColors, backgroundColor)
-  const colorMap = buildColorMap(grid, palette)
+  let palette = saliencyMedianCut(grid, maxColors, backgroundColor)
+  let backgroundIndex: number | undefined
+  if (useTransparencyMask) {
+    const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
+    palette = withBg.palette
+    backgroundIndex = withBg.bgIndex
+  }
+  const colorMap = buildColorMap(grid, palette, backgroundIndex)
   return applyBackgroundPreference(grid, palette, colorMap, backgroundColor)
 }
 
@@ -757,7 +782,14 @@ export async function extractPaletteFromFullSize(
   })
 
   // Find palette from full-size pixels
-  const palette    = kMeansExtract(fullPixels, maxColors)
+  let palette = kMeansExtract(fullPixels, maxColors)
+  const useTransparencyMask = hasTransparentPixels(smallGrid)
+  let backgroundIndex: number | undefined
+  if (useTransparencyMask) {
+    const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
+    palette = withBg.palette
+    backgroundIndex = withBg.bgIndex
+  }
   const paletteLab = palette.map(e => rgbToLab(e.r, e.g, e.b))
 
   // For each grid cell, sample ALL full-res pixels in that region.
@@ -797,7 +829,10 @@ export async function extractPaletteFromFullSize(
         }
       }
 
-      if (total === 0) { colorMap[row * sw + col] = 0; continue }
+      if (total === 0) {
+        colorMap[row * sw + col] = typeof backgroundIndex === 'number' ? backgroundIndex : 0
+        continue
+      }
 
       // Perceptual significance vote:
       // Rather than pure majority, score each palette color by
@@ -835,7 +870,12 @@ export async function extractPaletteFromFullSize(
         }
       }
 
-      colorMap[row * sw + col] = winnerIdx
+      const smallIdx = row * sw + col
+      const alpha = smallGrid.data[smallIdx * 4 + 3]
+      colorMap[smallIdx] =
+        alpha < 220 && typeof backgroundIndex === 'number'
+          ? backgroundIndex
+          : winnerIdx
     }
   }
 

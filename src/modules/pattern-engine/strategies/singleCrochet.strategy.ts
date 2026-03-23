@@ -29,8 +29,9 @@ class SingleCrochetStrategy implements StitchStrategy {
 
     const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
     const isGraphic = imageType === 'graphic'
-    const smoothed  = isGraphic ? rawGrid : smoothGrid(rawGrid, palette)
-    const shouldCleanPhotoNoise = !isGraphic && maxColors <= 10
+    const shouldSmoothPhoto = !isGraphic && maxColors <= 12
+    const smoothed  = shouldSmoothPhoto ? smoothGrid(rawGrid, palette) : rawGrid
+    const shouldCleanPhotoNoise = !isGraphic && maxColors <= 8
     const { grid }  = shouldCleanPhotoNoise ? cleanPattern(smoothed, palette) : { grid: smoothed }
 
     const counts = countFromGrid(grid, palette.length)

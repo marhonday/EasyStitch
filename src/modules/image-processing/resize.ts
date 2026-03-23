@@ -96,9 +96,6 @@ export async function resizeToGrid(
     ? { sx: 0, sy: 0, sw: img.naturalWidth, sh: img.naturalHeight }
     : computeCentreCrop(img.naturalWidth, img.naturalHeight, finalW, finalH)
 
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, finalW, finalH)
-
   const isGraphic = options.imageType === 'graphic'
 
   if (isGraphic) {
@@ -107,8 +104,6 @@ export async function resizeToGrid(
     const midCanvas = document.createElement('canvas')
     midCanvas.width = midW; midCanvas.height = midH
     const midCtx = midCanvas.getContext('2d')!
-    midCtx.fillStyle = '#ffffff'
-    midCtx.fillRect(0, 0, midW, midH)
     midCtx.imageSmoothingEnabled = true
     midCtx.imageSmoothingQuality = 'high'
     midCtx.drawImage(img, sx, sy, sw, sh, 0, 0, midW, midH)
