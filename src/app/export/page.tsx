@@ -9,6 +9,7 @@ import { usePattern } from '@/context/PatternContext'
 import { STITCH_STYLE_META } from '@/lib/constants'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
+import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
@@ -32,25 +33,26 @@ export default function ExportPage() {
   const pngCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const { patternData } = state
+  const exportPattern = patternData ? applyPersonalizationToPattern(patternData, state.personalization) : null
 
   useEffect(() => {
-    if (!patternData || !pngCanvasRef.current) return
-    drawPatternToCanvas(pngCanvasRef.current, patternData, { cellSize: 20, gap: 1, showSymbols: true })
-  }, [patternData])
+    if (!exportPattern || !pngCanvasRef.current) return
+    drawPatternToCanvas(pngCanvasRef.current, exportPattern, { cellSize: 20, gap: 1, showSymbols: true })
+  }, [exportPattern])
 
   function handleSaveProject() {
-    if (!patternData) return
-    const project = createProject(patternData, projectName)
+    if (!exportPattern) return
+    const project = createProject(exportPattern, projectName)
     setSavedId(project.id)
   }
 
   async function handleDownloadPdf() {
-    if (!patternData) return
+    if (!exportPattern) return
     setStatus('loading-pdf')
     setError(null)
     try {
       const { downloadPdf } = await import('@/modules/pdf-export/buildPDF')
-      await downloadPdf(patternData, projectName.replace(/\s+/g, '-').toLowerCase(), projectName)
+      await downloadPdf(exportPattern, projectName.replace(/\s+/g, '-').toLowerCase(), projectName)
       setStatus('done-pdf')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed. Please try again.')
@@ -59,7 +61,7 @@ export default function ExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!patternData || !pngCanvasRef.current) return
+    if (!exportPattern || !pngCanvasRef.current) return
     setStatus('loading-png')
     try {
       const dataUrl = pngCanvasRef.current.toDataURL('image/png')
@@ -124,7 +126,7 @@ export default function ExportPage() {
     )
   }
 
-  const styleLabel = patternData ? (STITCH_STYLE_META[patternData.meta.stitchStyle]?.label ?? patternData.meta.stitchStyle) : '—'
+  const styleLabel = exportPattern ? (STITCH_STYLE_META[exportPattern.meta.stitchStyle]?.label ?? exportPattern.meta.stitchStyle) : '—'
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
@@ -152,13 +154,13 @@ export default function ExportPage() {
         </div>
 
         {/* Pattern summary */}
-        {patternData && (
+        {exportPattern && (
           <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16, marginBottom: 16 }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Pattern summary</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <SummaryTile label="Grid"     value={`${patternData.meta.width}×${patternData.meta.height}`} />
-              <SummaryTile label="Colours"  value={String(patternData.meta.colorCount)} />
-              <SummaryTile label="Stitches" value={patternData.meta.totalStitches.toLocaleString()} />
+              <SummaryTile label="Grid"     value={`${exportPattern.meta.width}×${exportPattern.meta.height}`} />
+              <SummaryTile label="Colours"  value={String(exportPattern.meta.colorCount)} />
+              <SummaryTile label="Stitches" value={exportPattern.meta.totalStitches.toLocaleString()} />
               <SummaryTile label="Style"    value={styleLabel} />
             </div>
           </div>
@@ -176,8 +178,8 @@ export default function ExportPage() {
           ) : (
             <button
               onClick={handleSaveProject}
-              disabled={!patternData}
-              style={{ width: '100%', padding: '13px', background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#6B5744', cursor: patternData ? 'pointer' : 'not-allowed' }}
+              disabled={!exportPattern}
+              style={{ width: '100%', padding: '13px', background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#6B5744', cursor: exportPattern ? 'pointer' : 'not-allowed' }}
             >
               📋 Save to Project Tracker
             </button>
@@ -195,7 +197,7 @@ export default function ExportPage() {
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Best for phone — save to camera roll, zoom in to stitch</p>
               </div>
             </div>
-            <button onClick={handleDownloadPng} disabled={!patternData} style={{ width: '100%', padding: '12px', background: patternData ? '#C4614A' : '#E4D9C8', color: patternData ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: patternData ? 'pointer' : 'not-allowed' }}>
+            <button onClick={handleDownloadPng} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
               ⬇ Download PNG
             </button>
           </div>
@@ -209,7 +211,7 @@ export default function ExportPage() {
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Best for printing — colour key, row numbers, instructions</p>
               </div>
             </div>
-            <button onClick={handleDownloadPdf} disabled={!patternData} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: `1.5px solid ${patternData ? '#E4D9C8' : '#F0EAE0'}`, borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: patternData ? 'pointer' : 'not-allowed' }}>
+            <button onClick={handleDownloadPdf} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: `1.5px solid ${exportPattern ? '#E4D9C8' : '#F0EAE0'}`, borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
               ⬇ Download PDF
             </button>
           </div>

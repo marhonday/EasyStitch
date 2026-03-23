@@ -24,7 +24,7 @@ const STITCH_ICONS: Record<StitchStyle, string> = {
 const DIFFICULTY_TIERS = [
   {
     id:      'simple',
-    label:   'Simple',
+    label:   'Beginner',
     emoji:   '🟢',
     colors:  6,
     hint:    'Bold shapes, plain background',
@@ -32,17 +32,17 @@ const DIFFICULTY_TIERS = [
   },
   {
     id:      'medium',
-    label:   'Medium',
+    label:   'Intermediate',
     emoji:   '🟡',
-    colors:  9,
+    colors:  12,
     hint:    'Some detail, light texture',
     example: 'Portraits, pets with detail',
   },
   {
     id:      'complex',
-    label:   'Complex',
+    label:   'Expert',
     emoji:   '🔴',
-    colors:  12,
+    colors:  25,
     hint:    'Fine detail, many tones',
     example: 'Landscapes, busy scenes',
   },
@@ -53,9 +53,6 @@ export default function SettingsPage() {
   const { state, dispatch }        = usePattern()
   const { generate, isGenerating, error } = usePatternGeneration()
   const { settings } = state
-
-  // Cap color slider to actual distinct colors found in this image
-  const colorCap = state.detectedColors ?? MAX_COLORS
 
   function setImageType(type: ImageType) {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: type } })
@@ -450,15 +447,59 @@ export default function SettingsPage() {
             <input
               type="range"
               min={MIN_COLORS}
-              max={colorCap}
-              value={Math.min(settings.maxColors, colorCap)}
+              max={MAX_COLORS}
+              value={Math.max(MIN_COLORS, Math.min(settings.maxColors, MAX_COLORS))}
               onChange={(e) => setMaxColors(Number(e.target.value))}
               style={{ width: '100%', accentColor: '#C4614A' }}
             />
             <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
               <span>{MIN_COLORS} colours</span>
-              <span>{colorCap} colours{state.detectedColors ? ' (max in photo)' : ''}</span>
+              <span>{MAX_COLORS} colours</span>
             </div>
+            {state.detectedColors && state.recommendedColors && (
+              <>
+                <p className="font-body text-xs text-ink/50 mt-2">
+                  We detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'color' : 'colors'} - recommended: {state.recommendedColors} colors
+                </p>
+                {(state.dominantPalette?.length ?? 0) > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <p className="font-body text-[11px] text-ink/40 mb-2">Detected dominant swatches</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+                      {(state.dominantPalette ?? []).slice(0, 8).map((swatch, idx) => {
+                        const totalPopulation = (state.dominantPalette ?? []).reduce((sum, item) => sum + item.population, 0)
+                        const pct = totalPopulation > 0 ? Math.round((swatch.population / totalPopulation) * 100) : 0
+                        return (
+                          <div
+                            key={`${swatch.hex}-${idx}`}
+                            style={{
+                              background: '#FAF6EF',
+                              border: '1px solid #E8DDD0',
+                              borderRadius: 10,
+                              padding: '8px 6px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: 6,
+                                margin: '0 auto 6px',
+                                background: swatch.hex,
+                                border: '1px solid rgba(44,34,24,0.12)',
+                              }}
+                              aria-label={`Detected swatch ${swatch.hex}`}
+                            />
+                            <p className="font-body text-[10px] text-ink/70" style={{ lineHeight: 1.2 }}>{swatch.hex}</p>
+                            <p className="font-body text-[10px] text-ink/40" style={{ lineHeight: 1.2 }}>{pct}%</p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 

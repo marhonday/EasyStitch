@@ -155,6 +155,20 @@ export interface PatternSettings {
   borderLayers:    BorderLayer[]  // 0–3 border layers, outermost first
 }
 
+export type PersonalizationPlacement = 'above' | 'below'
+export type PersonalizationFontStyle = 'pressStart2P' | 'vt323' | 'silkscreen' | 'audiowide'
+
+export interface PersonalizationSettings {
+  enabled: boolean
+  titleText: string
+  dateText: string
+  fontStyle: PersonalizationFontStyle
+  placement: PersonalizationPlacement
+  colorMode: 'palette' | 'custom'
+  paletteColorIndex: number
+  customColor: string
+}
+
 // ─── Wizard context state ─────────────────────────────────────────────────────
 
 export interface PatternContextState {
@@ -164,4 +178,7 @@ export interface PatternContextState {
   patternData:    PatternData | null
   isGenerating:   boolean
   detectedColors: number | null  // actual distinct colors found in uploaded image
+  dominantPalette: { hex: string; population: number }[] | null
+  recommendedColors: number | null
+  personalization: PersonalizationSettings
 }

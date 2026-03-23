@@ -19,6 +19,7 @@ import BottomCTA     from '@/components/layout/BottomCTA'
 import { usePattern } from '@/context/PatternContext'
 import CropTool from '@/components/upload/CropTool'
 import BgRemoval from '@/components/upload/BgRemoval'
+import { analyzeImageWithVibrant } from '@/modules/image-processing/vibrant'
 
 const MAX_RAW_BYTES = 8 * 1024 * 1024
 const MAX_EDGE_PX   = 1600
@@ -87,6 +88,17 @@ export default function UploadPage() {
     }
 
     dispatch({ type: 'SET_RAW_IMAGE', payload: dataUrl })
+
+    try {
+      const analysis = await analyzeImageWithVibrant(dataUrl)
+      dispatch({ type: 'SET_DETECTED_COLORS', payload: analysis.dominantCount })
+      dispatch({ type: 'SET_DOMINANT_PALETTE', payload: analysis.dominantPalette })
+      dispatch({ type: 'SET_RECOMMENDED_COLORS', payload: analysis.recommendedColors })
+      dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: analysis.recommendedColors } })
+    } catch {
+      // Palette analysis is best-effort; upload flow should continue regardless.
+    }
+
     setLoadState('ready')
     setCropUrl(dataUrl)
   }

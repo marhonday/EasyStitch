@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Header             from '@/components/layout/Header'
 import StepIndicator      from '@/components/ui/StepIndicator'
 import LoadingSpinner     from '@/components/ui/LoadingSpinner'
@@ -12,6 +12,10 @@ import OriginalImageThumb from '@/components/preview/OriginalImageThumb'
 import RowInstructions    from '@/components/preview/RowInstructions'
 import { usePattern }     from '@/context/PatternContext'
 import { ColorEntry }     from '@/types/pattern'
+import {
+  applyPersonalizationToPattern,
+  getPersonalizationCharLimit,
+} from '@/modules/personalization/personalizePattern'
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '')
@@ -24,8 +28,8 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 
 export default function PreviewPage() {
   const router            = useRouter()
-  const { state }         = usePattern()
-  const { patternData, rawImage, enhancedImage, isGenerating } = state
+  const { state, dispatch } = usePattern()
+  const { patternData, rawImage, isGenerating } = state
 
   // Custom palette overrides — user can swap any color
   const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
@@ -46,6 +50,24 @@ export default function PreviewPage() {
     if (!patternData) return null
     return { ...patternData, palette: activePalette }
   }, [patternData, activePalette])
+
+  const personalizedPattern = useMemo(() => {
+    if (!activePattern) return null
+    return applyPersonalizationToPattern(activePattern, state.personalization)
+  }, [activePattern, state.personalization])
+
+  const textCharLimit = useMemo(() => {
+    if (!patternData) return 24
+    return getPersonalizationCharLimit(patternData.meta.width, state.personalization.fontStyle)
+  }, [patternData, state.personalization.fontStyle])
+
+  useEffect(() => {
+    const nextTitle = state.personalization.titleText.slice(0, textCharLimit)
+    const nextDate = state.personalization.dateText.slice(0, textCharLimit)
+    if (nextTitle !== state.personalization.titleText || nextDate !== state.personalization.dateText) {
+      dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { titleText: nextTitle, dateText: nextDate } })
+    }
+  }, [dispatch, state.personalization.titleText, state.personalization.dateText, textCharLimit])
 
   function handleColorChange(paletteIndex: number, newHex: string) {
     setColorOverrides(prev => ({ ...prev, [paletteIndex]: newHex }))
@@ -160,10 +182,10 @@ export default function PreviewPage() {
             Pattern Grid
           </p>
           <PatternCanvas
-            pattern={patternData}
+            pattern={personalizedPattern!}
             cellSize={14}
             cellOverrides={cellOverrides}
-            paletteOverrides={activePalette}
+            paletteOverrides={personalizedPattern!.palette}
             onCellTap={handleCellTap}
           />
 
@@ -188,8 +210,8 @@ export default function PreviewPage() {
               <div style={{ width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', marginBottom: 2 }}>
                 Pick colour for cell
               </div>
-              {activePalette.filter(e => (e.stitchCount ?? 0) > 0).map((entry, i) => {
-                const realIdx = activePalette.indexOf(entry)
+              {personalizedPattern!.palette.filter(e => (e.stitchCount ?? 0) > 0).map((entry, i) => {
+                const realIdx = personalizedPattern!.palette.indexOf(entry)
                 return (
                   <button
                     key={realIdx}
@@ -251,17 +273,99 @@ export default function PreviewPage() {
           )}
         </div>
 
+        <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 1px 4px rgba(44,34,24,0.06)', padding: '14px 16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={state.personalization.enabled}
+              onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { enabled: e.target.checked } })}
+            />
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>
+              Add name or date to pattern
+            </span>
+          </label>
+
+          {state.personalization.enabled && (
+            <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
+              <input
+                value={state.personalization.titleText}
+                onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { titleText: e.target.value.slice(0, textCharLimit) } })}
+                maxLength={textCharLimit}
+                placeholder="Name / Title (optional)"
+                style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
+              />
+              <p style={{ marginTop: -4, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                Name/Title max for this grid: {textCharLimit} characters
+              </p>
+              <input
+                value={state.personalization.dateText}
+                onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { dateText: e.target.value.slice(0, textCharLimit) } })}
+                maxLength={textCharLimit}
+                placeholder="Date / Birthday (optional)"
+                style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
+              />
+              <p style={{ marginTop: -4, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                Date/Birthday max for this grid: {textCharLimit} characters
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <select
+                  value={state.personalization.fontStyle}
+                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { fontStyle: e.target.value as typeof state.personalization.fontStyle } })}
+                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+                >
+                  <option value="pressStart2P" style={{ fontFamily: "'Press Start 2P', cursive" }}>Press Start 2P</option>
+                  <option value="vt323" style={{ fontFamily: "'VT323', monospace" }}>VT323</option>
+                  <option value="silkscreen" style={{ fontFamily: "'Silkscreen', sans-serif" }}>Silkscreen</option>
+                  <option value="audiowide" style={{ fontFamily: "'Audiowide', cursive" }}>Audiowide</option>
+                </select>
+                <select
+                  value={state.personalization.placement}
+                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { placement: e.target.value as 'above' | 'below' } })}
+                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+                >
+                  <option value="below">Place below grid</option>
+                  <option value="above">Place above grid</option>
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+                <select
+                  value={`${state.personalization.colorMode}:${state.personalization.paletteColorIndex}`}
+                  onChange={(e) => {
+                    const [mode, idx] = e.target.value.split(':')
+                    dispatch({
+                      type: 'UPDATE_PERSONALIZATION',
+                      payload: { colorMode: mode as 'palette' | 'custom', paletteColorIndex: Number(idx) || 0 },
+                    })
+                  }}
+                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+                >
+                  {activePalette.map((p, idx) => (
+                    <option key={idx} value={`palette:${idx}`}>Palette {idx + 1} ({p.hex})</option>
+                  ))}
+                  <option value={`custom:${state.personalization.paletteColorIndex}`}>Custom colour…</option>
+                </select>
+                <input
+                  type="color"
+                  value={state.personalization.customColor}
+                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { customColor: e.target.value, colorMode: 'custom' } })}
+                  style={{ width: 44, height: 40, border: '1.5px solid #E4D9C8', borderRadius: 10, padding: 2 }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <ColorLegend
-          palette={activePalette}
-          totalStitches={patternData.meta.totalStitches}
+          palette={personalizedPattern!.palette}
+          totalStitches={personalizedPattern!.meta.totalStitches}
           onColorChange={handleColorChange}
           hasOverrides={Object.keys(colorOverrides).length > 0}
           onResetColors={handleClearOverrides}
         />
 
-        <RowInstructions pattern={activePattern!} />
+        <RowInstructions pattern={personalizedPattern!} />
 
-        <PatternMetadata meta={patternData.meta} />
+        <PatternMetadata meta={personalizedPattern!.meta} />
 
         <div style={{
           background: 'rgba(122,158,126,0.1)',
