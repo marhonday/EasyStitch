@@ -67,6 +67,25 @@ function parseHexColor(hex: string): { r: number; g: number; b: number } {
   }
 }
 
+function ensureBackgroundColorInPalette(
+  palette: ColorEntry[],
+  backgroundColor: string
+): { palette: ColorEntry[]; bgIndex: number } {
+  const { r, g, b } = parseHexColor(backgroundColor)
+  const wantedHex = rgbToHex(r, g, b).toLowerCase()
+  const existing = palette.findIndex((p) => p.hex.toLowerCase() === wantedHex)
+  if (existing >= 0) return { palette, bgIndex: existing }
+
+  const nextIndex = palette.length
+  return {
+    bgIndex: nextIndex,
+    palette: [
+      ...palette,
+      { r, g, b, hex: wantedHex, symbol: COLOR_SYMBOLS[nextIndex] ?? String(nextIndex + 1) },
+    ],
+  }
+}
+
 function applyBackgroundPreference(
   grid: PixelGrid,
   palette: ColorEntry[],
@@ -97,29 +116,52 @@ function applyBackgroundPreference(
   }
   const dominantEdgeFraction = edgeTotal > 0 ? edgeVotes[dominantEdgeIdx] / edgeTotal : 0
 
-  // If the border doesn't have a dominant color, avoid forcing background.
+  // If the border doesn't have a dominant color, don't touch mapping.
   if (dominantEdgeFraction < 0.18) return { palette, colorMap }
 
-  const { r, g, b } = parseHexColor(backgroundColor)
-  const nextPalette = [...palette]
+  const { palette: nextPalette, bgIndex } = ensureBackgroundColorInPalette(palette, backgroundColor)
+  const nextColorMap = new Uint8Array(colorMap)
 
-  // Normalize all strong edge colors to the chosen background color.
-  // This avoids checker-like mixed background artifacts after BG removal.
-  const EDGE_FRACTION_MIN = 0.12
+  // Treat frequently-occurring edge colors as background candidates.
+  const EDGE_CANDIDATE_MIN = 0.08
+  const bgCandidates = new Set<number>()
   for (let i = 0; i < edgeVotes.length; i++) {
     const frac = edgeTotal > 0 ? edgeVotes[i] / edgeTotal : 0
-    if (i === dominantEdgeIdx || frac >= EDGE_FRACTION_MIN) {
-      nextPalette[i] = {
-        ...nextPalette[i],
-        r,
-        g,
-        b,
-        hex: rgbToHex(r, g, b),
-      }
-    }
+    if (i === dominantEdgeIdx || frac >= EDGE_CANDIDATE_MIN) bgCandidates.add(i)
   }
 
-  return { palette: nextPalette, colorMap }
+  // Flood-fill from border through only background-candidate colors.
+  // This recolors connected background regions without collapsing subject detail.
+  const visited = new Uint8Array(width * height)
+  const queue: number[] = []
+  const push = (idx: number) => {
+    if (visited[idx]) return
+    if (!bgCandidates.has(nextColorMap[idx])) return
+    visited[idx] = 1
+    queue.push(idx)
+  }
+
+  for (let col = 0; col < width; col++) {
+    push(col)
+    push((height - 1) * width + col)
+  }
+  for (let row = 1; row < height - 1; row++) {
+    push(row * width)
+    push(row * width + (width - 1))
+  }
+
+  while (queue.length) {
+    const idx = queue.shift()!
+    nextColorMap[idx] = bgIndex
+    const row = Math.floor(idx / width)
+    const col = idx % width
+    if (row > 0) push(idx - width)
+    if (row < height - 1) push(idx + width)
+    if (col > 0) push(idx - 1)
+    if (col < width - 1) push(idx + 1)
+  }
+
+  return { palette: nextPalette, colorMap: nextColorMap }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
