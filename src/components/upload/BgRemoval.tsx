@@ -128,7 +128,10 @@ export default function BgRemoval({ imageUrl, onAccept, onCancel, onSkip }: BgRe
         {status === 'done' && resultUrl ? (
           <>
             <button onClick={onCancel} style={{ ...btnBase, background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8' }}>
-              Cancel
+              Back
+            </button>
+            <button onClick={onSkip} style={{ ...btnBase, background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8' }}>
+              Skip removal
             </button>
             <button onClick={() => onAccept(resultUrl)} style={{ ...btnBase, flex: 2, background: '#C4614A', color: 'white', boxShadow: '0 4px 16px rgba(196,97,74,0.28)' }}>
               Use this ✓

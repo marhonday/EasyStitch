@@ -58,6 +58,70 @@ function finalizePalette(colors: Array<{r:number,g:number,b:number}>): ColorEntr
   return entries.map((e, i) => ({ ...e, symbol: COLOR_SYMBOLS[i] ?? String(i + 1) }))
 }
 
+function parseHexColor(hex: string): { r: number; g: number; b: number } {
+  const clean = hex.replace('#', '')
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  }
+}
+
+function applyBackgroundPreference(
+  grid: PixelGrid,
+  palette: ColorEntry[],
+  colorMap: ColorMap,
+  backgroundColor: string
+): { palette: ColorEntry[]; colorMap: ColorMap } {
+  if (!palette.length || !colorMap.length) return { palette, colorMap }
+
+  const { width, height } = grid
+  const edgeVotes = new Int32Array(palette.length)
+  let edgeTotal = 0
+
+  // Vote with all border cells to estimate dominant background color.
+  for (let col = 0; col < width; col++) {
+    edgeVotes[colorMap[col]]++
+    edgeVotes[colorMap[(height - 1) * width + col]]++
+    edgeTotal += 2
+  }
+  for (let row = 1; row < height - 1; row++) {
+    edgeVotes[colorMap[row * width]]++
+    edgeVotes[colorMap[row * width + (width - 1)]]++
+    edgeTotal += 2
+  }
+
+  let dominantEdgeIdx = 0
+  for (let i = 1; i < edgeVotes.length; i++) {
+    if (edgeVotes[i] > edgeVotes[dominantEdgeIdx]) dominantEdgeIdx = i
+  }
+  const dominantEdgeFraction = edgeTotal > 0 ? edgeVotes[dominantEdgeIdx] / edgeTotal : 0
+
+  // If the border doesn't have a dominant color, avoid forcing background.
+  if (dominantEdgeFraction < 0.18) return { palette, colorMap }
+
+  const { r, g, b } = parseHexColor(backgroundColor)
+  const nextPalette = [...palette]
+
+  // Normalize all strong edge colors to the chosen background color.
+  // This avoids checker-like mixed background artifacts after BG removal.
+  const EDGE_FRACTION_MIN = 0.12
+  for (let i = 0; i < edgeVotes.length; i++) {
+    const frac = edgeTotal > 0 ? edgeVotes[i] / edgeTotal : 0
+    if (i === dominantEdgeIdx || frac >= EDGE_FRACTION_MIN) {
+      nextPalette[i] = {
+        ...nextPalette[i],
+        r,
+        g,
+        b,
+        hex: rgbToHex(r, g, b),
+      }
+    }
+  }
+
+  return { palette: nextPalette, colorMap }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ENGINE 1: K-MEANS — graphics, logos, flat art
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -565,13 +629,13 @@ export function quantizeImage(
   if (imageType === 'graphic') {
     const palette  = kMeansExtract(grid, maxColors)
     const colorMap = buildColorMap(grid, palette)
-    return { palette, colorMap }
+    return applyBackgroundPreference(grid, palette, colorMap, backgroundColor)
   }
 
   // Photo mode — pass backgroundColor so it always gets a dedicated slot
   const palette  = saliencyMedianCut(grid, maxColors, backgroundColor)
   const colorMap = buildColorMap(grid, palette)
-  return { palette, colorMap }
+  return applyBackgroundPreference(grid, palette, colorMap, backgroundColor)
 }
 
 /**
@@ -629,7 +693,8 @@ export async function buildPaletteFromFullRes(
 export async function extractPaletteFromFullSize(
   dataUrl:   string,
   smallGrid: PixelGrid,
-  maxColors: number
+  maxColors: number,
+  backgroundColor: string = '#ffffff'
 ): Promise<QuantizeResult> {
   const fullPixels = await new Promise<PixelGrid>((resolve, reject) => {
     const img = new Image()
@@ -732,5 +797,5 @@ export async function extractPaletteFromFullSize(
     }
   }
 
-  return { palette, colorMap }
+  return applyBackgroundPreference(smallGrid, palette, colorMap, backgroundColor)
 }

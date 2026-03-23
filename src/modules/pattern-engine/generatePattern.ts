@@ -100,7 +100,7 @@ export async function generatePattern(
   // ── Stage 2: Quantize ──────────────────────────────────────────────────────
   let palette, colorMap
   if (imageType === 'graphic') {
-    const result = await extractPaletteFromFullSize(imageDataUrl, cleanGrid, maxColors)
+    const result = await extractPaletteFromFullSize(imageDataUrl, cleanGrid, maxColors, backgroundColor)
     palette  = result.palette
     colorMap = result.colorMap
   } else {

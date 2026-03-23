@@ -25,12 +25,13 @@ class SingleCrochetStrategy implements StitchStrategy {
 
   execute(input: StrategyInput): PatternData {
     const { palette, colorMap, settings, pixelGrid } = input
-    const { stitchStyle, imageType } = settings
+    const { stitchStyle, imageType, maxColors } = settings
 
     const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
     const isGraphic = imageType === 'graphic'
     const smoothed  = isGraphic ? rawGrid : smoothGrid(rawGrid, palette)
-    const { grid }  = isGraphic ? { grid: smoothed } : cleanPattern(smoothed, palette)
+    const shouldCleanPhotoNoise = !isGraphic && maxColors <= 10
+    const { grid }  = shouldCleanPhotoNoise ? cleanPattern(smoothed, palette) : { grid: smoothed }
 
     const counts = countFromGrid(grid, palette.length)
     const annotatedPalette: ColorEntry[] = palette.map((entry, i) => ({
