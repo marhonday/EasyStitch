@@ -45,5 +45,5 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
 }
 
 export function getStitchHints(style: StitchStyle): StitchRenderHints {
-  return HINTS[style] ?? HINTS['graphghan']
+  return HINTS[style] ?? HINTS['c2c']
 }

@@ -74,7 +74,7 @@ interface PdfInstructionsProps {
 }
 
 export default function PdfInstructions({ stitchStyle }: PdfInstructionsProps) {
-  const set = INSTRUCTIONS[stitchStyle] ?? INSTRUCTIONS['graphghan']
+  const set = INSTRUCTIONS[stitchStyle] ?? INSTRUCTIONS['c2c']
 
   return (
     <View style={styles.instructionsBox}>

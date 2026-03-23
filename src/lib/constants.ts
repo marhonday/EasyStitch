@@ -20,7 +20,7 @@ export const GRID_SIZES: GridSize[] = [
 // ─── Default settings ─────────────────────────────────────────────────────────
 
 export const DEFAULT_SETTINGS = {
-  stitchStyle:     'graphghan' as StitchStyle,
+  stitchStyle:     'c2c' as StitchStyle,
   gridSize:        GRID_SIZES[0],
   maxColors:       8,
   imageType:       'photo' as ImageType,
@@ -37,11 +37,6 @@ export interface StitchStyleMeta {
 }
 
 export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
-  graphghan: {
-    label:       'Simple Blocks',
-    description: 'Great for beginners',
-    available:   true,
-  },
   c2c: {
     label:       'Corner to Corner',
     description: 'Diagonal stitch pattern',
@@ -50,11 +45,6 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
   singleCrochet: {
     label:       'Single Crochet',
     description: 'Tight, detailed grid',
-    available:   true,
-  },
-  tapestry: {
-    label:       'Tapestry',
-    description: 'Colour-carry technique',
     available:   true,
   },
 }
@@ -80,8 +70,6 @@ export const WIZARD_STEPS = [
 // Based on standard worsted weight yarn averages
 
 export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
-  graphghan:     2.0,   // DC graphghan
   singleCrochet: 1.5,
   c2c:           1.8,
-  tapestry:      2.2,   // slightly more due to carried yarn
 }

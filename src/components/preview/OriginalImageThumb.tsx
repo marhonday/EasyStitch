@@ -1,15 +1,5 @@
 'use client'
 
-/**
- * components/preview/OriginalImageThumb.tsx
- *
- * Shows the original uploaded image alongside a small canvas thumbnail
- * of the generated pattern side by side — the "before/after" moment.
- *
- * The pattern thumbnail draws itself via useEffect on mount using
- * drawPatternThumbnail() — a small canvas render that runs once.
- */
-
 import { useRef, useEffect } from 'react'
 import { PatternData } from '@/types/pattern'
 import { drawPatternThumbnail } from '@/modules/preview-rendering/canvasRenderer'
@@ -19,10 +9,7 @@ interface OriginalImageThumbProps {
   pattern:      PatternData
 }
 
-export default function OriginalImageThumb({
-  originalSrc,
-  pattern,
-}: OriginalImageThumbProps) {
+export default function OriginalImageThumb({ originalSrc, pattern }: OriginalImageThumbProps) {
   const thumbCanvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -31,23 +18,24 @@ export default function OriginalImageThumb({
     }
   }, [pattern])
 
-  const thumbSize = computeThumbSize(pattern)
+  const thumbSize = {
+    width:  pattern.meta.width  * 6,
+    height: pattern.meta.height * 6,
+  }
+
+  // Use pattern aspect ratio for both containers so they match
+  const aspect = `${pattern.meta.width} / ${pattern.meta.height}`
 
   return (
     <div style={{
-      background:   'white',
-      borderRadius: 20,
-      padding:      16,
-      boxShadow:    '0 2px 16px rgba(44,34,24,0.07)',
+      background: 'white', borderRadius: 20,
+      padding: 16, boxShadow: '0 2px 16px rgba(44,34,24,0.07)',
     }}>
       <p style={{
-        fontSize:      11,
-        fontWeight:    500,
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        color:         '#6B5744',
-        fontFamily:    "'DM Sans', sans-serif",
-        marginBottom:  12,
+        fontSize: 11, fontWeight: 500,
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+        color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+        marginBottom: 12,
       }}>
         Original → Pattern
       </p>
@@ -59,26 +47,20 @@ export default function OriginalImageThumb({
             Photo
           </p>
           <div style={{
-            borderRadius: 12,
-            overflow:     'hidden',
-            aspectRatio:  '1',
-            background:   '#F2EAD8',
+            borderRadius: 12, overflow: 'hidden',
+            background: '#F2EAD8',
+            aspectRatio: aspect,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {originalSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={originalSrc}
-                alt="Original uploaded photo"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                alt="Original"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
               />
             ) : (
-              <div style={{
-                width: '100%', height: '100%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 28,
-              }}>
-                🖼
-              </div>
+              <span style={{ fontSize: 28 }}>🖼</span>
             )}
           </div>
         </div>
@@ -89,19 +71,15 @@ export default function OriginalImageThumb({
             Pattern
           </p>
           <div style={{
-            borderRadius: 12,
-            overflow:     'hidden',
-            aspectRatio:  '1',
-            background:   '#E4D9C8',
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent: 'center',
+            borderRadius: 12, overflow: 'hidden',
+            background: '#E4D9C8', aspectRatio: aspect,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <canvas
               ref={thumbCanvasRef}
               width={thumbSize.width}
               height={thumbSize.height}
-              style={{ width: '100%', height: '100%', imageRendering: 'pixelated' }}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated', display: 'block' }}
               aria-label="Pattern thumbnail"
             />
           </div>
@@ -109,12 +87,4 @@ export default function OriginalImageThumb({
       </div>
     </div>
   )
-}
-
-/** Compute canvas dimensions for the thumbnail at 6px cells */
-function computeThumbSize(pattern: PatternData) {
-  return {
-    width:  pattern.meta.width  * 6,
-    height: pattern.meta.height * 6,
-  }
 }

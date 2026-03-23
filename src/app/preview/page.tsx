@@ -115,7 +115,7 @@ export default function PreviewPage() {
     )
   }
 
-  const imageToShow = enhancedImage ?? rawImage
+  const imageToShow = rawImage
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>

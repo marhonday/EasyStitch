@@ -439,36 +439,49 @@ function saliencyMedianCut(
   maxColors:       number,
   backgroundColor: string = '#ffffff'
 ): ColorEntry[] {
-  const { data, width, height } = grid
+  const { data } = grid
 
-  // Parse user-specified background color
-  const bgHex = backgroundColor.replace('#', '')
-  const bgR   = parseInt(bgHex.slice(0,2), 16)
-  const bgG   = parseInt(bgHex.slice(2,4), 16)
-  const bgB   = parseInt(bgHex.slice(4,6), 16)
-  const bgLab = rgbToLab(bgR, bgG, bgB)
+  // ── Step 1: Collect all opaque pixels ─────────────────────────────────────
+  const allPixels: LabColor[] = []
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] >= 128) allPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]))
+  }
+  if (allPixels.length === 0) return []
 
-  // Background always gets one dedicated palette slot
-  const bgEntry: ColorEntry = {
-    r: bgR, g: bgG, b: bgB,
-    hex:   backgroundColor,
-    symbol: '■',
-    label: 'Background',
+  // ── Step 2: Anchor seeds (same as graphic engine) ─────────────────────────
+  // Seeds the darkest pixel (eyes, pupils, outlines) and most saturated pixels
+  // (fur color, skin tone peaks) — these are the features that define a face/pet
+  let darkest = allPixels[0], lightest = allPixels[0]
+  let mostSat = allPixels[0], secondSat = allPixels[0]
+  for (const p of allPixels) {
+    if (p.L < darkest.L) darkest = p
+    if (p.L > lightest.L) lightest = p
+    const sat = Math.sqrt(p.a * p.a + p.b * p.b)
+    const s1  = Math.sqrt(mostSat.a  * mostSat.a  + mostSat.b  * mostSat.b)
+    const s2  = Math.sqrt(secondSat.a * secondSat.a + secondSat.b * secondSat.b)
+    if (sat > s1) { secondSat = mostSat; mostSat = p }
+    else if (sat > s2 && labDistance(p, mostSat) > 20) secondSat = p
   }
 
-  // All remaining slots go to subject
-  const subjectSlots = Math.max(1, maxColors - 1)
+  // Reserve 2 anchor slots: darkest + most saturated (if distinct enough)
+  // These guarantee eyes/outlines and dominant fur/skin color are in palette
+  const ANCHOR_DISTINCT = 25
+  const anchors: LabColor[] = [darkest]
+  if (labDistance(mostSat, darkest) > ANCHOR_DISTINCT) anchors.push(mostSat)
 
-  // Collect saliency-weighted pixels, excluding those close to the background color
-  // Use a generous exclusion radius so similar colors don't bleed into bg slot
-  const BG_EXCL    = 28
-  const allPixels  = extractSaliencyPixels(grid)
-  const subjPixels = allPixels.filter(p => labDistance(p, bgLab) > BG_EXCL)
+  const anchorSlots = Math.min(anchors.length, Math.floor(maxColors / 2))
+  const remainSlots = Math.max(1, maxColors - anchorSlots)
 
-  // Fall back to all pixels if exclusion removed too many (very uniform image)
-  const usePixels = subjPixels.length > subjectSlots * 4 ? subjPixels : allPixels
+  // ── Step 3: Saliency-weighted pixels for remaining slots ──────────────────
+  // Exclude pixels already covered by anchors so remaining slots find new colors
+  const CLAIM_DIST   = 20
+  const saliencyPxls = extractSaliencyPixels(grid)
+  const unclaimed    = saliencyPxls.filter(p =>
+    anchors.slice(0, anchorSlots).every(a => labDistance(p, a) > CLAIM_DIST)
+  )
 
-  const oversampleGoal = Math.min(subjectSlots * 4, 80)
+  const usePixels      = unclaimed.length > remainSlots * 3 ? unclaimed : saliencyPxls
+  const oversampleGoal = Math.min(remainSlots * 4, 80)
   const buckets        = medianCut(usePixels, oversampleGoal)
 
   const candidates = buckets
@@ -480,24 +493,25 @@ function saliencyMedianCut(
       const r=Math.round(rS/n),g=Math.round(gS/n),b=Math.round(bS/n)
       return {r,g,b,hex:rgbToHex(r,g,b),lightness:perceivedLightness(r,g,b)}
     })
+  candidates.sort((a,b)=>a.lightness-b.lightness)
+  const candidateEntries: ColorEntry[] = candidates.map((e,i)=>({...e,symbol:COLOR_SYMBOLS[i]??String(i+1)}))
+  const subjectSelected = selectMostDistinct(candidateEntries, remainSlots)
 
-  // Remove candidates too similar to background
-  const MIN_BG_DIST = 20
-  const filtered = candidates.filter(c => {
-    const cLab = rgbToLab(c.r, c.g, c.b)
-    return labDistance(cLab, bgLab) > MIN_BG_DIST
-  })
+  // ── Step 4: Combine anchors + saliency colors ──────────────────────────────
+  const anchorEntries: ColorEntry[] = anchors.slice(0, anchorSlots).map((a, i) => ({
+    r:   Math.round(a.r),
+    g:   Math.round(a.g),
+    b:   Math.round(a.bl),
+    hex: rgbToHex(Math.round(a.r), Math.round(a.g), Math.round(a.bl)),
+    symbol: COLOR_SYMBOLS[i] ?? String(i + 1),
+    lightness: a.L,
+  }))
 
-  const pool = filtered.length >= subjectSlots ? filtered : candidates
-  pool.sort((a,b) => a.lightness - b.lightness)
-  const poolEntries: ColorEntry[] = pool.map((e,i) => ({...e, symbol: COLOR_SYMBOLS[i]??String(i+1)}))
-  const subjectSelected = selectMostDistinct(poolEntries, subjectSlots)
-
-  // Combine: background first, then subject colors sorted light→dark
-  const combined = [bgEntry, ...subjectSelected]
+  const combined = [...anchorEntries, ...subjectSelected]
   combined.sort((a,b) => perceivedLightness(a.r,a.g,a.b) - perceivedLightness(b.r,b.g,b.b))
   return combined.map((e,i) => ({...e, symbol: COLOR_SYMBOLS[i]??String(i+1)}))
 }
+
 
 // ─── Auto-detect image type ───────────────────────────────────────────────────
 

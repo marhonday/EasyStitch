@@ -16,10 +16,8 @@ const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: s
 ]
 
 const STITCH_ICONS: Record<StitchStyle, string> = {
-  graphghan:     '⬛',
   c2c:           '◪',
   singleCrochet: '▦',
-  tapestry:      '⧉',
 }
 
 // Difficulty tiers — suggest color count based on photo complexity
@@ -285,7 +283,7 @@ export default function SettingsPage() {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'white', borderRadius: 12, padding: '10px 14px', marginBottom: 8, boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
               <input
                 type="color"
-                value={layer.color}
+                value={/^#[0-9a-fA-F]{6}$/.test(layer.color) ? layer.color : '#ffffff'}
                 onChange={e => {
                   const layers = [...(settings.borderLayers ?? [])]
                   layers[i] = { ...layers[i], color: e.target.value }

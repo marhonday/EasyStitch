@@ -18,6 +18,7 @@ import StepIndicator from '@/components/ui/StepIndicator'
 import BottomCTA     from '@/components/layout/BottomCTA'
 import { usePattern } from '@/context/PatternContext'
 import CropTool from '@/components/upload/CropTool'
+import BgRemoval from '@/components/upload/BgRemoval'
 
 const MAX_RAW_BYTES = 8 * 1024 * 1024
 const MAX_EDGE_PX   = 1600
@@ -56,7 +57,8 @@ export default function UploadPage() {
   const { state, dispatch } = usePattern()
   const [loadState, setLoadState] = useState<LoadState>('idle')
   const [error,     setError]     = useState<string | null>(null)
-  const [cropUrl,   setCropUrl]   = useState<string | null>(null)
+  const [cropUrl,      setCropUrl]      = useState<string | null>(null)
+  const [bgRemovalUrl, setBgRemovalUrl] = useState<string | null>(null)
 
   const hasPhoto = !!state.rawImage
 
@@ -91,9 +93,27 @@ export default function UploadPage() {
 
   async function handleCropConfirm(croppedUrl: string) {
     setCropUrl(null)
-    // Just store the cropped image — enhance/detect runs at generation time
-    dispatch({ type: 'SET_RAW_IMAGE', payload: croppedUrl })
+    setBgRemovalUrl(croppedUrl)
+  }
+
+  function handleBgAccept(resultUrl: string) {
+    setBgRemovalUrl(null)
+    dispatch({ type: 'SET_RAW_IMAGE', payload: resultUrl })
     setLoadState('ready')
+  }
+
+  function handleBgSkip() {
+    const url = bgRemovalUrl!
+    setBgRemovalUrl(null)
+    dispatch({ type: 'SET_RAW_IMAGE', payload: url })
+    setLoadState('ready')
+  }
+
+  function handleBgCancel() {
+    // Cancel goes back to crop
+    const url = bgRemovalUrl!
+    setBgRemovalUrl(null)
+    setCropUrl(url)
   }
 
   const statusMessage = {
@@ -117,6 +137,20 @@ export default function UploadPage() {
             setCropUrl(null)
             handleCropConfirm(cropUrl)
           }}
+        />
+      </main>
+    )
+  }
+
+  // Show background removal screen after crop
+  if (bgRemovalUrl) {
+    return (
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+        <BgRemoval
+          imageUrl={bgRemovalUrl}
+          onAccept={handleBgAccept}
+          onCancel={handleBgCancel}
+          onSkip={handleBgSkip}
         />
       </main>
     )

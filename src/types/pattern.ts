@@ -17,7 +17,7 @@
  *                  stitch-count metadata and instructions (placeholder)
  * tapestry       — row-level colour-carry constraints enforced (placeholder)
  */
-export type StitchStyle = 'graphghan' | 'c2c' | 'singleCrochet' | 'tapestry'
+export type StitchStyle = 'c2c' | 'singleCrochet'
 
 /**
  * How cells are ordered for pattern-reading instructions.
