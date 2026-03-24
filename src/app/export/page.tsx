@@ -7,6 +7,7 @@ import StepIndicator  from '@/components/ui/StepIndicator'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { usePattern } from '@/context/PatternContext'
 import { STITCH_STYLE_META, FREE_MODE } from '@/lib/constants'
+import { encodePatternToUrl } from '@/lib/patternUrl'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
 import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
@@ -30,6 +31,32 @@ export default function ExportPage() {
   const [error,       setError]       = useState<string | null>(null)
   const [projectName, setProjectName] = useState('My Crochet Pattern')
   const [savedId,     setSavedId]     = useState<string | null>(null)
+  const [emailInput,  setEmailInput]  = useState('')
+  const [linkCopied,  setLinkCopied]  = useState(false)
+  const [emailSent,   setEmailSent]   = useState(false)
+
+  function getShareUrl() {
+    if (!exportPattern) return ''
+    return encodePatternToUrl(exportPattern)
+  }
+
+  function handleSendPatternLink() {
+    const url     = getShareUrl()
+    const subject = encodeURIComponent(`Your EasyStitch Pattern — ${projectName}`)
+    const body    = encodeURIComponent(
+      `Hi!\n\nHere's your EasyStitch crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— EasyStitch`
+    )
+    window.open(`mailto:${emailInput}?subject=${subject}&body=${body}`)
+    setEmailSent(true)
+  }
+
+  function handleCopyLink() {
+    const url = getShareUrl()
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2500)
+    })
+  }
   const pngCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const { patternData } = state
@@ -119,6 +146,79 @@ export default function ExportPage() {
           )}
 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', marginBottom: 20 }}>Happy stitching! 🧶</p>
+
+          {/* Email pattern link */}
+          <div style={{ width: '100%', maxWidth: 320, background: 'white', borderRadius: 18, boxShadow: '0 2px 12px rgba(44,34,24,0.07)', padding: '14px 16px', marginBottom: 14 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
+              📬 Email yourself the pattern
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginBottom: 12 }}>
+              Get a link that reopens your pattern viewer anytime — no account needed.
+            </p>
+
+            {!emailSent ? (
+              <>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  placeholder="your@email.com"
+                  style={{
+                    width: '100%', padding: '11px 12px', boxSizing: 'border-box',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218',
+                    background: '#FAF6EF', border: '1.5px solid #E4D9C8',
+                    borderRadius: 10, outline: 'none', marginBottom: 8,
+                  }}
+                />
+                <button
+                  onClick={handleSendPatternLink}
+                  disabled={!emailInput.includes('@')}
+                  style={{
+                    width: '100%', padding: '11px',
+                    background: emailInput.includes('@') ? '#C4614A' : '#E4D9C8',
+                    color: emailInput.includes('@') ? 'white' : '#B8AAA0',
+                    border: 'none', borderRadius: 10,
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+                    cursor: emailInput.includes('@') ? 'pointer' : 'not-allowed',
+                    marginBottom: 8,
+                  }}
+                >
+                  Send pattern link →
+                </button>
+                <button
+                  onClick={handleCopyLink}
+                  style={{
+                    width: '100%', padding: '9px',
+                    background: 'transparent', border: '1.5px solid #E4D9C8',
+                    borderRadius: 10, fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 12, color: linkCopied ? '#4A9050' : '#6B5744',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {linkCopied ? '✓ Link copied!' : '🔗 Copy link instead'}
+                </button>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#4A9050', fontWeight: 600, marginBottom: 4 }}>
+                  ✓ Email opened!
+                </p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+                  Hit send in your email app to save the link.
+                </p>
+                <button
+                  onClick={handleCopyLink}
+                  style={{
+                    marginTop: 8, background: 'none', border: 'none',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                    color: linkCopied ? '#4A9050' : '#B8AAA0', cursor: 'pointer',
+                  }}
+                >
+                  {linkCopied ? '✓ Copied!' : 'Or copy the link'}
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Share your creation nudge */}
           <div style={{
