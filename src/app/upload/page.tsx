@@ -173,54 +173,76 @@ export default function UploadPage() {
       <Header />
       <StepIndicator />
 
-      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 20px 160px' }}>
+      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 20px 160px' }}>
 
-        <div style={{ width: '100%', maxWidth: 400, textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
-            Choose your photo
+        <div style={{ width: '100%', maxWidth: 400, textAlign: 'center', marginBottom: 16 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+            {hasPhoto ? 'Looking good!' : 'Upload your photo'}
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.6 }}>
-            Pets, portraits, flowers — anything with a clear subject works great.
+            {hasPhoto
+              ? 'Your photo is ready. Tap below to set up your pattern.'
+              : 'Pets, portraits, logos — anything with a clear subject works great.'}
           </p>
         </div>
 
-        {/* Upload / preview area */}
+        {/* Upload / preview area — compact */}
         <label
           htmlFor="photo-upload"
           style={{
-            width: '100%', maxWidth: 400, aspectRatio: '1',
-            borderRadius: 24,
+            width: '100%', maxWidth: 400,
+            height: hasPhoto ? 'auto' : 156,
+            borderRadius: 20,
             border: hasPhoto ? 'none' : '2px dashed #E4D9C8',
-            display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: hasPhoto ? 'row' : 'column',
             alignItems: 'center', justifyContent: 'center',
             cursor: isLoading ? 'wait' : 'pointer',
             overflow: 'hidden',
             background: hasPhoto ? 'transparent' : 'white',
-            boxShadow: hasPhoto ? '0 4px 24px rgba(44,34,24,0.10)' : 'none',
+            boxShadow: hasPhoto ? 'none' : '0 1px 6px rgba(44,34,24,0.05)',
             position: 'relative',
+            gap: hasPhoto ? 14 : 0,
           }}
         >
-          {/* Photo */}
-          {hasPhoto && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={state.enhancedImage ?? state.rawImage!}
-              alt="Your photo"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
+          {/* Photo thumbnail — compact row when selected */}
+          {hasPhoto && !isLoading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: '12px 16px', boxShadow: '0 2px 12px rgba(44,34,24,0.08)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={state.enhancedImage ?? state.rawImage!}
+                alt="Your photo"
+                style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 12, flexShrink: 0, display: 'block' }}
+              />
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 14 }}>✅</span>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218' }}>
+                    Photo loaded
+                  </p>
+                </div>
+                {state.enhancedImage && (
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', marginBottom: 4 }}>
+                    ✨ Cleaned up automatically
+                  </p>
+                )}
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0' }}>
+                  Tap to swap photo
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Loading overlay */}
           {isLoading && (
             <div style={{
-              position: 'absolute', inset: 0,
-              background: 'rgba(250,246,239,0.88)',
+              width: '100%', maxWidth: 400, height: 156,
+              background: 'white', borderRadius: 20,
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              gap: 12,
+              gap: 12, boxShadow: '0 1px 6px rgba(44,34,24,0.05)',
             }}>
               <div style={{
-                width: 40, height: 40, borderRadius: '50%',
+                width: 36, height: 36, borderRadius: '50%',
                 border: '3px solid #E4D9C8',
                 borderTopColor: '#C4614A',
                 animation: 'upload-spin 0.8s linear infinite',
@@ -233,8 +255,8 @@ export default function UploadPage() {
 
           {/* Empty state */}
           {!hasPhoto && !isLoading && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 32, textAlign: 'center' }}>
-              <div style={{ width: 72, height: 72, borderRadius: 20, background: '#F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '24px 32px', textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>
                 📷
               </div>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 15, color: '#2C2218' }}>
@@ -256,52 +278,77 @@ export default function UploadPage() {
           disabled={isLoading}
         />
 
-        {/* Status / error / swap */}
-        <div style={{ marginTop: 14, width: '100%', maxWidth: 400, textAlign: 'center' }}>
-          {error && (
-            <div style={{ background: 'rgba(196,97,74,0.08)', borderRadius: 12, padding: '10px 16px', marginBottom: 10 }}>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
-            </div>
-          )}
+        {/* Error */}
+        {error && (
+          <div style={{ marginTop: 10, width: '100%', maxWidth: 400, background: 'rgba(196,97,74,0.08)', borderRadius: 12, padding: '10px 16px' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
+          </div>
+        )}
 
-          {loadState === 'ready' && state.enhancedImage && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 10 }}>
-              <span style={{ fontSize: 14 }}>✨</span>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050' }}>
-                Photo cleaned up automatically
-              </p>
-            </div>
-          )}
-
-          {hasPhoto && !isLoading && (
-            <label
-              htmlFor="photo-upload"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: '#C8BFB0' }}
-            >
-              Choose a different photo
-            </label>
-          )}
-        </div>
-
-        {/* Tips — only when no photo selected */}
+        {/* ── Below-the-fold info — always visible when no photo ── */}
         {!hasPhoto && !isLoading && (
-          <div style={{ marginTop: 20, width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              Tips for best results
-            </p>
-            {[
-              ['🐾', 'Clear subject', 'Pet or object against a plain-ish background'],
-              ['☀️', 'Good lighting', 'Bright, not dark or backlit'],
-              ['🎯', 'Centred subject', 'Subject fills most of the frame'],
-            ].map(([emoji, title, desc]) => (
-              <div key={title} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{emoji}</span>
-                <div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
-                </div>
+          <div style={{ marginTop: 20, width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            {/* What photos work best */}
+            <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                What works best
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {[
+                  { emoji: '🐶', label: 'Pets',       hint: 'Clear subject on plain background' },
+                  { emoji: '🖼️', label: 'Portraits',  hint: 'Face or figure, well lit' },
+                  { emoji: '🏷️', label: 'Logos',      hint: 'Use Graphic mode in settings' },
+                ].map(item => (
+                  <div key={item.label} style={{ background: '#FAF6EF', borderRadius: 12, padding: '10px 8px', textAlign: 'center' }}>
+                    <span style={{ fontSize: 22, display: 'block', marginBottom: 4 }}>{item.emoji}</span>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12, color: '#2C2218', marginBottom: 2 }}>{item.label}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', lineHeight: 1.3 }}>{item.hint}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Tips */}
+            <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                Tips for best results
+              </p>
+              {[
+                ['☀️', 'Good lighting', 'Bright and even — avoid dark or backlit shots'],
+                ['🎯', 'Fill the frame', 'Subject takes up most of the photo'],
+                ['✂️', 'You can crop', 'We\'ll let you crop it after you choose'],
+              ].map(([emoji, title, desc]) => (
+                <div key={title as string} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>{emoji}</span>
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* What you'll get */}
+            <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                What you'll get
+              </p>
+              {[
+                ['🎨', 'Tune colours & grid size', 'Set how detailed and how many colours'],
+                ['📄', 'Full PDF instructions', 'Row-by-row steps, colour key, printable'],
+                ['📋', 'Track your progress', 'Save and come back to your pattern anytime'],
+              ].map(([emoji, title, desc]) => (
+                <div key={title as string} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>{emoji}</span>
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </div>
         )}
 

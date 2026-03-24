@@ -17,24 +17,24 @@ export default function LandingPage() {
           🧶 100% free · no account needed
         </div>
 
-        {/* Headline — hook first */}
+        {/* Headline */}
         <h1 style={{
           fontFamily: "'Playfair Display', serif",
           fontSize: 36, fontWeight: 700,
           color: '#2C2218', lineHeight: 1.2,
           marginBottom: 14, maxWidth: 320,
         }}>
-          Your photo.<br />
-          <span style={{ color: '#C4614A' }}>Your crochet pattern.</span>
+          Turn any photo into<br />
+          <span style={{ color: '#C4614A' }}>a crochet pattern.</span>
         </h1>
 
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 15, color: '#6B5744',
-          lineHeight: 1.65, maxWidth: 280,
+          lineHeight: 1.65, maxWidth: 290,
           marginBottom: 32,
         }}>
-          Upload any photo — pet, portrait, anything — and get a stitch-by-stitch graph pattern in seconds.
+          Upload a pet, portrait, or favourite memory — and get a colour-by-colour pattern to stitch, instantly.
         </p>
 
         {/* Sample grid card */}
@@ -58,8 +58,8 @@ export default function LandingPage() {
         </div>
 
         {/* How it works — 3 steps */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40 }}>
-          {[['📷','Upload'],['⚙️','Customise'],['⬇','Download']].map(([icon, label], i) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          {[['📷','Upload'],['🎨','Tune it'],['⬇','Stitch']].map(([icon, label], i) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                 <span style={{ fontSize: 16 }}>{icon}</span>
@@ -69,6 +69,11 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginBottom: 8 }}>
+          C2C · Tapestry · Graphgan · Works on any phone
+        </p>
+
       </section>
 
       {/* Sticky CTA */}
@@ -95,7 +100,7 @@ export default function LandingPage() {
           textAlign: 'center', marginTop: 10,
           fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0',
         }}>
-          Works on any phone · PNG &amp; PDF export
+          No signup · PNG &amp; PDF export · keeps in session
         </p>
       </div>
 
@@ -111,16 +116,11 @@ function SamplePatternGrid() {
       {Array.from({ length: size * size }).map((_, i) => {
         const row = Math.floor(i / size)
         const col = i % size
-        // Simple diagonal pattern that looks like a real crochet graph
         const colorIndex = Math.abs(Math.sin(row * 1.3 + col * 0.9) * palette.length | 0) % palette.length
         return (
           <div
             key={i}
-            style={{
-              aspectRatio: '1',
-              borderRadius: 2,
-              background: palette[colorIndex],
-            }}
+            style={{ aspectRatio: '1', borderRadius: 2, background: palette[colorIndex] }}
           />
         )
       })}
