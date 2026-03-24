@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Header        from '@/components/layout/Header'
 import StepIndicator from '@/components/ui/StepIndicator'
 import BottomCTA     from '@/components/layout/BottomCTA'
@@ -53,6 +53,7 @@ export default function SettingsPage() {
   const { state, dispatch }        = usePattern()
   const { generate, isGenerating, error } = usePatternGeneration()
   const { settings } = state
+  const [customizeOpen, setCustomizeOpen] = useState(false)
 
   function setImageType(type: ImageType) {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: type } })
@@ -209,117 +210,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ── Background Colour ────────────────────────────────────────── */}
-        <div>
-          <p className="font-body font-semibold text-sm text-ink mb-1">Background colour</p>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            One palette slot is reserved for the background. White works for most photos.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 12, padding: '12px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-            <input
-              type="color"
-              value={settings.backgroundColor ?? '#ffffff'}
-              onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { backgroundColor: e.target.value } })}
-              style={{ width: 40, height: 40, borderRadius: 10, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
-            />
-            <div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#2C2218' }}>
-                {settings.backgroundColor === '#ffffff' || !settings.backgroundColor ? 'White (default)' : settings.backgroundColor}
-              </div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 2 }}>
-                Tap to change — applies to background of your pattern
-              </div>
-            </div>
-            {settings.backgroundColor && settings.backgroundColor !== '#ffffff' && (
-              <button
-                onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { backgroundColor: '#ffffff' } })}
-                style={{ marginLeft: 'auto', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C4614A', background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Border Layers ─────────────────────────────────────────────── */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <p className="font-body font-semibold text-sm text-ink">Border layers</p>
-            {(settings.borderLayers ?? []).length < 3 && (
-              <button
-                onClick={() => {
-                  const layers = [...(settings.borderLayers ?? [])]
-                  layers.push({ color: '#ffffff', width: 2 })
-                  dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
-                }}
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', background: 'rgba(196,97,74,0.08)', border: 'none', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
-              >
-                + Add layer
-              </button>
-            )}
-          </div>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            Up to 3 layers around the pattern — outermost first. Great for logo framing (white → green → white).
-          </p>
-
-          {(settings.borderLayers ?? []).length === 0 && (
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C8BFB0', textAlign: 'center', padding: '12px 0' }}>
-              No border — tap + Add layer to add one
-            </p>
-          )}
-
-          {(settings.borderLayers ?? []).map((layer, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'white', borderRadius: 12, padding: '10px 14px', marginBottom: 8, boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-              <input
-                type="color"
-                value={/^#[0-9a-fA-F]{6}$/.test(layer.color) ? layer.color : '#ffffff'}
-                onChange={e => {
-                  const layers = [...(settings.borderLayers ?? [])]
-                  layers[i] = { ...layers[i], color: e.target.value }
-                  dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
-                }}
-                style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
-              />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 4 }}>
-                  Layer {i + 1} · {i === 0 ? 'Outermost' : i === (settings.borderLayers ?? []).length - 1 ? 'Innermost' : 'Middle'}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>Width:</span>
-                  {[1,2,3,4,6].map(w => (
-                    <button
-                      key={w}
-                      onClick={() => {
-                        const layers = [...(settings.borderLayers ?? [])]
-                        layers[i] = { ...layers[i], width: w }
-                        dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
-                      }}
-                      style={{
-                        width: 28, height: 24, borderRadius: 6, fontSize: 11,
-                        fontFamily: "'DM Sans', sans-serif",
-                        background: layer.width === w ? '#C4614A' : '#F2EAD8',
-                        color:      layer.width === w ? 'white' : '#6B5744',
-                        border: 'none', cursor: 'pointer', fontWeight: layer.width === w ? 600 : 400,
-                      }}
-                    >
-                      {w}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  const layers = (settings.borderLayers ?? []).filter((_, j) => j !== i)
-                  dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
-                }}
-                style={{ background: 'none', border: 'none', fontSize: 16, color: '#C8BFB0', cursor: 'pointer', padding: 4 }}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-
         {/* ── Grid Size ────────────────────────────────────────────────── */}
         <div>
           <p className="font-body font-semibold text-sm text-ink mb-1">Grid size</p>
@@ -403,96 +293,207 @@ export default function SettingsPage() {
             })}
           </div>
 
-          {/* Fine-tune slider */}
-          <div style={{
-            background: 'white', borderRadius: 16, padding: '14px 16px',
-            boxShadow: '0 1px 4px rgba(44,34,24,0.06)',
-          }}>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-body text-sm font-medium text-ink">Fine-tune colours</p>
-                <p className="font-body text-xs text-ink/40">Fewer = simpler to stitch</p>
-              </div>
-              <span style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 30, fontWeight: 700, color: '#C4614A', lineHeight: 1,
-              }}>
-                {settings.maxColors}
+        </div>
+
+        {/* ── Customize Pattern (collapsible) ──────────────────────────── */}
+        <div>
+          <button
+            onClick={() => setCustomizeOpen(o => !o)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 16,
+              padding: '13px 16px', cursor: 'pointer',
+              boxShadow: '0 1px 4px rgba(44,34,24,0.06)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 16 }}>🎨</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#2C2218' }}>
+                Customize Pattern
               </span>
             </div>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', transition: 'transform 0.2s', display: 'inline-block', transform: customizeOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              ▾
+            </span>
+          </button>
 
-            {/* Colour bar visualiser */}
-            <div className="flex gap-1 mb-3">
-              {Array.from({ length: MAX_COLORS }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1, height: 8, borderRadius: 4,
-                    background: i < settings.maxColors ? '#C4614A' : '#E8DDD0',
-                    opacity: i < settings.maxColors ? 1 - (i * 0.55 / settings.maxColors) : 1,
-                    transition: 'all 0.15s ease',
-                  }}
+          {customizeOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 16 }}>
+
+              {/* Fine-tune slider */}
+              <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="font-body text-sm font-medium text-ink">Fine-tune colours</p>
+                    <p className="font-body text-xs text-ink/40">Fewer = simpler to stitch</p>
+                  </div>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#C4614A', lineHeight: 1 }}>
+                    {settings.maxColors}
+                  </span>
+                </div>
+                <div className="flex gap-1 mb-3">
+                  {Array.from({ length: MAX_COLORS }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1, height: 8, borderRadius: 4,
+                        background: i < settings.maxColors ? '#C4614A' : '#E8DDD0',
+                        opacity: i < settings.maxColors ? 1 - (i * 0.55 / settings.maxColors) : 1,
+                        transition: 'all 0.15s ease',
+                      }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="range"
+                  min={MIN_COLORS}
+                  max={MAX_COLORS}
+                  value={Math.max(MIN_COLORS, Math.min(settings.maxColors, MAX_COLORS))}
+                  onChange={(e) => setMaxColors(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: '#C4614A' }}
                 />
-              ))}
-            </div>
+                <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
+                  <span>{MIN_COLORS} colours</span>
+                  <span>{MAX_COLORS} colours</span>
+                </div>
+                {state.detectedColors && state.recommendedColors && (
+                  <>
+                    <p className="font-body text-xs text-ink/50 mt-2">
+                      We detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'color' : 'colors'} - recommended: {state.recommendedColors} colors
+                    </p>
+                    {(state.dominantPalette?.length ?? 0) > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        <p className="font-body text-[11px] text-ink/40 mb-2">Detected dominant swatches</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+                          {(state.dominantPalette ?? []).slice(0, 8).map((swatch, idx) => {
+                            const totalPopulation = (state.dominantPalette ?? []).reduce((sum, item) => sum + item.population, 0)
+                            const pct = totalPopulation > 0 ? Math.round((swatch.population / totalPopulation) * 100) : 0
+                            return (
+                              <div key={`${swatch.hex}-${idx}`} style={{ background: '#FAF6EF', border: '1px solid #E8DDD0', borderRadius: 10, padding: '8px 6px', textAlign: 'center' }}>
+                                <div style={{ width: 22, height: 22, borderRadius: 6, margin: '0 auto 6px', background: swatch.hex, border: '1px solid rgba(44,34,24,0.12)' }} aria-label={`Detected swatch ${swatch.hex}`} />
+                                <p className="font-body text-[10px] text-ink/70" style={{ lineHeight: 1.2 }}>{swatch.hex}</p>
+                                <p className="font-body text-[10px] text-ink/40" style={{ lineHeight: 1.2 }}>{pct}%</p>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
-            <input
-              type="range"
-              min={MIN_COLORS}
-              max={MAX_COLORS}
-              value={Math.max(MIN_COLORS, Math.min(settings.maxColors, MAX_COLORS))}
-              onChange={(e) => setMaxColors(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#C4614A' }}
-            />
-            <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
-              <span>{MIN_COLORS} colours</span>
-              <span>{MAX_COLORS} colours</span>
-            </div>
-            {state.detectedColors && state.recommendedColors && (
-              <>
-                <p className="font-body text-xs text-ink/50 mt-2">
-                  We detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'color' : 'colors'} - recommended: {state.recommendedColors} colors
+              {/* Background colour */}
+              <div>
+                <p className="font-body font-semibold text-sm text-ink mb-1">Background colour</p>
+                <p className="font-body text-xs text-ink/40 mb-3">
+                  One palette slot is reserved for the background. White works for most photos.
                 </p>
-                {(state.dominantPalette?.length ?? 0) > 0 && (
-                  <div style={{ marginTop: 10 }}>
-                    <p className="font-body text-[11px] text-ink/40 mb-2">Detected dominant swatches</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-                      {(state.dominantPalette ?? []).slice(0, 8).map((swatch, idx) => {
-                        const totalPopulation = (state.dominantPalette ?? []).reduce((sum, item) => sum + item.population, 0)
-                        const pct = totalPopulation > 0 ? Math.round((swatch.population / totalPopulation) * 100) : 0
-                        return (
-                          <div
-                            key={`${swatch.hex}-${idx}`}
-                            style={{
-                              background: '#FAF6EF',
-                              border: '1px solid #E8DDD0',
-                              borderRadius: 10,
-                              padding: '8px 6px',
-                              textAlign: 'center',
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 22,
-                                height: 22,
-                                borderRadius: 6,
-                                margin: '0 auto 6px',
-                                background: swatch.hex,
-                                border: '1px solid rgba(44,34,24,0.12)',
-                              }}
-                              aria-label={`Detected swatch ${swatch.hex}`}
-                            />
-                            <p className="font-body text-[10px] text-ink/70" style={{ lineHeight: 1.2 }}>{swatch.hex}</p>
-                            <p className="font-body text-[10px] text-ink/40" style={{ lineHeight: 1.2 }}>{pct}%</p>
-                          </div>
-                        )
-                      })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 12, padding: '12px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+                  <input
+                    type="color"
+                    value={settings.backgroundColor ?? '#ffffff'}
+                    onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { backgroundColor: e.target.value } })}
+                    style={{ width: 40, height: 40, borderRadius: 10, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
+                  />
+                  <div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#2C2218' }}>
+                      {settings.backgroundColor === '#ffffff' || !settings.backgroundColor ? 'White (default)' : settings.backgroundColor}
+                    </div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 2 }}>
+                      Tap to change — applies to background of your pattern
                     </div>
                   </div>
+                  {settings.backgroundColor && settings.backgroundColor !== '#ffffff' && (
+                    <button
+                      onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { backgroundColor: '#ffffff' } })}
+                      style={{ marginLeft: 'auto', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C4614A', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Border layers */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <p className="font-body font-semibold text-sm text-ink">Border layers</p>
+                  {(settings.borderLayers ?? []).length < 3 && (
+                    <button
+                      onClick={() => {
+                        const layers = [...(settings.borderLayers ?? [])]
+                        layers.push({ color: '#ffffff', width: 2 })
+                        dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
+                      }}
+                      style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', background: 'rgba(196,97,74,0.08)', border: 'none', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
+                    >
+                      + Add layer
+                    </button>
+                  )}
+                </div>
+                <p className="font-body text-xs text-ink/40 mb-3">
+                  Up to 3 layers around the pattern — outermost first.
+                </p>
+                {(settings.borderLayers ?? []).length === 0 && (
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C8BFB0', textAlign: 'center', padding: '12px 0' }}>
+                    No border — tap + Add layer to add one
+                  </p>
                 )}
-              </>
-            )}
-          </div>
+                {(settings.borderLayers ?? []).map((layer, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'white', borderRadius: 12, padding: '10px 14px', marginBottom: 8, boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+                    <input
+                      type="color"
+                      value={/^#[0-9a-fA-F]{6}$/.test(layer.color) ? layer.color : '#ffffff'}
+                      onChange={e => {
+                        const layers = [...(settings.borderLayers ?? [])]
+                        layers[i] = { ...layers[i], color: e.target.value }
+                        dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
+                      }}
+                      style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 4 }}>
+                        Layer {i + 1} · {i === 0 ? 'Outermost' : i === (settings.borderLayers ?? []).length - 1 ? 'Innermost' : 'Middle'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>Width:</span>
+                        {[1,2,3,4,6].map(w => (
+                          <button
+                            key={w}
+                            onClick={() => {
+                              const layers = [...(settings.borderLayers ?? [])]
+                              layers[i] = { ...layers[i], width: w }
+                              dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
+                            }}
+                            style={{
+                              width: 28, height: 24, borderRadius: 6, fontSize: 11,
+                              fontFamily: "'DM Sans', sans-serif",
+                              background: layer.width === w ? '#C4614A' : '#F2EAD8',
+                              color:      layer.width === w ? 'white' : '#6B5744',
+                              border: 'none', cursor: 'pointer', fontWeight: layer.width === w ? 600 : 400,
+                            }}
+                          >
+                            {w}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const layers = (settings.borderLayers ?? []).filter((_, j) => j !== i)
+                        dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
+                      }}
+                      style={{ background: 'none', border: 'none', fontSize: 16, color: '#C8BFB0', cursor: 'pointer', padding: 4 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          )}
         </div>
 
       </section>
