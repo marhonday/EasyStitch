@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useState, useRef } from 'react'
 
 /**
  * Community Gallery
@@ -44,8 +45,50 @@ const GALLERY: GalleryEntry[] = [
 const COMING_SOON_SLOTS = 6   // placeholder cards shown while gallery is empty
 
 export default function GalleryPage() {
-  const router = useRouter()
+  const router     = useRouter()
   const hasEntries = GALLERY.length > 0
+
+  const [creatorName,   setCreatorName]   = useState('')
+  const [projectNote,   setProjectNote]   = useState('')
+  const [originalThumb, setOriginalThumb] = useState<string | null>(null)
+  const [finishedThumb, setFinishedThumb] = useState<string | null>(null)
+  const [submitted,     setSubmitted]     = useState(false)
+
+  const originalInputRef = useRef<HTMLInputElement>(null)
+  const finishedInputRef = useRef<HTMLInputElement>(null)
+
+  function readAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload  = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  async function handlePhotoSelect(
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (v: string | null) => void
+  ) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = await readAsDataUrl(file)
+    setter(url)
+    e.target.value = ''
+  }
+
+  function handleSubmit() {
+    const subject  = encodeURIComponent('EasyStitch Gallery Submission')
+    const nameLine = creatorName ? `Name: ${creatorName}\n` : ''
+    const noteLine = projectNote ? `About my project: ${projectNote}\n` : ''
+    const body     = encodeURIComponent(
+      `Hi EasyStitch team!\n\nI'd love to be featured in the gallery.\n\n${nameLine}${noteLine}\nI'm attaching my original photo and a photo of my finished blanket.\n\n— ${creatorName || 'A happy stitcher'}`
+    )
+    window.open(`mailto:Support@easystitch.org?subject=${subject}&body=${body}`)
+    setSubmitted(true)
+  }
+
+  const canSubmit = originalThumb || finishedThumb || creatorName
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
@@ -78,31 +121,155 @@ export default function GalleryPage() {
           </p>
         </div>
 
-        {/* Submit CTA */}
-        <div style={{ background: 'rgba(196,97,74,0.06)', border: '1.5px dashed rgba(196,97,74,0.25)', borderRadius: 16, padding: '16px 18px', marginBottom: 28, textAlign: 'center' }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#C4614A', marginBottom: 6 }}>
-            Made something with EasyStitch?
-          </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.7, marginBottom: 12 }}>
-            We&apos;d love to feature your finished project here. Send us your original photo and a photo of the finished blanket and we&apos;ll add you to the gallery.
-          </p>
-          <a
-            href="mailto:Support@easystitch.org?subject=Gallery%20Submission&body=Hi!%20I%20made%20a%20blanket%20with%20EasyStitch%20and%20I%27d%20love%20to%20be%20in%20the%20gallery.%20Attaching%20my%20original%20photo%20and%20finished%20project%20photo."
-            style={{
-              display: 'inline-block',
-              padding: '11px 22px',
-              background: '#C4614A', color: 'white',
-              borderRadius: 12, fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13, fontWeight: 600, textDecoration: 'none',
-              boxShadow: '0 3px 12px rgba(196,97,74,0.25)',
-            }}
-          >
-            📧 Submit your project
-          </a>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#B8AAA0', marginTop: 8 }}>
-            Support@easystitch.org
-          </p>
-        </div>
+        {/* Show Your Creation card */}
+        {!submitted ? (
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden', marginBottom: 28 }}>
+
+            {/* Card header */}
+            <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #F2EAD8' }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>🧶</div>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
+                Show us your creation!
+              </h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+                Finished a blanket with EasyStitch? We&apos;d love to feature it here — original photo + finished project.
+              </p>
+            </div>
+
+            <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              {/* Photo upload row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+
+                {/* Original photo */}
+                <div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', marginBottom: 6 }}>Original photo</p>
+                  <div
+                    onClick={() => originalInputRef.current?.click()}
+                    style={{
+                      aspectRatio: '1', borderRadius: 14, overflow: 'hidden',
+                      border: originalThumb ? 'none' : '2px dashed #E4D9C8',
+                      background: originalThumb ? 'transparent' : '#FAF6EF',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', position: 'relative',
+                    }}
+                  >
+                    {originalThumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={originalThumb} alt="Original" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: 12 }}>
+                        <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>Tap to add</p>
+                      </div>
+                    )}
+                    {originalThumb && (
+                      <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(44,34,24,0.6)', borderRadius: 8, padding: '2px 7px' }}>
+                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: 'white' }}>Change</span>
+                      </div>
+                    )}
+                  </div>
+                  <input ref={originalInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoSelect(e, setOriginalThumb)} />
+                </div>
+
+                {/* Finished project */}
+                <div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', marginBottom: 6 }}>Finished project</p>
+                  <div
+                    onClick={() => finishedInputRef.current?.click()}
+                    style={{
+                      aspectRatio: '1', borderRadius: 14, overflow: 'hidden',
+                      border: finishedThumb ? 'none' : '2px dashed #E4D9C8',
+                      background: finishedThumb ? 'transparent' : '#FAF6EF',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', position: 'relative',
+                    }}
+                  >
+                    {finishedThumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={finishedThumb} alt="Finished" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: 12 }}>
+                        <div style={{ fontSize: 24, marginBottom: 4 }}>🏆</div>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>Tap to add</p>
+                      </div>
+                    )}
+                    {finishedThumb && (
+                      <div style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(196,97,74,0.75)', borderRadius: 8, padding: '2px 7px' }}>
+                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: 'white' }}>Change</span>
+                      </div>
+                    )}
+                  </div>
+                  <input ref={finishedInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoSelect(e, setFinishedThumb)} />
+                </div>
+
+              </div>
+
+              {/* Name input */}
+              <input
+                value={creatorName}
+                onChange={e => setCreatorName(e.target.value)}
+                placeholder="Your name (optional)"
+                style={{
+                  width: '100%', padding: '11px 14px',
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218',
+                  background: '#FAF6EF', border: '1.5px solid #E4D9C8',
+                  borderRadius: 12, outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
+              {/* Note */}
+              <textarea
+                value={projectNote}
+                onChange={e => setProjectNote(e.target.value)}
+                placeholder="Tell us about your project — what size, who it's for, any tips… (optional)"
+                rows={3}
+                style={{
+                  width: '100%', padding: '11px 14px',
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218',
+                  background: '#FAF6EF', border: '1.5px solid #E4D9C8',
+                  borderRadius: 12, outline: 'none', resize: 'none',
+                  boxSizing: 'border-box', lineHeight: 1.5,
+                }}
+              />
+
+              {/* Submit */}
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                style={{
+                  width: '100%', padding: '14px',
+                  background: canSubmit ? '#C4614A' : '#E4D9C8',
+                  color: canSubmit ? 'white' : '#B8AAA0',
+                  border: 'none', borderRadius: 14,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 14, fontWeight: 600, cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  boxShadow: canSubmit ? '0 4px 16px rgba(196,97,74,0.22)' : 'none',
+                }}
+              >
+                📧 Send to EasyStitch
+              </button>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textAlign: 'center', marginTop: -6 }}>
+                Opens your email — attach the photos and hit send
+              </p>
+
+            </div>
+          </div>
+
+        ) : (
+          /* Submitted state */
+          <div style={{ background: 'rgba(74,144,80,0.07)', border: '1.5px solid rgba(74,144,80,0.2)', borderRadius: 20, padding: '20px 18px', marginBottom: 28, textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+              Thanks for sharing!
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+              Attach your photos in the email and send it over — we&apos;ll add you to the gallery.
+            </p>
+          </div>
+        )}
 
         {/* Gallery grid */}
         {hasEntries ? (

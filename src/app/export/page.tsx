@@ -117,7 +117,35 @@ export default function ExportPage() {
               📋 Open My Patterns →
             </button>
           )}
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0' }}>Happy stitching! 🧶</p>
+
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', marginBottom: 20 }}>Happy stitching! 🧶</p>
+
+          {/* Share your creation nudge */}
+          <div style={{
+            width: '100%', maxWidth: 320,
+            background: 'white', borderRadius: 18,
+            boxShadow: '0 2px 12px rgba(44,34,24,0.07)',
+            padding: '14px 16px', textAlign: 'left',
+          }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
+              📸 Show us your creation!
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginBottom: 12 }}>
+              When you finish your blanket, share a photo and we&apos;ll feature it in the gallery.
+            </p>
+            <button
+              onClick={() => router.push('/gallery')}
+              style={{
+                width: '100%', padding: '11px',
+                background: 'rgba(196,97,74,0.08)', color: '#C4614A',
+                border: '1.5px solid rgba(196,97,74,0.2)',
+                borderRadius: 12, fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Share my finished project →
+            </button>
+          </div>
         </div>
 
         <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
