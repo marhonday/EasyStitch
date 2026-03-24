@@ -6,7 +6,7 @@ import Header         from '@/components/layout/Header'
 import StepIndicator  from '@/components/ui/StepIndicator'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { usePattern } from '@/context/PatternContext'
-import { STITCH_STYLE_META } from '@/lib/constants'
+import { STITCH_STYLE_META, FREE_MODE } from '@/lib/constants'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
 import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
@@ -46,7 +46,13 @@ export default function ExportPage() {
     setSavedId(project.id)
   }
 
+  function openPaywall() {
+    // Placeholder — paywall UI will be wired here in a future update.
+    console.log('[EasyStitch] Paywall triggered — upgrade to unlock full pattern.')
+  }
+
   async function handleDownloadPdf() {
+    if (!FREE_MODE) { openPaywall(); return }
     if (!exportPattern) return
     setStatus('loading-pdf')
     setError(null)
@@ -61,6 +67,7 @@ export default function ExportPage() {
   }
 
   function handleDownloadPng() {
+    if (!FREE_MODE) { openPaywall(); return }
     if (!exportPattern || !pngCanvasRef.current) return
     setStatus('loading-png')
     try {

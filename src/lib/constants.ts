@@ -1,5 +1,10 @@
 import { GridSize, StitchStyle, ImageType, BorderLayer } from '@/types/pattern'
 
+// ─── Monetization flag ────────────────────────────────────────────────────────
+// Set to false to enable the paywall for PDF / full-pattern downloads.
+// Set to true  to allow all downloads freely (current default).
+export const FREE_MODE = true
+
 // ─── Grid sizes ───────────────────────────────────────────────────────────────
 // Based on standard crochet/C2C blanket sizes in stitches at typical gauge
 // (worsted weight, ~4 sts/inch):
