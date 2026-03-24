@@ -702,7 +702,11 @@ export function quantizeImage(
     backgroundIndex = withBg.bgIndex
   }
   const colorMap = buildColorMap(grid, palette, backgroundIndex)
-  return applyBackgroundPreference(grid, palette, colorMap, backgroundColor)
+  // NOTE: Do NOT call applyBackgroundPreference for photos.
+  // That flood-fill uses EDGE_CANDIDATE_MIN=0.08 which treats any fur/skin
+  // colour touching the frame as "background" and collapses the palette.
+  // Transparent pixels are already correctly mapped to bgIndex above.
+  return { palette, colorMap }
 }
 
 /**
@@ -880,4 +884,49 @@ export async function extractPaletteFromFullSize(
   }
 
   return applyBackgroundPreference(smallGrid, palette, colorMap, backgroundColor)
+}
+
+/**
+ * For photo images: extract palette from a larger version of the source image
+ * (preserves subject detail that gets blurred in the tiny grid downsampling),
+ * then map those colors to the small grid for the actual pattern.
+ *
+ * This mirrors what extractPaletteFromFullSize does for graphics.
+ */
+export async function quantizePhotoFromFullSize(
+  dataUrl:         string,
+  smallGrid:       PixelGrid,
+  maxColors:       number,
+  backgroundColor: string = '#ffffff'
+): Promise<QuantizeResult> {
+  const fullPixels = await new Promise<PixelGrid>((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const scale  = Math.min(1, 600 / Math.max(img.naturalWidth, img.naturalHeight))
+      canvas.width  = Math.round(img.naturalWidth  * scale)
+      canvas.height = Math.round(img.naturalHeight * scale)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('no ctx')); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      resolve({ data: d.data, width: canvas.width, height: canvas.height })
+    }
+    img.onerror = () => reject(new Error('failed to load'))
+    img.src = dataUrl
+  })
+
+  // Build palette from the larger image so fine detail (eyes, whiskers, skin tones) is captured
+  let palette = saliencyMedianCut(fullPixels, maxColors, backgroundColor)
+
+  const useTransparencyMask = hasTransparentPixels(smallGrid)
+  let backgroundIndex: number | undefined
+  if (useTransparencyMask) {
+    const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
+    palette = withBg.palette
+    backgroundIndex = withBg.bgIndex
+  }
+  const colorMap = buildColorMap(smallGrid, palette, backgroundIndex)
+  // Do NOT call applyBackgroundPreference — same reason as quantizeImage photo path
+  return { palette, colorMap }
 }

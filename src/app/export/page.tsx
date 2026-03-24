@@ -137,9 +137,14 @@ export default function ExportPage() {
 
         {/* Project name */}
         <div style={{ width: '100%', maxWidth: 400, marginBottom: 20 }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#6B5744', marginBottom: 6 }}>
-            Pattern name
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#6B5744' }}>
+              Pattern name
+            </p>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+              ✓ Pattern preserved — you can navigate freely
+            </span>
+          </div>
           <input
             value={projectName}
             onChange={e => setProjectName(e.target.value)}
@@ -224,8 +229,11 @@ export default function ExportPage() {
         )}
       </div>
 
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50 }}>
-        <button onClick={() => router.push('/preview')} style={{ width: '100%', padding: '13px', background: 'transparent', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button onClick={() => router.push('/project')} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
+          📋 My Projects
+        </button>
+        <button onClick={() => router.push('/preview')} style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}>
           ← Back to preview
         </button>
       </div>

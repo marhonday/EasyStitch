@@ -138,14 +138,6 @@ export default function SettingsPage() {
         <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <p className="font-body font-semibold text-sm text-ink">Image type</p>
-            <span style={{
-              background: settings.imageType === 'graphic' ? 'rgba(74,144,80,0.10)' : 'rgba(196,97,74,0.08)',
-              color:      settings.imageType === 'graphic' ? '#4A9050' : '#C4614A',
-              fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600,
-              borderRadius: 8, padding: '3px 8px',
-            }}>
-              Auto-detected
-            </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {IMAGE_TYPE_OPTIONS.map(opt => {
@@ -174,7 +166,7 @@ export default function SettingsPage() {
             })}
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 8 }}>
-            We detected this automatically — tap to override if needed.
+            Select <strong>Photo</strong> for pets, portraits and landscapes — it unlocks the full colour detail engine.
           </p>
         </div>
 
