@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Header             from '@/components/layout/Header'
 import StepIndicator      from '@/components/ui/StepIndicator'
 import LoadingSpinner     from '@/components/ui/LoadingSpinner'
@@ -11,6 +11,7 @@ import PatternMetadata    from '@/components/preview/PatternMetadata'
 import OriginalImageThumb from '@/components/preview/OriginalImageThumb'
 import RowInstructions    from '@/components/preview/RowInstructions'
 import { usePattern }     from '@/context/PatternContext'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { ColorEntry }     from '@/types/pattern'
 import {
   applyPersonalizationToPattern,
@@ -32,6 +33,20 @@ export default function PreviewPage() {
   const router            = useRouter()
   const { state, dispatch } = usePattern()
   const { patternData, rawImage, isGenerating } = state
+
+  const pngCanvasRef = useRef<HTMLCanvasElement>(null)
+
+  function handleInlineDownloadPng() {
+    if (!personalizedPattern || !pngCanvasRef.current) return
+    drawPatternToCanvas(pngCanvasRef.current, personalizedPattern, { cellSize: 20, gap: 1, showSymbols: true })
+    const dataUrl = pngCanvasRef.current.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = 'easystitch-pattern.png'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   // Custom palette overrides — user can swap any color
   const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
@@ -145,6 +160,7 @@ export default function PreviewPage() {
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
       <Header />
       <StepIndicator />
+      <canvas ref={pngCanvasRef} style={{ display: 'none' }} aria-hidden />
 
       <section style={{
         flex: 1,
@@ -494,7 +510,7 @@ export default function PreviewPage() {
           Row-by-row steps · Printable PDF · Track your progress
         </p>
         <button
-          onClick={() => router.push('/export')}
+          onClick={handleInlineDownloadPng}
           style={{
             background: 'none', border: 'none', padding: '2px 8px',
             fontFamily: "'DM Sans', sans-serif", fontSize: 12,

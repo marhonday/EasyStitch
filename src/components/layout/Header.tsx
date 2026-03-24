@@ -3,21 +3,37 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { WIZARD_STEPS } from '@/lib/constants'
+import { usePattern } from '@/context/PatternContext'
 
 interface HeaderProps {
   title?: string
 }
 
+const INFO_PAGES = ['/about', '/faq', '/donate', '/gallery']
+
 export default function Header({ title }: HeaderProps) {
   const router   = useRouter()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { state } = usePattern()
 
   const currentIndex = WIZARD_STEPS.findIndex(s => s.path === pathname)
   const canGoBack    = currentIndex > 0
   const prevPath     = canGoBack ? WIZARD_STEPS[currentIndex - 1].path : '/'
 
+  const isHomePage    = pathname === '/'
   const isProjectPage = pathname.startsWith('/project')
+  const isInfoPage    = INFO_PAGES.includes(pathname)
+
+  const backPath = isProjectPage
+    ? '/project'
+    : isInfoPage
+      ? '/'
+      : canGoBack
+        ? prevPath
+        : '/'
+
+  const hasPattern = !!state.patternData
 
   return (
     <>
@@ -30,7 +46,7 @@ export default function Header({ title }: HeaderProps) {
       }}>
         {/* Back button */}
         <button
-          onClick={() => isProjectPage ? router.push('/project') : router.push(prevPath)}
+          onClick={() => router.push(backPath)}
           style={{
             display:    'flex',
             alignItems: 'center',
@@ -42,7 +58,7 @@ export default function Header({ title }: HeaderProps) {
             fontSize:   14,
             color:      'rgba(44,34,24,0.45)',
             cursor:     'pointer',
-            visibility: (canGoBack || isProjectPage) ? 'visible' : 'hidden',
+            visibility: isHomePage ? 'hidden' : 'visible',
             minWidth:   60,
           }}
           aria-label="Go back"
@@ -105,13 +121,31 @@ export default function Header({ title }: HeaderProps) {
               </button>
             </div>
 
+            {/* Continue pattern — only shown when a pattern is in session */}
+            {hasPattern && (
+              <button
+                onClick={() => { setMenuOpen(false); router.push('/preview') }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '13px 4px', background: 'none', border: 'none',
+                  borderBottom: '1px solid #F2EAD8', cursor: 'pointer',
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 15,
+                  color: '#C4614A', textAlign: 'left', fontWeight: 600,
+                }}
+              >
+                <span style={{ fontSize: 20, width: 26, textAlign: 'center' }}>↩️</span>
+                Continue my pattern
+              </button>
+            )}
+
             {/* Menu items */}
             {[
-              { emoji: '📋', label: 'My Patterns',     path: '/project' },
-              { emoji: '🖼️', label: 'Gallery',          path: '/gallery' },
-              { emoji: '❓', label: 'FAQ',              path: '/faq'     },
-              { emoji: 'ℹ️', label: 'About',            path: '/about'   },
-              { emoji: '☕', label: 'Support / Donate', path: '/donate'  },
+              { emoji: '🏠', label: 'Home',          path: '/'        },
+              { emoji: '📋', label: 'My Patterns',   path: '/project' },
+              { emoji: '🖼️', label: 'Gallery',        path: '/gallery' },
+              { emoji: '❓', label: 'FAQ',            path: '/faq'     },
+              { emoji: 'ℹ️', label: 'About',          path: '/about'   },
+              { emoji: '☕', label: 'Donate',         path: '/donate'  },
             ].map(item => (
               <button
                 key={item.path}

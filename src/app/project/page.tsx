@@ -10,6 +10,7 @@ import { useState, useEffect }  from 'react'
 import { useProjectStorage } from '@/hooks/useProjectStorage'
 import { ProjectMeta } from '@/hooks/useProjectStorage'
 import { storageIsPersistent } from '@/lib/storage'
+import Header from '@/components/layout/Header'
 
 export default function ProjectListPage() {
   const router = useRouter()
@@ -38,17 +39,20 @@ export default function ProjectListPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF' }}>
-      {/* Header */}
-      <div style={{ padding: '20px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 680, margin: '0 auto' }}>
+      <Header />
 
       {!isPersistent && (
-        <div style={{ width: '100%', maxWidth: 680, margin: '12px auto 0', background: 'rgba(196,97,74,0.08)', border: '1px solid rgba(196,97,74,0.2)', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', lineHeight: 1.5 }}>
-            <strong>Private Browsing detected.</strong> Projects won't be saved between sessions. Use the "Save to my Patterns" button to keep your progress.
-          </p>
+        <div style={{ width: '100%', maxWidth: 680, margin: '0 auto 0', padding: '0 20px', boxSizing: 'border-box' }}>
+          <div style={{ background: 'rgba(196,97,74,0.08)', border: '1px solid rgba(196,97,74,0.2)', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', lineHeight: 1.5 }}>
+              <strong>Private Browsing detected.</strong> Projects won't be saved between sessions. Use the "Save to my Patterns" button to keep your progress.
+            </p>
+          </div>
         </div>
       )}
+
+      <div style={{ padding: '12px 20px 0', maxWidth: 680, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218' }}>
             My Patterns
@@ -58,7 +62,7 @@ export default function ProjectListPage() {
           </p>
         </div>
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/upload')}
           style={{ background: '#C4614A', color: 'white', border: 'none', borderRadius: 12, padding: '10px 16px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
         >
           + New Pattern
@@ -77,7 +81,7 @@ export default function ProjectListPage() {
               Create a pattern and save it to track your progress here.
             </p>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/upload')}
               style={{ background: '#C4614A', color: 'white', border: 'none', borderRadius: 14, padding: '14px 28px', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             >
               Make My First Pattern →
@@ -144,9 +148,9 @@ function ProjectCard({ project, onOpen, onDelete }: {
       boxShadow: '0 2px 12px rgba(44,34,24,0.07)',
       overflow: 'hidden',
     }}>
-      <button
+      <div
         onClick={onOpen}
-        style={{ width: '100%', padding: '16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+        style={{ width: '100%', padding: '16px', cursor: 'pointer', textAlign: 'left' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
           <div>
@@ -177,7 +181,7 @@ function ProjectCard({ project, onOpen, onDelete }: {
             transition: 'width 0.3s ease',
           }} />
         </div>
-      </button>
+      </div>
 
       <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
         <button

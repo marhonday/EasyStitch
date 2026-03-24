@@ -139,7 +139,16 @@ export default function ExportPage() {
       <Header /><StepIndicator />
       <canvas ref={pngCanvasRef} style={{ display: 'none' }} aria-hidden />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 20px 220px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 20px 100px' }}>
+
+        <div style={{ width: '100%', maxWidth: 400, marginBottom: 20 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
+            Download your pattern
+          </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878' }}>
+            Name it, download it, and save it to your collection.
+          </p>
+        </div>
 
         {/* Project name */}
         <div style={{ width: '100%', maxWidth: 400, marginBottom: 20 }}>
@@ -177,8 +186,39 @@ export default function ExportPage() {
           </div>
         )}
 
+        {/* Export options */}
+        <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* PDF — primary */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 26 }}>📄</span>
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Full Pattern PDF</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Row-by-row instructions · colour key · printable</p>
+              </div>
+            </div>
+            <button onClick={handleDownloadPdf} disabled={!exportPattern} style={{ width: '100%', padding: '13px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed', boxShadow: exportPattern ? '0 4px 16px rgba(196,97,74,0.22)' : 'none' }}>
+              ⬇ Download Full PDF
+            </button>
+          </div>
+
+          {/* PNG — secondary */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 26 }}>🖼️</span>
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Pattern Image</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Save to camera roll — zoom in to stitch from your phone</p>
+              </div>
+            </div>
+            <button onClick={handleDownloadPng} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: `1.5px solid ${exportPattern ? '#E4D9C8' : '#F0EAE0'}`, borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
+              ⬇ Download Image
+            </button>
+          </div>
+        </div>
+
         {/* Save to project tracker */}
-        <div style={{ width: '100%', maxWidth: 400, marginBottom: 16 }}>
+        <div style={{ width: '100%', maxWidth: 400, marginTop: 12 }}>
           {savedId ? (
             <button
               onClick={() => router.push(`/project/${savedId}`)}
@@ -197,37 +237,6 @@ export default function ExportPage() {
           )}
         </div>
 
-        {/* Export options */}
-        <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* PNG */}
-          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 26 }}>🖼️</span>
-              <div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Save as Image</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Best for phone — save to camera roll, zoom in to stitch</p>
-              </div>
-            </div>
-            <button onClick={handleDownloadPng} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
-              ⬇ Download Preview (low detail)
-            </button>
-          </div>
-
-          {/* PDF */}
-          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 26 }}>📄</span>
-              <div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Download PDF</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Best for printing — colour key, row numbers, instructions</p>
-              </div>
-            </div>
-            <button onClick={handleDownloadPdf} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: `1.5px solid ${exportPattern ? '#E4D9C8' : '#F0EAE0'}`, borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
-              ⬇ Download PDF
-            </button>
-          </div>
-        </div>
-
         {status === 'error' && error && (
           <div style={{ marginTop: 14, padding: '12px 16px', background: 'rgba(196,97,74,0.08)', borderRadius: 12, maxWidth: 400 }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
@@ -235,11 +244,8 @@ export default function ExportPage() {
         )}
       </div>
 
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <button onClick={() => router.push('/project')} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-          📋 My Patterns
-        </button>
-        <button onClick={() => router.push('/preview')} style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '10px 20px max(16px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 80%, transparent)', zIndex: 50, textAlign: 'center' }}>
+        <button onClick={() => router.push('/preview')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline' }}>
           ← Back to preview
         </button>
       </div>
