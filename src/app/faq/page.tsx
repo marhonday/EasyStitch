@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: 'Will my pattern be lost if I navigate away?',
-    a: "No — EasyStitch automatically saves your current pattern in your browser session. You can switch to My Projects, FAQ, or anywhere else and come right back — your pattern will still be there. It is only cleared when you tap \"Make Another Pattern\" or close the browser tab.",
+    a: "No — EasyStitch automatically saves your current pattern in your browser session. You can switch to My Patterns, FAQ, or anywhere else and come right back — your pattern will still be there. It is only cleared when you tap \"Make Another Pattern\" or close the browser tab.",
   },
   {
     q: 'Are more styles coming?',

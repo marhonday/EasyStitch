@@ -107,7 +107,7 @@ export default function Header({ title }: HeaderProps) {
 
             {/* Menu items */}
             {[
-              { emoji: '📋', label: 'My Projects',     path: '/project' },
+              { emoji: '📋', label: 'My Patterns',     path: '/project' },
               { emoji: '🖼️', label: 'Gallery',          path: '/gallery' },
               { emoji: '❓', label: 'FAQ',              path: '/faq'     },
               { emoji: 'ℹ️', label: 'About',            path: '/about'   },

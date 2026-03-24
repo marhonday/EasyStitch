@@ -386,10 +386,20 @@ export default function PreviewPage() {
         position: 'fixed', bottom: 0, left: '50%',
         transform: 'translateX(-50%)',
         width: '100%', maxWidth: 430,
-        padding: '14px 18px max(18px, env(safe-area-inset-bottom))',
+        padding: '12px 18px max(18px, env(safe-area-inset-bottom))',
         background: 'linear-gradient(to top, #FAF6EF 85%, transparent)',
-        zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8,
+        zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
       }}>
+        <button
+          style={{
+            padding: '9px 20px', background: 'white', color: '#6B5744',
+            border: '1.5px solid #E4D9C8', borderRadius: 20,
+            fontFamily: "'DM Sans', sans-serif", fontSize: 13,
+            fontWeight: 500, cursor: 'pointer',
+          }}
+        >
+          + Add a Name or Date
+        </button>
         <button
           onClick={() => router.push('/export')}
           style={{
@@ -401,18 +411,20 @@ export default function PreviewPage() {
             boxShadow: '0 4px 20px rgba(196,97,74,0.28)',
           }}
         >
-          Export Pattern →
+          Get Full Pattern Instructions →
         </button>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', textAlign: 'center', margin: 0 }}>
+          Row-by-row steps · Printable PDF · Track your progress
+        </p>
         <button
-          onClick={() => router.push('/settings')}
+          onClick={() => router.push('/export')}
           style={{
-            width: '100%', padding: '12px 16px', background: 'white', color: '#6B5744',
-            border: '1.5px solid #E4D9C8', borderRadius: 14,
-            fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-            fontWeight: 500, cursor: 'pointer',
+            background: 'none', border: 'none', padding: '2px 8px',
+            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+            color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline',
           }}
         >
-          ✏️ Edit settings
+          Download Preview (low detail)
         </button>
       </div>
     </main>

@@ -45,13 +45,13 @@ export default function ProjectListPage() {
         <div style={{ width: '100%', maxWidth: 680, margin: '12px auto 0', background: 'rgba(196,97,74,0.08)', border: '1px solid rgba(196,97,74,0.2)', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', lineHeight: 1.5 }}>
-            <strong>Private Browsing detected.</strong> Projects won't be saved between sessions. Use the "Save File" button to keep your progress.
+            <strong>Private Browsing detected.</strong> Projects won't be saved between sessions. Use the "Save to my Patterns" button to keep your progress.
           </p>
         </div>
       )}
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218' }}>
-            My Projects
+            My Patterns
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', marginTop: 2 }}>
             {projects.length} saved pattern{projects.length !== 1 ? 's' : ''}

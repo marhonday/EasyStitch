@@ -94,14 +94,14 @@ export default function ProjectPage() {
               onClick={() => router.push('/project')}
               style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer', padding: 0 }}
             >
-              ← My Projects
+              ← My Patterns
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => exportProjectFile(id)}
                 style={{ background: '#FAF6EF', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '7px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', cursor: 'pointer' }}
               >
-                💾 Save File
+                💾 Save to my Patterns
               </button>
               <button
                 onClick={() => router.push('/')}

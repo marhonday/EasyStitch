@@ -108,7 +108,7 @@ export default function ExportPage() {
               onClick={() => router.push(`/project/${savedId}`)}
               style={{ width: '100%', maxWidth: 320, padding: '14px', background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.25)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#4A9050', cursor: 'pointer', marginBottom: 12 }}
             >
-              📋 Open Progress Tracker →
+              📋 Open My Patterns →
             </button>
           )}
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0' }}>Happy stitching! 🧶</p>
@@ -119,7 +119,7 @@ export default function ExportPage() {
             Make Another Pattern
           </button>
           <button onClick={() => router.push('/project')} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-            My Projects
+            My Patterns
           </button>
         </div>
       </main>
@@ -178,7 +178,7 @@ export default function ExportPage() {
               onClick={() => router.push(`/project/${savedId}`)}
               style={{ width: '100%', padding: '13px', background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.3)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#4A9050', cursor: 'pointer' }}
             >
-              ✓ Saved! Open Progress Tracker →
+              ✓ Saved! Open My Patterns →
             </button>
           ) : (
             <button
@@ -186,7 +186,7 @@ export default function ExportPage() {
               disabled={!exportPattern}
               style={{ width: '100%', padding: '13px', background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#6B5744', cursor: exportPattern ? 'pointer' : 'not-allowed' }}
             >
-              📋 Save to Project Tracker
+              📋 Save to my Patterns
             </button>
           )}
         </div>
@@ -203,7 +203,7 @@ export default function ExportPage() {
               </div>
             </div>
             <button onClick={handleDownloadPng} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
-              ⬇ Download PNG
+              ⬇ Download Preview (low detail)
             </button>
           </div>
 
@@ -231,7 +231,7 @@ export default function ExportPage() {
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button onClick={() => router.push('/project')} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-          📋 My Projects
+          📋 My Patterns
         </button>
         <button onClick={() => router.push('/preview')} style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}>
           ← Back to preview
