@@ -72,6 +72,61 @@ function parseHexColor(hex: string): { r: number; g: number; b: number } {
   }
 }
 
+function collectOpaqueLabSamples(grid: PixelGrid, maxSamples = 7000): LabColor[] {
+  const out: LabColor[] = []
+  const total = grid.width * grid.height
+  const step = Math.max(1, Math.floor(total / maxSamples))
+  for (let p = 0; p < total; p += step) {
+    const i = p * 4
+    if (grid.data[i + 3] < 220) continue
+    out.push(rgbToLab(grid.data[i], grid.data[i + 1], grid.data[i + 2]))
+  }
+  return out
+}
+
+function appendDistinctColorsToTarget(
+  grid: PixelGrid,
+  palette: ColorEntry[],
+  targetCount: number
+): ColorEntry[] {
+  if (palette.length >= targetCount) return palette
+  const samples = collectOpaqueLabSamples(grid)
+  if (!samples.length) return palette
+
+  const out = [...palette]
+  const minDistinct = 7
+
+  while (out.length < targetCount) {
+    const paletteLab = out.map((e) => rgbToLab(e.r, e.g, e.b))
+    let best: LabColor | null = null
+    let bestDist = -1
+
+    for (const px of samples) {
+      let minD = Infinity
+      for (const pl of paletteLab) {
+        const d = labDistance(px, pl)
+        if (d < minD) minD = d
+      }
+      if (minD > bestDist) {
+        bestDist = minD
+        best = px
+      }
+    }
+
+    if (!best || bestDist < minDistinct) break
+    const nextIdx = out.length
+    out.push({
+      r: Math.round(best.r),
+      g: Math.round(best.g),
+      b: Math.round(best.bl),
+      hex: rgbToHex(Math.round(best.r), Math.round(best.g), Math.round(best.bl)),
+      symbol: COLOR_SYMBOLS[nextIdx] ?? String(nextIdx + 1),
+    })
+  }
+
+  return out
+}
+
 function ensureBackgroundColorInPalette(
   palette: ColorEntry[],
   backgroundColor: string
@@ -683,6 +738,7 @@ export function quantizeImage(
 
   if (imageType === 'graphic') {
     let palette = kMeansExtract(grid, maxColors)
+    palette = appendDistinctColorsToTarget(grid, palette, maxColors)
     let backgroundIndex: number | undefined
     if (useTransparencyMask) {
       const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
@@ -695,6 +751,7 @@ export function quantizeImage(
 
   // Photo mode — pass backgroundColor so it always gets a dedicated slot
   let palette = saliencyMedianCut(grid, maxColors, backgroundColor)
+  palette = appendDistinctColorsToTarget(grid, palette, maxColors)
   let backgroundIndex: number | undefined
   if (useTransparencyMask) {
     const withBg = ensureBackgroundColorInPalette(palette, backgroundColor)
@@ -787,6 +844,7 @@ export async function extractPaletteFromFullSize(
 
   // Find palette from full-size pixels
   let palette = kMeansExtract(fullPixels, maxColors)
+  palette = appendDistinctColorsToTarget(fullPixels, palette, maxColors)
   const useTransparencyMask = hasTransparentPixels(smallGrid)
   let backgroundIndex: number | undefined
   if (useTransparencyMask) {
