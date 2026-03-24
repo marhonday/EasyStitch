@@ -244,6 +244,22 @@ export default function SettingsPage() {
               )
             })}
           </div>
+
+          {/* Warning: graphic logos with text lose detail at small grid sizes */}
+          {settings.imageType === 'graphic' && settings.gridSize.width <= 50 && (
+            <div style={{
+              marginTop: 10, padding: '10px 13px',
+              background: 'rgba(196,97,74,0.07)', border: '1px solid rgba(196,97,74,0.2)',
+              borderRadius: 12, display: 'flex', gap: 8, alignItems: 'flex-start',
+            }}>
+              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#7A4A38', lineHeight: 1.5, margin: 0 }}>
+                Fine text and thin outlines in logos may not be readable at <strong>{settings.gridSize.label}</strong> size.
+                Try <strong>Throw</strong> or larger for clearer lettering — or generate and use the{' '}
+                <strong>cell editor</strong> to fix any unclear stitches after.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── Colour Difficulty ────────────────────────────────────────── */}

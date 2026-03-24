@@ -48,7 +48,7 @@ export default function OriginalImageThumb({ originalSrc, pattern }: OriginalIma
           </p>
           <div style={{
             borderRadius: 12, overflow: 'hidden',
-            background: '#F2EAD8',
+            background: '#FFFFFF',
             aspectRatio: aspect,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
