@@ -47,8 +47,7 @@ export default function ExportPage() {
   }
 
   function openPaywall() {
-    // Placeholder — paywall UI will be wired here in a future update.
-    console.log('[EasyStitch] Paywall triggered — upgrade to unlock full pattern.')
+    alert('Unlock your full pattern to download.')
   }
 
   async function handleDownloadPdf() {
