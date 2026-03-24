@@ -12,6 +12,7 @@ import OriginalImageThumb from '@/components/preview/OriginalImageThumb'
 import RowInstructions    from '@/components/preview/RowInstructions'
 import { usePattern }     from '@/context/PatternContext'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
+import { FREE_MODE } from '@/lib/constants'
 import { ColorEntry }     from '@/types/pattern'
 import {
   applyPersonalizationToPattern,
@@ -536,7 +537,7 @@ export default function PreviewPage() {
           + Add a Name or Date
         </button>
         <button
-          onClick={() => router.push('/export')}
+          onClick={() => router.push(FREE_MODE ? '/export' : '/unlock')}
           style={{
             width: '100%', padding: '17px 24px',
             background: '#C4614A', color: 'white',
@@ -546,7 +547,7 @@ export default function PreviewPage() {
             boxShadow: '0 4px 20px rgba(196,97,74,0.28)',
           }}
         >
-          Get Full Pattern Instructions →
+          {FREE_MODE ? 'Get Full Pattern Instructions →' : '🔓 Unlock Full Pattern →'}
         </button>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', textAlign: 'center', margin: 0 }}>
           Row-by-row steps · Printable PDF · Track your progress
