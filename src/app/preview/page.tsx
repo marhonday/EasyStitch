@@ -36,6 +36,41 @@ export default function PreviewPage() {
 
   const pngCanvasRef = useRef<HTMLCanvasElement>(null)
 
+  // ── Row progress tracking ────────────────────────────────────────────
+  const [completedRows, setCompletedRows] = useState<Set<number>>(new Set())
+
+  function handleToggleRow(rowNumber: number) {
+    setCompletedRows(prev => {
+      const next = new Set(prev)
+      if (next.has(rowNumber)) {
+        next.delete(rowNumber)
+      } else {
+        next.add(rowNumber)
+      }
+      return next
+    })
+  }
+
+  function handleResetProgress() {
+    setCompletedRows(new Set())
+  }
+
+  const totalRows = personalizedPattern?.meta.height ?? 0
+
+  const currentRowNumber = useMemo(() => {
+    for (let i = 1; i <= totalRows; i++) {
+      if (!completedRows.has(i)) return i
+    }
+    return totalRows + 1  // all done
+  }, [completedRows, totalRows])
+
+  // Map instruction row number → canvas grid row index (0 = top of canvas)
+  // Instruction Row 1 = bottom of grid = grid[totalRows - 1]
+  const highlightGridRow = useMemo(() => {
+    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
+    return totalRows - currentRowNumber
+  }, [totalRows, currentRowNumber])
+
   function handleInlineDownloadPng() {
     if (!personalizedPattern || !pngCanvasRef.current) return
     drawPatternToCanvas(pngCanvasRef.current, personalizedPattern, { cellSize: 20, gap: 1, showSymbols: true })
@@ -205,6 +240,7 @@ export default function PreviewPage() {
             cellOverrides={cellOverrides}
             paletteOverrides={personalizedPattern!.palette}
             onCellTap={handleCellTap}
+            highlightRow={highlightGridRow}
           />
 
           {/* Cell color picker popover */}
@@ -299,7 +335,13 @@ export default function PreviewPage() {
           onResetColors={handleClearOverrides}
         />
 
-        <RowInstructions pattern={personalizedPattern!} />
+        <RowInstructions
+          pattern={personalizedPattern!}
+          completedRows={completedRows}
+          onToggleRow={handleToggleRow}
+          onResetProgress={handleResetProgress}
+          currentRowNumber={currentRowNumber}
+        />
 
         <PatternMetadata meta={personalizedPattern!.meta} />
 
