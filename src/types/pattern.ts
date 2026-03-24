@@ -157,7 +157,7 @@ export interface PatternSettings {
 }
 
 export type PersonalizationPlacement = 'above' | 'below'
-export type PersonalizationFontStyle = 'pressStart2P' | 'vt323' | 'silkscreen' | 'audiowide'
+export type PersonalizationFontStyle = 'block' | 'bold' | 'slim'
 
 export interface PersonalizationSettings {
   enabled: boolean

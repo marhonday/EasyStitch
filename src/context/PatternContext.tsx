@@ -32,7 +32,7 @@ const initialState: PatternContextState = {
     enabled: false,
     titleText: '',
     dateText: '',
-    fontStyle: 'pressStart2P',
+    fontStyle: 'block',
     placement: 'below',
     colorMode: 'palette',
     paletteColorIndex: 0,
