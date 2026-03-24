@@ -1,7 +1,7 @@
 import { PatternData, PatternSettings, Cell, ColorEntry, BorderLayer } from '@/types/pattern'
 import { resizeToGrid }        from '../image-processing/resize'
 import { removeGridOverlay }   from '../image-processing/removeGrid'
-import { quantizeImage, extractPaletteFromFullSize } from '../palette-reduction/quantize'
+import { quantizeImage, extractPaletteFromFullSize, quantizePhotoFromFullSize } from '../palette-reduction/quantize'
 import { getStrategy }         from './strategies/registry'
 import { COLOR_SYMBOLS }       from '@/lib/constants'
 
@@ -104,7 +104,9 @@ export async function generatePattern(
     palette  = result.palette
     colorMap = result.colorMap
   } else {
-    const result = quantizeImage(cleanGrid, maxColors, imageType, backgroundColor)
+    // Photo mode: extract palette from full-res source so fine subject detail
+    // (eyes, whiskers, skin tones, fur gradients) isn't lost in grid downsampling
+    const result = await quantizePhotoFromFullSize(imageDataUrl, cleanGrid, maxColors, backgroundColor)
     palette  = result.palette
     colorMap = result.colorMap
   }
