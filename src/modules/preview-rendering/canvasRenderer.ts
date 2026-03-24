@@ -53,12 +53,10 @@ export function drawPatternToCanvas(
   canvas.width  = width
   canvas.height = height
 
-  // Fill canvas with the pattern's background colour so bg-removed transparent
-  // areas show the chosen colour rather than white or a checkered void
-  const bgEntry = pattern.palette.find(e =>
-    e.label === 'background' || (e.r > 240 && e.g > 240 && e.b > 240)
-  )
-  ctx.fillStyle = bgEntry?.hex ?? '#FFFFFF'
+  // Fill canvas with the pattern's chosen background colour.
+  // backgroundColor is stamped into meta by generatePattern so it is always
+  // accurate regardless of what colour was picked in Settings.
+  ctx.fillStyle = pattern.meta.backgroundColor ?? '#FFFFFF'
   ctx.fillRect(0, 0, width, height)
 
   const { grid, palette } = pattern

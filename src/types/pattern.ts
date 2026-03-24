@@ -107,14 +107,15 @@ export interface Cell {
  * Includes traversal order so renderers know how to draw row guides.
  */
 export interface PatternMeta {
-  width:          number
-  height:         number
-  colorCount:     number
-  stitchStyle:    StitchStyle
-  traversalOrder: TraversalOrder
-  totalStitches:  number
-  generatedAt:    string
-  noiseCleaned?:  number   // cells reassigned by noise detection pass
+  width:           number
+  height:          number
+  colorCount:      number
+  stitchStyle:     StitchStyle
+  traversalOrder:  TraversalOrder
+  totalStitches:   number
+  generatedAt:     string
+  noiseCleaned?:   number   // cells reassigned by noise detection pass
+  backgroundColor?: string  // hex — the chosen background colour, used by canvas renderer
 }
 
 /**

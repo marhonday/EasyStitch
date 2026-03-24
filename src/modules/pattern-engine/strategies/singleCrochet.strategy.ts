@@ -29,9 +29,12 @@ class SingleCrochetStrategy implements StitchStrategy {
 
     const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
     const isGraphic = imageType === 'graphic'
-    const shouldSmoothPhoto = !isGraphic && maxColors <= 12
+    // Thresholds kept low — the full-res photo palette engine already produces
+    // clean colours. Smoothing/cleaning at higher counts was discarding real
+    // detail (fur, skin tones) that the user explicitly asked for via the slider.
+    const shouldSmoothPhoto     = !isGraphic && maxColors <= 5
     const smoothed  = shouldSmoothPhoto ? smoothGrid(rawGrid, palette) : rawGrid
-    const shouldCleanPhotoNoise = !isGraphic && maxColors <= 8
+    const shouldCleanPhotoNoise = !isGraphic && maxColors <= 3
     const { grid }  = shouldCleanPhotoNoise ? cleanPattern(smoothed, palette) : { grid: smoothed }
 
     const counts = countFromGrid(grid, palette.length)

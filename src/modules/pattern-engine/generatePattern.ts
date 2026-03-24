@@ -121,5 +121,11 @@ export async function generatePattern(
     patternData = applyBorderLayer(patternData, borderLayers[i])
   }
 
-  return patternData
+  // ── Stage 6: Stamp backgroundColor into meta ───────────────────────────────
+  // Carried through so the canvas renderer can fill the correct bg colour
+  // instead of always defaulting to white.
+  return {
+    ...patternData,
+    meta: { ...patternData.meta, backgroundColor },
+  }
 }

@@ -104,7 +104,7 @@ export default function SettingsPage() {
         {/* Photo preview — shows what we're working with */}
         {state.rawImage && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 16, padding: '10px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: settings.backgroundColor ?? '#ffffff' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={state.enhancedImage ?? state.rawImage}
