@@ -957,11 +957,15 @@ export async function quantizePhotoFromFullSize(
   maxColors:       number,
   backgroundColor: string = '#ffffff'
 ): Promise<QuantizeResult> {
+  // Sample the source image at a moderate size (300px max).
+  // saliencyMedianCut on 600px creates up to 1.6M weighted pixels and freezes
+  // the browser — kMeansExtract caps internally at 3 000 samples so it stays fast
+  // while still reading far more colour detail than the tiny 40×50 grid.
   const fullPixels = await new Promise<PixelGrid>((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      const scale  = Math.min(1, 600 / Math.max(img.naturalWidth, img.naturalHeight))
+      const scale  = Math.min(1, 300 / Math.max(img.naturalWidth, img.naturalHeight))
       canvas.width  = Math.round(img.naturalWidth  * scale)
       canvas.height = Math.round(img.naturalHeight * scale)
       const ctx = canvas.getContext('2d')
@@ -974,8 +978,11 @@ export async function quantizePhotoFromFullSize(
     img.src = dataUrl
   })
 
-  // Build palette from the larger image so fine detail (eyes, whiskers, skin tones) is captured
-  let palette = saliencyMedianCut(fullPixels, maxColors, backgroundColor)
+  // kMeansExtract anchors on darkest + most-saturated pixels first (eyes, fur edges,
+  // skin tone peaks) then fills remaining slots with k-means++ diversity — captures
+  // photo detail without the O(n²) cost of saliency on large images.
+  let palette = kMeansExtract(fullPixels, maxColors)
+  palette = appendDistinctColorsToTarget(fullPixels, palette, maxColors)
 
   const useTransparencyMask = hasTransparentPixels(smallGrid)
   let backgroundIndex: number | undefined
@@ -985,6 +992,6 @@ export async function quantizePhotoFromFullSize(
     backgroundIndex = withBg.bgIndex
   }
   const colorMap = buildColorMap(smallGrid, palette, backgroundIndex)
-  // Do NOT call applyBackgroundPreference — same reason as quantizeImage photo path
+  // Do NOT call applyBackgroundPreference — flood-fill from edges eats subject detail
   return { palette, colorMap }
 }
