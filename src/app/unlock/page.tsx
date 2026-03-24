@@ -232,6 +232,9 @@ export default function UnlockPage() {
         <p style={{ textAlign: 'center', marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0' }}>
           One-time · instant download · keep forever
         </p>
+        <p style={{ textAlign: 'center', marginTop: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+          🛡️ If your pattern doesn&apos;t turn out right, we&apos;ll fix it or refund you.
+        </p>
       </div>
     </main>
   )

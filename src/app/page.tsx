@@ -102,6 +102,13 @@ export default function LandingPage() {
         }}>
           No signup · PNG &amp; PDF export · keeps in session
         </p>
+        <p style={{
+          textAlign: 'center', marginTop: 8,
+          fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+          color: '#9A8878',
+        }}>
+          🛡️ If your pattern doesn&apos;t turn out right, we&apos;ll fix it or refund you.
+        </p>
       </div>
 
     </main>
