@@ -18,13 +18,8 @@ export default function OriginalImageThumb({ originalSrc, pattern }: OriginalIma
     }
   }, [pattern])
 
-  const thumbSize = {
-    width:  pattern.meta.width  * 6,
-    height: pattern.meta.height * 6,
-  }
-
-  // Use pattern aspect ratio for both containers so they match
-  const aspect = `${pattern.meta.width} / ${pattern.meta.height}`
+  const thumbWidth  = pattern.meta.width  * 6
+  const thumbHeight = pattern.meta.height * 6
 
   return (
     <div style={{
@@ -46,21 +41,16 @@ export default function OriginalImageThumb({ originalSrc, pattern }: OriginalIma
           <p style={{ fontSize: 11, color: '#C8BFB0', fontFamily: "'DM Sans', sans-serif", marginBottom: 6 }}>
             Photo
           </p>
-          <div style={{
-            borderRadius: 12, overflow: 'hidden',
-            background: '#FFFFFF',
-            aspectRatio: aspect,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div style={{ borderRadius: 12, overflow: 'hidden', background: '#FFFFFF', lineHeight: 0 }}>
             {originalSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={originalSrc}
                 alt="Original"
-                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
               />
             ) : (
-              <span style={{ fontSize: 28 }}>🖼</span>
+              <span style={{ fontSize: 28, lineHeight: 'normal', display: 'block', padding: 16 }}>🖼</span>
             )}
           </div>
         </div>
@@ -70,16 +60,12 @@ export default function OriginalImageThumb({ originalSrc, pattern }: OriginalIma
           <p style={{ fontSize: 11, color: '#C8BFB0', fontFamily: "'DM Sans', sans-serif", marginBottom: 6 }}>
             Pattern
           </p>
-          <div style={{
-            borderRadius: 12, overflow: 'hidden',
-            background: '#E4D9C8', aspectRatio: aspect,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div style={{ borderRadius: 12, overflow: 'hidden', lineHeight: 0 }}>
             <canvas
               ref={thumbCanvasRef}
-              width={thumbSize.width}
-              height={thumbSize.height}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated', display: 'block' }}
+              width={thumbWidth}
+              height={thumbHeight}
+              style={{ width: '100%', height: 'auto', imageRendering: 'pixelated', display: 'block' }}
               aria-label="Pattern thumbnail"
             />
           </div>
