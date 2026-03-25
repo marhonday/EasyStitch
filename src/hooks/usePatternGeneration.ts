@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { usePattern } from '@/context/PatternContext'
 import { generatePattern } from '@/modules/pattern-engine/generatePattern'
+import { logEvent } from '@/lib/log'
 
 interface UsePatternGenerationResult {
   generate:     () => Promise<boolean>
@@ -38,7 +39,9 @@ export function usePatternGeneration(): UsePatternGenerationResult {
     dispatch({ type: 'SET_GENERATING', payload: true })
 
     try {
+      logEvent('GENERATION_STARTED')                                  // [GENERATION_STARTED]
       const patternData = await generatePattern(rawImage, settings)
+      logEvent('GENERATION_COMPLETED')                                // [GENERATION_COMPLETED]
       dispatch({ type: 'SET_PATTERN_DATA', payload: patternData })
       return true
     } catch (err) {

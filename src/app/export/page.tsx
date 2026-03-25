@@ -11,6 +11,7 @@ import { encodePatternToUrl } from '@/lib/patternUrl'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
 import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
+import { logEvent } from '@/lib/log'
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
@@ -82,6 +83,7 @@ export default function ExportPage() {
   async function handleDownloadPdf() {
     if (!FREE_MODE) { openPaywall(); return }
     if (!exportPattern) return
+    logEvent('EXPORT_TRIGGERED', 'pdf')   // [EXPORT_TRIGGERED]
     setStatus('loading-pdf')
     setError(null)
     try {
@@ -98,6 +100,7 @@ export default function ExportPage() {
   function handleDownloadPng() {
     if (!FREE_MODE) { openPaywall(); return }
     if (!exportPattern || !pngCanvasRef.current) return
+    logEvent('EXPORT_TRIGGERED', 'png')   // [EXPORT_TRIGGERED]
     setStatus('loading-png')
     try {
       // Use toBlob + object URL — works on iOS Safari unlike the data URL approach

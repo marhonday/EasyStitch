@@ -12,8 +12,9 @@
  */
 
 import { useRouter } from 'next/navigation'
-import { useState }  from 'react'
+import { useState, useEffect }  from 'react'
 import Header        from '@/components/layout/Header'
+import { logEvent }  from '@/lib/log'
 import StepIndicator from '@/components/ui/StepIndicator'
 import BottomCTA     from '@/components/layout/BottomCTA'
 import { usePattern } from '@/context/PatternContext'
@@ -63,10 +64,14 @@ export default function UploadPage() {
 
   const hasPhoto = !!state.rawImage
 
+  // [VISIT] — fires once when the upload/home page loads
+  useEffect(() => { logEvent('VISIT') }, [])
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
+    logEvent('UPLOAD_STARTED')   // [UPLOAD_STARTED]
     setError(null)
 
     if (file.size > 50 * 1024 * 1024) {
