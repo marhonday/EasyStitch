@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useRouter } from 'next/navigation'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import Header             from '@/components/layout/Header'
@@ -35,7 +37,33 @@ export default function PreviewPage() {
   const { state, dispatch } = usePattern()
   const { patternData, rawImage, isGenerating } = state
 
-  const pngCanvasRef = useRef<HTMLCanvasElement>(null)
+  const pngCanvasRef        = useRef<HTMLCanvasElement>(null)
+  const personPreviewRef    = useRef<HTMLCanvasElement>(null)
+
+  // Custom palette overrides — user can swap any color
+  const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
+
+  // Merge overrides into the base palette
+  const activePalette = useMemo((): ColorEntry[] => {
+    if (!patternData) return []
+    return patternData.palette.map((entry, i) => {
+      if (!colorOverrides[i]) return entry
+      const hex = colorOverrides[i]
+      const { r, g, b } = hexToRgb(hex)
+      return { ...entry, hex, r, g, b }
+    })
+  }, [patternData, colorOverrides])
+
+  // Build an active pattern with swapped colors for canvas + instructions
+  const activePattern = useMemo(() => {
+    if (!patternData) return null
+    return { ...patternData, palette: activePalette }
+  }, [patternData, activePalette])
+
+  const personalizedPattern = useMemo(() => {
+    if (!activePattern) return null
+    return applyPersonalizationToPattern(activePattern, state.personalization)
+  }, [activePattern, state.personalization])
 
   // ── Row progress tracking ────────────────────────────────────────────
   const [completedRows, setCompletedRows] = useState<Set<number>>(new Set())
@@ -84,35 +112,26 @@ export default function PreviewPage() {
     document.body.removeChild(link)
   }
 
-  // Custom palette overrides — user can swap any color
-  const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
-
-  // Merge overrides into the base palette
-  const activePalette = useMemo((): ColorEntry[] => {
-    if (!patternData) return []
-    return patternData.palette.map((entry, i) => {
-      if (!colorOverrides[i]) return entry
-      const hex = colorOverrides[i]
-      const { r, g, b } = hexToRgb(hex)
-      return { ...entry, hex, r, g, b }
-    })
-  }, [patternData, colorOverrides])
-
-  // Build an active pattern with swapped colors for canvas + instructions
-  const activePattern = useMemo(() => {
-    if (!patternData) return null
-    return { ...patternData, palette: activePalette }
-  }, [patternData, activePalette])
-
-  const personalizedPattern = useMemo(() => {
-    if (!activePattern) return null
-    return applyPersonalizationToPattern(activePattern, state.personalization)
-  }, [activePattern, state.personalization])
-
   const textCharLimit = useMemo(() => {
     if (!patternData) return 24
     return getPersonalizationCharLimit(patternData.meta.width, state.personalization.fontStyle)
   }, [patternData, state.personalization.fontStyle])
+
+  // ── Live personalization preview ─────────────────────────────────────
+  useEffect(() => {
+    if (!personPreviewRef.current || !personalizedPattern || !state.personalization.enabled) return
+    const { titleText, dateText, placement } = state.personalization
+    if (!titleText.trim() && !dateText.trim()) return
+    const grid = personalizedPattern.grid
+    const totalH = grid.length
+    // Show ~9 rows from the text edge so the stitched letters are visible
+    const previewRows = Math.min(9, Math.floor(totalH * 0.35))
+    const slice = placement === 'above'
+      ? grid.slice(0, previewRows)
+      : grid.slice(totalH - previewRows)
+    const miniPattern = { ...personalizedPattern, grid: slice, meta: { ...personalizedPattern.meta, height: slice.length } }
+    drawPatternToCanvas(personPreviewRef.current, miniPattern, { cellSize: 10, gap: 0, showSymbols: false })
+  }, [personalizedPattern, state.personalization, personPreviewRef])
 
   useEffect(() => {
     const nextTitle = state.personalization.titleText.slice(0, textCharLimit)
@@ -449,6 +468,19 @@ export default function PreviewPage() {
                   style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, boxSizing: 'border-box' }}
                 />
               </div>
+
+              {/* Live preview */}
+              {(state.personalization.titleText.trim() || state.personalization.dateText.trim()) && (
+                <div style={{ background: '#FAF6EF', borderRadius: 10, padding: '10px 12px' }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    Preview
+                  </p>
+                  <canvas
+                    ref={personPreviewRef}
+                    style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6, imageRendering: 'pixelated' }}
+                  />
+                </div>
+              )}
 
               {/* Placement */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

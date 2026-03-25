@@ -251,7 +251,16 @@ export function applyPersonalizationToPattern(pattern: PatternData, personalizat
   const textRows = buildTextRows(pattern.meta.width, lines, personalization.fontStyle, bgIndex, fgIndex, bgSymbol, fgSymbol)
   if (textRows.length === 0) return pattern
 
-  const grid = personalization.placement === 'above' ? [...textRows, ...pattern.grid] : [...pattern.grid, ...textRows]
+  // Replace rows instead of appending — keeps the blanket exactly its declared
+  // size (e.g. 65×80 stays 65×80). The text occupies the reserved edge rows;
+  // the image uses the remaining rows. No size inflation, no compression.
+  const patternRows = pattern.grid.length
+  const textCount   = Math.min(textRows.length, Math.floor(patternRows * 0.35)) // cap at 35% of height
+
+  const grid =
+    personalization.placement === 'above'
+      ? [...textRows.slice(0, textCount), ...pattern.grid.slice(textCount)]
+      : [...pattern.grid.slice(0, patternRows - textCount), ...textRows.slice(0, textCount)]
 
   const stitchCounts = new Array(palette.length).fill(0)
   for (const row of grid) for (const cell of row) stitchCounts[cell.colorIndex] = (stitchCounts[cell.colorIndex] ?? 0) + 1

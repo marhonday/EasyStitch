@@ -121,7 +121,6 @@ export function decodePatternFromSearch(search: string): PatternData | null {
         colorCount:     palette.length,
         totalStitches:  width * height,
         generatedAt:    new Date().toISOString(),
-        backgroundColor: '#ffffff',
       },
     }
   } catch {
