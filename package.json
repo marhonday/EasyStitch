@@ -15,6 +15,7 @@
   "dependencies": {
     "@imgly/background-removal": "^1.4.5",
     "@react-pdf/renderer": "^3.4.4",
+    "@vercel/analytics": "^2.0.1",
     "next": "14.2.5",
     "node-vibrant": "^4.0.4",
     "react": "^18",

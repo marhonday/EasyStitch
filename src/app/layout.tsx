@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import FaithFooter from '@/components/layout/FaithFooter'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   title:       'EasyStitch — Turn any photo into a crochet pattern',
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <FaithFooter />
           </PatternProviderWrapper>
         </div>
+        <Analytics />
       </body>
     </html>
   )
