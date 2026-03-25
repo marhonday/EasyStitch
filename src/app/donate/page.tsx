@@ -1,8 +1,11 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 
 export default function DonatePage() {
+  const router = useRouter()
+
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
       <Header />

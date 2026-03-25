@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 
 const FAQS = [
@@ -47,6 +48,7 @@ const FAQS = [
 ]
 
 export default function FaqPage() {
+  const router = useRouter()
   const [open, setOpen] = useState<number | null>(null)
 
   return (

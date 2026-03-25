@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useRef } from 'react'
+import Header from '@/components/layout/Header'
 
 /**
  * Community Gallery
@@ -93,20 +94,7 @@ export default function GalleryPage() {
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
 
-      {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', padding: '16px 20px 10px', gap: 12 }}>
-        <button
-          onClick={() => router.back()}
-          style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: 'rgba(44,34,24,0.45)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back
-        </button>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: 'rgba(44,34,24,0.75)', fontWeight: 600, flex: 1, textAlign: 'center' }}>Gallery</span>
-        <div style={{ width: 60 }} />
-      </header>
+      <Header />
 
       <div style={{ flex: 1, padding: '8px 20px 60px', maxWidth: 480, margin: '0 auto', width: '100%' }}>
 
@@ -117,7 +105,7 @@ export default function GalleryPage() {
             Community Gallery
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', lineHeight: 1.7, maxWidth: 300, margin: '0 auto' }}>
-            Real photos turned into real blankets by real crocheters. Photo → pattern → finished project.
+            Photos turned into blankets — by your fellow crocheters. Photo → pattern → finished project.
           </p>
         </div>
 
