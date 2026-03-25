@@ -349,6 +349,47 @@ export default function UploadPage() {
               ))}
             </div>
 
+          {/* Faith banner */}
+          <div style={{
+            background: 'white',
+            borderRadius: 16,
+            padding: '18px 20px',
+            boxShadow: '0 1px 4px rgba(44,34,24,0.06)',
+            display: 'flex',
+            gap: 16,
+            alignItems: 'center',
+          }}>
+            {/* Cross SVG */}
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 52 }}>
+              <svg width="32" height="40" viewBox="0 0 32 40" fill="none" aria-hidden>
+                <rect x="13" y="0" width="6" height="40" rx="3" fill="#C4614A" opacity="0.45" />
+                <rect x="0"  y="12" width="32" height="6" rx="3" fill="#C4614A" opacity="0.45" />
+              </svg>
+            </div>
+            <div>
+              <p style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 13,
+                fontStyle: 'italic',
+                color: '#6B5744',
+                lineHeight: 1.7,
+                marginBottom: 4,
+              }}>
+                &ldquo;Commit thy works unto the LORD, and thy thoughts shall be established.&rdquo;
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#C8BFB0',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                Proverbs 16:3 &middot; KJV
+              </p>
+            </div>
+          </div>
+
           </div>
         )}
 

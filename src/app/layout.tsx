@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import FaithFooter from '@/components/layout/FaithFooter'
 
 export const metadata: Metadata = {
   title:       'EasyStitch — Turn any photo into a crochet pattern',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="app-shell">
           <PatternProviderWrapper>
             {children}
+            <FaithFooter />
           </PatternProviderWrapper>
         </div>
       </body>
