@@ -1,25 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Header from '@/components/layout/Header'
 
 export default function DonatePage() {
   const router = useRouter()
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
-      <header style={{ display: 'flex', alignItems: 'center', padding: '16px 20px 10px', gap: 12 }}>
-        <button
-          onClick={() => router.back()}
-          style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: 'rgba(44,34,24,0.45)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back
-        </button>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: 'rgba(44,34,24,0.75)', fontWeight: 600, flex: 1, textAlign: 'center' }}>Support</span>
-        <div style={{ width: 60 }} />
-      </header>
+      <Header />
 
       <div style={{ flex: 1, padding: '8px 24px 60px', maxWidth: 480, margin: '0 auto', width: '100%' }}>
 

@@ -97,18 +97,46 @@ export default function RowInstructions({ pattern }: RowInstructionsProps) {
 
       {expanded && (
         <>
+          {/* How-to key */}
+          <div style={{ background: '#FFF8F0', borderBottom: '1px solid #F2EAD8', padding: '10px 16px' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', marginBottom: 5 }}>
+              How to read this
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
+                • <strong>Row 1</strong> = bottom edge of your blanket — work upward
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
+                • Each row: stitch <strong>left → right</strong>
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
+                • <strong>3 ■</strong> means 3 stitches in that colour, one after the other
+              </p>
+            </div>
+            {/* Colour key */}
+            <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {pattern.palette.filter(p => (p.stitchCount ?? 0) > 0).map((p, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 12, height: 12, borderRadius: 3, background: p.hex, border: '1px solid rgba(44,34,24,0.15)', flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#2C2218', fontWeight: 600 }}>{p.symbol}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>{p.label ?? `Colour ${i + 1}`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Column headers */}
           <div style={{
-            padding: '6px 16px',
+            padding: '5px 16px',
             background: '#FAF6EF',
             borderBottom: '1px solid #F2EAD8',
             display: 'flex', gap: 8,
           }}>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em', minWidth: 100 }}>
-              Row (sts)
+              Row (stitches)
             </span>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Stitches (left → right)
+              Left → right
             </span>
           </div>
 

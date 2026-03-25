@@ -41,8 +41,11 @@ export default function ExportPage() {
   }, [exportPattern])
 
   function handleSaveProject() {
-    if (!exportPattern) return
-    const project = createProject(exportPattern, projectName)
+    // Save the base pattern (no personalization text rows) so the grid
+    // in My Patterns shows the clean design without stripe artifacts.
+    // Personalization is applied at export time only (PDF/PNG).
+    if (!patternData) return
+    const project = createProject(patternData, projectName)
     setSavedId(project.id)
   }
 

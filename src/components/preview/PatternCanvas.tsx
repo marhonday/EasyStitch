@@ -309,7 +309,7 @@ export default function PatternCanvas({
         style={{
           overflow:         'hidden',
           borderRadius:     16,
-          background:       '#F2EAD8',
+          background:       '#FFFFFF',
           touchAction:      zoomMode ? 'none' : 'pan-y',
           cursor:           mouseDragRef.current ? 'grabbing' : 'grab',
           userSelect:       'none',
@@ -368,8 +368,13 @@ export default function PatternCanvas({
           color:      'rgba(107,87,68,0.5)',
           fontFamily: "'DM Sans', sans-serif",
           marginTop:  6,
+          lineHeight: 1.6,
         }}>
           Scroll to zoom · Drag to pan · Tap cell to edit colour
+          <br />
+          <span style={{ fontSize: 10, color: 'rgba(107,87,68,0.35)' }}>
+            Grid lines shown for editing — your finished piece will look solid
+          </span>
         </div>
       )}
       {zoomMode && onCellTap && (

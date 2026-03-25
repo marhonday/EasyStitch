@@ -89,8 +89,8 @@ export default function SettingsPage() {
 
   const cardBase: React.CSSProperties = {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
-    gap: 6, padding: '14px 10px', borderRadius: 16,
-    border: '2px solid', cursor: 'pointer', transition: 'all 0.15s ease',
+    gap: 4, padding: '10px 8px', borderRadius: 12,
+    border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s ease',
     background: 'white', position: 'relative', textAlign: 'center',
   }
 
@@ -99,12 +99,12 @@ export default function SettingsPage() {
       <Header />
       <StepIndicator />
 
-      <section className="flex-1 flex flex-col px-5 pt-2 pb-44 gap-7">
+      <section className="flex-1 flex flex-col px-5 pt-2 pb-44 gap-6">
 
         {/* Photo preview — shows what we're working with */}
         {state.rawImage && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 16, padding: '10px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 14, padding: '10px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={state.enhancedImage ?? state.rawImage}
@@ -113,16 +113,16 @@ export default function SettingsPage() {
               />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218', marginBottom: 2 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218', marginBottom: 1 }}>
                 Photo ready
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
-                {state.enhancedImage ? '✨ Auto-enhanced for best results' : 'Original photo'}
+                {state.enhancedImage ? '✨ Auto-enhanced' : 'Original photo'}
               </p>
             </div>
             <button
               onClick={() => router.push('/upload')}
-              style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', cursor: 'pointer', flexShrink: 0 }}
             >
               Change
             </button>
@@ -130,15 +130,16 @@ export default function SettingsPage() {
         )}
 
         <div>
-          <h1 className="font-display text-2xl text-ink mb-1">Pattern settings</h1>
-          <p className="font-body text-sm text-ink/50">Customise how your pattern looks.</p>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#2C2218', marginBottom: 3 }}>Pattern settings</h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>Adjust these to match your photo and project.</p>
         </div>
 
-        {/* ── Image Type — auto-detected, user can override ────────────── */}
-        <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <p className="font-body font-semibold text-sm text-ink">Image type</p>
-          </div>
+        {/* ── Image Type ───────────────────────────────────────────────── */}
+        <div>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 3 }}>Image type</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            Choose <strong>Photo</strong> for real photos — it uses the full colour engine.
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {IMAGE_TYPE_OPTIONS.map(opt => {
               const isActive = settings.imageType === opt.id
@@ -148,31 +149,31 @@ export default function SettingsPage() {
                   onClick={() => setImageType(opt.id)}
                   style={{
                     ...cardBase,
-                    padding: '10px 8px',
+                    padding: '10px 10px',
                     borderColor: isActive ? '#C4614A' : '#E8DDD0',
                     background:  isActive ? 'rgba(196,97,74,0.06)' : '#FAF6EF',
-                    boxShadow:   isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : 'none',
+                    boxShadow:   isActive ? '0 0 0 2px rgba(196,97,74,0.15)' : 'none',
                   }}
                 >
-                  <span style={{ fontSize: 20 }}>{opt.emoji}</span>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12, color: isActive ? '#C4614A' : '#2C2218' }}>
+                  <span style={{ fontSize: 18 }}>{opt.emoji}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12, color: isActive ? '#C4614A' : '#2C2218' }}>
                     {opt.label}
                   </span>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: isActive ? 'rgba(196,97,74,0.7)' : '#9A8878', lineHeight: 1.3 }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: isActive ? 'rgba(196,97,74,0.75)' : '#6B5744', lineHeight: 1.4 }}>
                     {opt.hint}
                   </span>
                 </button>
               )
             })}
           </div>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 8 }}>
-            Select <strong>Photo</strong> for pets, portraits and landscapes — it unlocks the full colour detail engine.
-          </p>
         </div>
 
         {/* ── Stitch Style ─────────────────────────────────────────────── */}
         <div>
-          <p className="font-body font-semibold text-sm text-ink mb-3">Stitch style</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 3 }}>Stitch style</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            C2C builds diagonally. Single crochet works in rows — better for fine detail.
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).map(style => {
               const meta     = STITCH_STYLE_META[style]
@@ -184,22 +185,23 @@ export default function SettingsPage() {
                   onClick={() => setStitchStyle(style)}
                   style={{
                     ...cardBase,
+                    padding: '11px 10px',
                     borderColor:     isActive ? '#C4614A' : '#E8DDD0',
                     background:      isActive ? 'rgba(196,97,74,0.06)' : 'white',
-                    boxShadow:       isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : '0 1px 4px rgba(44,34,24,0.06)',
+                    boxShadow:       isActive ? '0 0 0 2px rgba(196,97,74,0.15)' : '0 1px 4px rgba(44,34,24,0.06)',
                   }}
                 >
-                  <span style={{ fontSize: 26 }}>{STITCH_ICONS[style]}</span>
+                  <span style={{ fontSize: 22 }}>{STITCH_ICONS[style]}</span>
                   <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13,
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12,
                     color: isActive ? '#C4614A' : '#2C2218',
                   }}>
                     {meta.label}
                   </span>
                   <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                    color: isActive ? 'rgba(196,97,74,0.7)' : '#9A8878',
-                    lineHeight: 1.3,
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 10,
+                    color: isActive ? 'rgba(196,97,74,0.75)' : '#6B5744',
+                    lineHeight: 1.4,
                   }}>
                     {meta.description}
                   </span>
@@ -211,23 +213,23 @@ export default function SettingsPage() {
 
         {/* ── Background Colour ────────────────────────────────────────── */}
         <div>
-          <p className="font-body font-semibold text-sm text-ink mb-1">Background colour</p>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            One palette slot is reserved for the background. White works for most photos.
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 3 }}>Background colour</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            One colour slot is used for the background. White suits most photos.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 12, padding: '12px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: 12, padding: '10px 14px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
             <input
               type="color"
               value={settings.backgroundColor ?? '#ffffff'}
               onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { backgroundColor: e.target.value } })}
-              style={{ width: 40, height: 40, borderRadius: 10, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
+              style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
             />
             <div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#2C2218' }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>
                 {settings.backgroundColor === '#ffffff' || !settings.backgroundColor ? 'White (default)' : settings.backgroundColor}
               </div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 2 }}>
-                Tap to change — applies to background of your pattern
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744', marginTop: 1 }}>
+                Tap swatch to change
               </div>
             </div>
             {settings.backgroundColor && settings.backgroundColor !== '#ffffff' && (
@@ -243,8 +245,8 @@ export default function SettingsPage() {
 
         {/* ── Border Layers ─────────────────────────────────────────────── */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <p className="font-body font-semibold text-sm text-ink">Border layers</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218' }}>Border layers</p>
             {(settings.borderLayers ?? []).length < 3 && (
               <button
                 onClick={() => {
@@ -252,19 +254,19 @@ export default function SettingsPage() {
                   layers.push({ color: '#ffffff', width: 2 })
                   dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
                 }}
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', background: 'rgba(196,97,74,0.08)', border: 'none', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C4614A', background: 'rgba(196,97,74,0.08)', border: 'none', borderRadius: 7, padding: '3px 10px', cursor: 'pointer' }}
               >
-                + Add layer
+                + Add
               </button>
             )}
           </div>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            Up to 3 layers around the pattern — outermost first. Great for logo framing (white → green → white).
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            Optional colour border around the pattern edge — good for logos and framing.
           </p>
 
           {(settings.borderLayers ?? []).length === 0 && (
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C8BFB0', textAlign: 'center', padding: '12px 0' }}>
-              No border — tap + Add layer to add one
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', padding: '8px 0' }}>
+              No border added
             </p>
           )}
 
@@ -278,13 +280,13 @@ export default function SettingsPage() {
                   layers[i] = { ...layers[i], color: e.target.value }
                   dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
                 }}
-                style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
+                style={{ width: 34, height: 34, borderRadius: 8, border: '1.5px solid #E4D9C8', cursor: 'pointer', padding: 2, flexShrink: 0 }}
               />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 4 }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#2C2218', marginBottom: 4 }}>
                   Layer {i + 1} · {i === 0 ? 'Outermost' : i === (settings.borderLayers ?? []).length - 1 ? 'Innermost' : 'Middle'}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>Width:</span>
                   {[1,2,3,4,6].map(w => (
                     <button
@@ -295,7 +297,7 @@ export default function SettingsPage() {
                         dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
                       }}
                       style={{
-                        width: 28, height: 24, borderRadius: 6, fontSize: 11,
+                        width: 26, height: 22, borderRadius: 5, fontSize: 11,
                         fontFamily: "'DM Sans', sans-serif",
                         background: layer.width === w ? '#C4614A' : '#F2EAD8',
                         color:      layer.width === w ? 'white' : '#6B5744',
@@ -312,7 +314,7 @@ export default function SettingsPage() {
                   const layers = (settings.borderLayers ?? []).filter((_, j) => j !== i)
                   dispatch({ type: 'UPDATE_SETTINGS', payload: { borderLayers: layers } })
                 }}
-                style={{ background: 'none', border: 'none', fontSize: 16, color: '#C8BFB0', cursor: 'pointer', padding: 4 }}
+                style={{ background: 'none', border: 'none', fontSize: 14, color: '#C8BFB0', cursor: 'pointer', padding: 4 }}
               >
                 ✕
               </button>
@@ -322,9 +324,9 @@ export default function SettingsPage() {
 
         {/* ── Grid Size ────────────────────────────────────────────────── */}
         <div>
-          <p className="font-body font-semibold text-sm text-ink mb-1">Grid size</p>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            Larger grids = more detail, more stitches.
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 3 }}>Blanket size</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            Larger = more detail and more stitches. Throw is a good all-round choice.
           </p>
           <div className="grid grid-cols-5 gap-2">
             {GRID_SIZES.map(size => {
@@ -335,19 +337,19 @@ export default function SettingsPage() {
                   onClick={() => setGridSize(size)}
                   style={{
                     ...cardBase,
-                    padding: '14px 8px',
+                    padding: '10px 4px',
                     borderColor: isActive ? '#C4614A' : '#E8DDD0',
                     background:  isActive ? 'rgba(196,97,74,0.06)' : 'white',
-                    boxShadow:   isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : '0 1px 4px rgba(44,34,24,0.06)',
+                    boxShadow:   isActive ? '0 0 0 2px rgba(196,97,74,0.15)' : '0 1px 4px rgba(44,34,24,0.06)',
                   }}
                 >
                   <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14,
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12,
                     color: isActive ? '#C4614A' : '#2C2218',
                   }}>
                     {size.label}
                   </span>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#6B5744' }}>
                     {size.width}×{size.height}
                   </span>
                 </button>
@@ -356,13 +358,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ── Colour Difficulty ────────────────────────────────────────── */}
+        {/* ── Colour Count ─────────────────────────────────────────────── */}
         <div>
-          <p className="font-body font-semibold text-sm text-ink mb-1">Photo complexity</p>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            Match to your photo — or dial in the exact count below.
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 3 }}>Number of colours</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 10 }}>
+            Auto-detected from your photo — fewer colours is simpler to stitch.
           </p>
-          <div className="grid grid-cols-3 gap-2 mb-5">
+          <div className="grid grid-cols-3 gap-2 mb-4">
             {DIFFICULTY_TIERS.map(tier => {
               const isActive = activeTier === tier.id
               return (
@@ -371,29 +373,28 @@ export default function SettingsPage() {
                   onClick={() => applyDifficulty(tier.colors)}
                   style={{
                     ...cardBase,
-                    padding: '12px 8px',
+                    padding: '10px 6px',
                     borderColor: isActive ? '#C4614A' : '#E8DDD0',
                     background:  isActive ? 'rgba(196,97,74,0.06)' : 'white',
-                    boxShadow:   isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : '0 1px 4px rgba(44,34,24,0.06)',
-                    gap: 4,
+                    boxShadow:   isActive ? '0 0 0 2px rgba(196,97,74,0.15)' : '0 1px 4px rgba(44,34,24,0.06)',
                   }}
                 >
-                  <span style={{ fontSize: 18 }}>{tier.emoji}</span>
+                  <span style={{ fontSize: 16 }}>{tier.emoji}</span>
                   <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12,
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11,
                     color: isActive ? '#C4614A' : '#2C2218',
                   }}>
                     {tier.label}
                   </span>
                   <span style={{
                     fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-                    color: '#9A8878', lineHeight: 1.3,
+                    color: '#6B5744', lineHeight: 1.3,
                   }}>
                     {tier.colors} colours
                   </span>
                   <span style={{
                     fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-                    color: isActive ? 'rgba(196,97,74,0.6)' : '#B8AAA0',
+                    color: isActive ? 'rgba(196,97,74,0.7)' : '#9A8878',
                     lineHeight: 1.3,
                   }}>
                     {tier.hint}
@@ -405,17 +406,17 @@ export default function SettingsPage() {
 
           {/* Fine-tune slider */}
           <div style={{
-            background: 'white', borderRadius: 16, padding: '14px 16px',
+            background: 'white', borderRadius: 14, padding: '14px 16px',
             boxShadow: '0 1px 4px rgba(44,34,24,0.06)',
           }}>
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="font-body text-sm font-medium text-ink">Fine-tune colours</p>
-                <p className="font-body text-xs text-ink/40">Fewer = simpler to stitch</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>Fine-tune</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744', marginTop: 1 }}>Drag to set exact count</p>
               </div>
               <span style={{
                 fontFamily: "'Playfair Display', serif",
-                fontSize: 30, fontWeight: 700, color: '#C4614A', lineHeight: 1,
+                fontSize: 28, fontWeight: 700, color: '#C4614A', lineHeight: 1,
               }}>
                 {settings.maxColors}
               </span>
@@ -444,18 +445,18 @@ export default function SettingsPage() {
               onChange={(e) => setMaxColors(Number(e.target.value))}
               style={{ width: '100%', accentColor: '#C4614A' }}
             />
-            <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
-              <span>{MIN_COLORS} colours</span>
-              <span>{MAX_COLORS} colours</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>{MIN_COLORS}</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>{MAX_COLORS}</span>
             </div>
             {state.detectedColors && state.recommendedColors && (
               <>
-                <p className="font-body text-xs text-ink/50 mt-2">
-                  We detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'color' : 'colors'} - recommended: {state.recommendedColors} colors
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744', marginTop: 8 }}>
+                  Detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'colour' : 'colours'} · recommended: <strong>{state.recommendedColors}</strong>
                 </p>
                 {(state.dominantPalette?.length ?? 0) > 0 && (
                   <div style={{ marginTop: 10 }}>
-                    <p className="font-body text-[11px] text-ink/40 mb-2">Detected dominant swatches</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 8 }}>Dominant swatches from your photo</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
                       {(state.dominantPalette ?? []).slice(0, 8).map((swatch, idx) => {
                         const totalPopulation = (state.dominantPalette ?? []).reduce((sum, item) => sum + item.population, 0)

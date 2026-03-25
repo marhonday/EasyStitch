@@ -1,8 +1,11 @@
 import Link from 'next/link'
+import Header from '@/components/layout/Header'
 
 export default function LandingPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
+
+      <Header />
 
       <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px 24px', textAlign: 'center' }}>
 

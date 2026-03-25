@@ -104,7 +104,7 @@ export default function ProjectPage() {
                 💾 Save File
               </button>
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/upload')}
                 style={{ background: '#C4614A', border: 'none', borderRadius: 10, padding: '7px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'white', fontWeight: 600, cursor: 'pointer' }}
               >
                 + New Pattern

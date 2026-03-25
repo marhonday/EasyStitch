@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Header             from '@/components/layout/Header'
 import StepIndicator      from '@/components/ui/StepIndicator'
 import LoadingSpinner     from '@/components/ui/LoadingSpinner'
@@ -16,6 +16,14 @@ import {
   applyPersonalizationToPattern,
   getPersonalizationCharLimit,
 } from '@/modules/personalization/personalizePattern'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
+
+const FONT_STYLES = [
+  { id: 'pressStart2P', label: 'Pixel',  desc: 'Bold blocks' },
+  { id: 'vt323',        label: 'Thin',   desc: 'Light lines' },
+  { id: 'silkscreen',   label: 'Dotted', desc: 'Open gaps'   },
+  { id: 'audiowide',    label: 'Wide',   desc: 'Rounded'     },
+] as const
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '')
@@ -98,6 +106,27 @@ export default function PreviewPage() {
     setCellOverrides(new Map())
     setColorOverrides({})
   }
+
+  // ── Personalization text preview canvas ──────────────────────────────────
+  const personPreviewRef = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = personPreviewRef.current
+    if (!canvas || !personalizedPattern || !state.personalization.enabled) return
+    const lines = [state.personalization.titleText, state.personalization.dateText].filter(l => l.trim())
+    if (lines.length === 0) { canvas.width = 0; canvas.height = 0; return }
+    // Text replaces edge rows — show the last (below) or first (above) ~20 rows
+    const sliceCount = Math.min(20, Math.ceil(personalizedPattern.grid.length * 0.3))
+    const previewRows = state.personalization.placement === 'below'
+      ? personalizedPattern.grid.slice(-sliceCount)
+      : personalizedPattern.grid.slice(0, sliceCount)
+    if (previewRows.length === 0) return
+    const previewPattern = {
+      ...personalizedPattern,
+      grid: previewRows,
+      meta: { ...personalizedPattern.meta, height: previewRows.length },
+    }
+    drawPatternToCanvas(canvas, previewPattern, { cellSize: 7, gap: 1, showSymbols: false })
+  }, [personalizedPattern, state.personalization])
 
   if (isGenerating) {
     return (
@@ -274,83 +303,154 @@ export default function PreviewPage() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 1px 4px rgba(44,34,24,0.06)', padding: '14px 16px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+
+          {/* Toggle */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={state.personalization.enabled}
               onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { enabled: e.target.checked } })}
+              style={{ width: 16, height: 16, accentColor: '#C4614A' }}
             />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>
-              Add name or date to pattern
-            </span>
+            <div>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700, color: '#2C2218' }}>
+                Add name or date
+              </span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginLeft: 6 }}>
+                stitched into the pattern edge
+              </span>
+            </div>
           </label>
 
           {state.personalization.enabled && (
-            <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-              <input
-                value={state.personalization.titleText}
-                onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { titleText: e.target.value.slice(0, textCharLimit) } })}
-                maxLength={textCharLimit}
-                placeholder="Name / Title (optional)"
-                style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
-              />
-              <p style={{ marginTop: -4, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
-                Name/Title max for this grid: {textCharLimit} characters
-              </p>
-              <input
-                value={state.personalization.dateText}
-                onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { dateText: e.target.value.slice(0, textCharLimit) } })}
-                maxLength={textCharLimit}
-                placeholder="Date / Birthday (optional)"
-                style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
-              />
-              <p style={{ marginTop: -4, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
-                Date/Birthday max for this grid: {textCharLimit} characters
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <select
-                  value={state.personalization.fontStyle}
-                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { fontStyle: e.target.value as typeof state.personalization.fontStyle } })}
-                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
-                >
-                  <option value="pressStart2P" style={{ fontFamily: "'Press Start 2P', cursive" }}>Press Start 2P</option>
-                  <option value="vt323" style={{ fontFamily: "'VT323', monospace" }}>VT323</option>
-                  <option value="silkscreen" style={{ fontFamily: "'Silkscreen', sans-serif" }}>Silkscreen</option>
-                  <option value="audiowide" style={{ fontFamily: "'Audiowide', cursive" }}>Audiowide</option>
-                </select>
-                <select
-                  value={state.personalization.placement}
-                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { placement: e.target.value as 'above' | 'below' } })}
-                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
-                >
-                  <option value="below">Place below grid</option>
-                  <option value="above">Place above grid</option>
-                </select>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
-                <select
-                  value={`${state.personalization.colorMode}:${state.personalization.paletteColorIndex}`}
-                  onChange={(e) => {
-                    const [mode, idx] = e.target.value.split(':')
-                    dispatch({
-                      type: 'UPDATE_PERSONALIZATION',
-                      payload: { colorMode: mode as 'palette' | 'custom', paletteColorIndex: Number(idx) || 0 },
-                    })
-                  }}
-                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
-                >
-                  {activePalette.map((p, idx) => (
-                    <option key={idx} value={`palette:${idx}`}>Palette {idx + 1} ({p.hex})</option>
-                  ))}
-                  <option value={`custom:${state.personalization.paletteColorIndex}`}>Custom colour…</option>
-                </select>
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+              {/* Text inputs */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <input
-                  type="color"
-                  value={state.personalization.customColor}
-                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { customColor: e.target.value, colorMode: 'custom' } })}
-                  style={{ width: 44, height: 40, border: '1.5px solid #E4D9C8', borderRadius: 10, padding: 2 }}
+                  value={state.personalization.titleText}
+                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { titleText: e.target.value.slice(0, textCharLimit) } })}
+                  maxLength={textCharLimit}
+                  placeholder="Name or title (e.g. Roxy)"
+                  style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, boxSizing: 'border-box' }}
                 />
+                <input
+                  value={state.personalization.dateText}
+                  onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { dateText: e.target.value.slice(0, textCharLimit) } })}
+                  maxLength={textCharLimit}
+                  placeholder="Date or subtitle (optional)"
+                  style={{ width: '100%', border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, boxSizing: 'border-box' }}
+                />
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#B8AAA0' }}>
+                  Max {textCharLimit} characters per line for this grid size
+                </p>
               </div>
+
+              {/* Font style */}
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#6B5744', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  Font style
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                  {FONT_STYLES.map(f => {
+                    const isActive = state.personalization.fontStyle === f.id
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { fontStyle: f.id } })}
+                        style={{
+                          padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
+                          border: `1.5px solid ${isActive ? '#C4614A' : '#E8DDD0'}`,
+                          background: isActive ? 'rgba(196,97,74,0.07)' : '#FAF6EF',
+                        }}
+                      >
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: isActive ? '#C4614A' : '#2C2218' }}>{f.label}</div>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#9A8878', marginTop: 1 }}>{f.desc}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Placement */}
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#6B5744', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  Position
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {([['above', '▲ Above pattern'], ['below', '▼ Below pattern']] as const).map(([val, label]) => {
+                    const isActive = state.personalization.placement === val
+                    return (
+                      <button
+                        key={val}
+                        onClick={() => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { placement: val } })}
+                        style={{
+                          padding: '9px 8px', borderRadius: 10, cursor: 'pointer',
+                          border: `1.5px solid ${isActive ? '#C4614A' : '#E8DDD0'}`,
+                          background: isActive ? 'rgba(196,97,74,0.07)' : '#FAF6EF',
+                          fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: isActive ? 700 : 400,
+                          color: isActive ? '#C4614A' : '#6B5744',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Colour */}
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#6B5744', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  Text colour
+                </p>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {activePalette.map((p, idx) => {
+                      const isActive = state.personalization.colorMode === 'palette' && state.personalization.paletteColorIndex === idx
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { colorMode: 'palette', paletteColorIndex: idx } })}
+                          title={`Palette colour ${idx + 1}`}
+                          style={{
+                            width: 28, height: 28, borderRadius: 6, background: p.hex, border: `2px solid ${isActive ? '#C4614A' : 'rgba(44,34,24,0.1)'}`,
+                            cursor: 'pointer', boxShadow: isActive ? '0 0 0 2px rgba(196,97,74,0.3)' : 'none',
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                    <input
+                      type="color"
+                      value={state.personalization.customColor}
+                      onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { customColor: e.target.value, colorMode: 'custom' } })}
+                      style={{ width: 36, height: 32, border: `2px solid ${state.personalization.colorMode === 'custom' ? '#C4614A' : '#E4D9C8'}`, borderRadius: 8, padding: 2, cursor: 'pointer' }}
+                    />
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#9A8878' }}>Custom</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Live preview of text rows */}
+              {(state.personalization.titleText || state.personalization.dateText) && (
+                <div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#6B5744', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                    Preview
+                  </p>
+                  <div style={{ background: '#F2EAD8', borderRadius: 10, padding: 8, display: 'flex', justifyContent: 'center' }}>
+                    <canvas
+                      ref={personPreviewRef}
+                      style={{ display: 'block', maxWidth: '100%', borderRadius: 4, imageRendering: 'pixelated' }}
+                    />
+                  </div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#B8AAA0', marginTop: 4, textAlign: 'center' }}>
+                    This is how the stitched text will appear
+                  </p>
+                </div>
+              )}
+
             </div>
           )}
         </div>
