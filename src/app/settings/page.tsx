@@ -53,7 +53,7 @@ export default function SettingsPage() {
   const { state, dispatch }        = usePattern()
   const { generate, isGenerating, error } = usePatternGeneration()
   const { settings } = state
-  const [customizeOpen, setCustomizeOpen] = useState(false)
+  const [customizeOpen, setCustomizeOpen] = useState(true)
 
   function setImageType(type: ImageType) {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: type } })
@@ -311,30 +311,9 @@ export default function SettingsPage() {
 
         </div>
 
-        {/* ── Customize Pattern (collapsible) ──────────────────────────── */}
+        {/* ── Customize Pattern ─────────────────────────────────────────── */}
         <div>
-          <button
-            onClick={() => setCustomizeOpen(o => !o)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 16,
-              padding: '13px 16px', cursor: 'pointer',
-              boxShadow: '0 1px 4px rgba(44,34,24,0.06)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 16 }}>🎨</span>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#2C2218' }}>
-                Customize Pattern
-              </span>
-            </div>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', transition: 'transform 0.2s', display: 'inline-block', transform: customizeOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              ▾
-            </span>
-          </button>
-
-          {customizeOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 0 }}>
 
               {/* Fine-tune slider */}
               <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
@@ -509,7 +488,6 @@ export default function SettingsPage() {
               </div>
 
             </div>
-          )}
         </div>
 
       </section>
