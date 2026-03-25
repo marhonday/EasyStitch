@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useRouter } from 'next/navigation'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import Header             from '@/components/layout/Header'
@@ -36,6 +38,31 @@ export default function PreviewPage() {
   const { patternData, rawImage, isGenerating } = state
 
   const pngCanvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Custom palette overrides — user can swap any color
+  const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
+
+  // Merge overrides into the base palette
+  const activePalette = useMemo((): ColorEntry[] => {
+    if (!patternData) return []
+    return patternData.palette.map((entry, i) => {
+      if (!colorOverrides[i]) return entry
+      const hex = colorOverrides[i]
+      const { r, g, b } = hexToRgb(hex)
+      return { ...entry, hex, r, g, b }
+    })
+  }, [patternData, colorOverrides])
+
+  // Build an active pattern with swapped colors for canvas + instructions
+  const activePattern = useMemo(() => {
+    if (!patternData) return null
+    return { ...patternData, palette: activePalette }
+  }, [patternData, activePalette])
+
+  const personalizedPattern = useMemo(() => {
+    if (!activePattern) return null
+    return applyPersonalizationToPattern(activePattern, state.personalization)
+  }, [activePattern, state.personalization])
 
   // ── Row progress tracking ────────────────────────────────────────────
   const [completedRows, setCompletedRows] = useState<Set<number>>(new Set())
@@ -83,31 +110,6 @@ export default function PreviewPage() {
     link.click()
     document.body.removeChild(link)
   }
-
-  // Custom palette overrides — user can swap any color
-  const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({})
-
-  // Merge overrides into the base palette
-  const activePalette = useMemo((): ColorEntry[] => {
-    if (!patternData) return []
-    return patternData.palette.map((entry, i) => {
-      if (!colorOverrides[i]) return entry
-      const hex = colorOverrides[i]
-      const { r, g, b } = hexToRgb(hex)
-      return { ...entry, hex, r, g, b }
-    })
-  }, [patternData, colorOverrides])
-
-  // Build an active pattern with swapped colors for canvas + instructions
-  const activePattern = useMemo(() => {
-    if (!patternData) return null
-    return { ...patternData, palette: activePalette }
-  }, [patternData, activePalette])
-
-  const personalizedPattern = useMemo(() => {
-    if (!activePattern) return null
-    return applyPersonalizationToPattern(activePattern, state.personalization)
-  }, [activePattern, state.personalization])
 
   const textCharLimit = useMemo(() => {
     if (!patternData) return 24
