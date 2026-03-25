@@ -117,7 +117,7 @@ export default function GalleryPage() {
             Community Gallery
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', lineHeight: 1.7, maxWidth: 300, margin: '0 auto' }}>
-            Real photos turned into real blankets by real crocheters. Photo → pattern → finished project.
+            Photos turned into blankets — by your fellow EasyStitch crocheters.
           </p>
         </div>
 
