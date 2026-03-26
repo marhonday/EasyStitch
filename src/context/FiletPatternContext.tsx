@@ -27,7 +27,7 @@ type Action =
 const DEFAULT_SETTINGS: FiletSettings = {
   width:     40,
   height:    60,
-  threshold: 128,
+  threshold: 145,
   invert:    false,
 }
 

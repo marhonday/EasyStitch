@@ -33,7 +33,7 @@ export default function FiletSettingsPage() {
   const updatePreview = useCallback(() => {
     if (!rawImage || !previewCanvasRef.current) return
     const canvas = previewCanvasRef.current
-    processImageForFilet(rawImage, settings.threshold, settings.invert)
+    processImageForFilet(rawImage, settings.threshold, settings.invert, true, 1.5)
       .then(dataUrl => {
         const img = new Image()
         img.onload = () => {
@@ -88,7 +88,7 @@ export default function FiletSettingsPage() {
     logEvent('GENERATION_STARTED')
     try {
       // Pre-process image to binary B&W
-      const processedImage = await processImageForFilet(rawImage, settings.threshold, settings.invert)
+      const processedImage = await processImageForFilet(rawImage, settings.threshold, settings.invert, true, 1.5)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       2,
