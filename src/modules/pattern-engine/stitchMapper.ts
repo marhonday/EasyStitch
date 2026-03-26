@@ -17,7 +17,9 @@ export interface StitchRenderHints {
   displayName:  string
 }
 
-const HINTS: Record<StitchStyle, StitchRenderHints> = {
+// Extended hints map includes legacy keys not in the StitchStyle union
+// so they don't cause runtime errors when encountered in saved patterns.
+const HINTS: Record<string, StitchRenderHints> = {
   graphghan: {
     cellShape:    'square',
     showSymbol:   true,
@@ -42,8 +44,14 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
     borderRadius: 0,
     displayName:  'Tapestry',
   },
+  crossStitch: {
+    cellShape:    'square',
+    showSymbol:   true,      // symbols are ESSENTIAL for cross stitch
+    borderRadius: 0,
+    displayName:  'Cross Stitch',
+  },
 }
 
-export function getStitchHints(style: StitchStyle): StitchRenderHints {
+export function getStitchHints(style: StitchStyle | string): StitchRenderHints {
   return HINTS[style] ?? HINTS['c2c']
 }

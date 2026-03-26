@@ -52,6 +52,11 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
     description: 'Tight, detailed grid',
     available:   true,
   },
+  crossStitch: {
+    label:       'Cross Stitch',
+    description: 'Square grid for Aida cloth embroidery',
+    available:   false,  // crossstitch route only
+  },
 }
 
 // ─── Symbols ──────────────────────────────────────────────────────────────────
@@ -77,4 +82,5 @@ export const WIZARD_STEPS = [
 export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
   singleCrochet: 1.5,
   c2c:           1.8,
+  crossStitch:   0.3,
 }

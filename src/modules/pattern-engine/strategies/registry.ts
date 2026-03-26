@@ -2,11 +2,13 @@ import { StitchStyle }           from '@/types/pattern'
 import { StitchStrategy }        from './types'
 import { c2cStrategy }           from './c2c.strategy'
 import { singleCrochetStrategy } from './singleCrochet.strategy'
+import { crossStitchStrategy }   from './crossStitch.strategy'
 import { STITCH_STYLE_META }     from '@/lib/constants'
 
 const strategies: StitchStrategy[] = [
   c2cStrategy,
   singleCrochetStrategy,
+  crossStitchStrategy,
 ]
 
 const strategyMap = new Map<StitchStyle, StitchStrategy>(

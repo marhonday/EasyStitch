@@ -18,6 +18,7 @@ const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: s
 const STITCH_ICONS: Record<StitchStyle, string> = {
   c2c:           '◪',
   singleCrochet: '▦',
+  crossStitch:   '✕',
 }
 
 // Difficulty tiers — suggest color count based on photo complexity
@@ -175,7 +176,7 @@ export default function SettingsPage() {
         <div>
           <p className="font-body font-semibold text-sm text-ink mb-3">Stitch style</p>
           <div className="grid grid-cols-2 gap-3">
-            {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).map(style => {
+            {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).filter(style => STITCH_STYLE_META[style].available).map(style => {
               const meta     = STITCH_STYLE_META[style]
               const isActive = settings.stitchStyle === style
 

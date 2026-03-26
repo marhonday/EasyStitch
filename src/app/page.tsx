@@ -70,9 +70,45 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginBottom: 8 }}>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginBottom: 24 }}>
           C2C · Tapestry · Graphgan · Works on any phone
         </p>
+
+        {/* Also try: Cross Stitch */}
+        <div style={{ width: '100%', maxWidth: 320, marginBottom: 8 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Also try
+          </p>
+          <Link
+            href="/crossstitch"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              background: 'white', borderRadius: 16,
+              padding: '14px 16px',
+              boxShadow: '0 2px 12px rgba(44,34,24,0.08)',
+              textDecoration: 'none',
+              border: '1.5px solid #EDE4D8',
+            }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(196,97,74,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+              🪡
+            </div>
+            <div style={{ flex: 1, textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218' }}>
+                  Cross Stitch
+                </span>
+                <span style={{ background: '#C4614A', color: 'white', borderRadius: 6, padding: '1px 7px', fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600 }}>
+                  New
+                </span>
+              </div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.4 }}>
+                Symbol chart for Aida cloth · finished size preview
+              </p>
+            </div>
+            <span style={{ color: '#C8BFB0', fontSize: 16 }}>→</span>
+          </Link>
+        </div>
 
       </section>
 

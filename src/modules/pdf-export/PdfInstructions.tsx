@@ -23,7 +23,7 @@ interface InstructionSet {
   tip:   string
 }
 
-const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
+const INSTRUCTIONS: Record<string, InstructionSet> = {
   graphghan: {
     title: 'How to use this pattern',
     steps: [
@@ -64,6 +64,17 @@ const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
       'Keep carried yarn tension even — too tight puckers the fabric, too loose creates loops.',
     ],
     tip: 'Tip: Tapestry crochet uses more yarn than standard graphghan. Buy 20–30% extra of each colour.',
+  },
+  crossStitch: {
+    title: 'How to use this cross stitch chart',
+    steps: [
+      'Each coloured square with a symbol = one cross stitch in that thread colour.',
+      'To make a cross stitch: bring needle up at bottom-left, down at top-right (half cross), then up at bottom-right, down at top-left to complete the X.',
+      'Work all stitches in the same direction — half crosses first across a row, then complete on the return pass.',
+      'The symbol in each square identifies the colour — use the colour key to match symbols to thread numbers.',
+      'Count your Aida cloth carefully before starting — mark the centre of the fabric and work outward.',
+    ],
+    tip: 'Tip: Use 2 strands of embroidery floss on 14-count Aida, 1 strand on 28-count. Back-stitch over completed crosses to outline shapes for a crisp finish.',
   },
 }
 
