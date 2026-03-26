@@ -2,12 +2,16 @@
 
 import { createContext, useContext, useReducer, ReactNode } from 'react'
 import { PatternData } from '@/types/pattern'
+import { FiletMode } from '@/lib/filetPreprocess'
+
+export type { FiletMode }
 
 export interface FiletSettings {
   width:     number
   height:    number
   threshold: number
   invert:    boolean
+  mode:      FiletMode
 }
 
 interface FiletState {
@@ -29,6 +33,7 @@ const DEFAULT_SETTINGS: FiletSettings = {
   height:    60,
   threshold: 145,
   invert:    false,
+  mode:      'clean',
 }
 
 const initialState: FiletState = {

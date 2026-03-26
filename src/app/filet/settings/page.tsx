@@ -33,7 +33,7 @@ export default function FiletSettingsPage() {
   const updatePreview = useCallback(() => {
     if (!rawImage || !previewCanvasRef.current) return
     const canvas = previewCanvasRef.current
-    processImageForFilet(rawImage, settings.threshold, settings.invert, true, 1.5)
+    processImageForFilet(rawImage, settings.threshold, settings.invert, true, settings.mode)
       .then(dataUrl => {
         const img = new Image()
         img.onload = () => {
@@ -88,7 +88,7 @@ export default function FiletSettingsPage() {
     logEvent('GENERATION_STARTED')
     try {
       // Pre-process image to binary B&W
-      const processedImage = await processImageForFilet(rawImage, settings.threshold, settings.invert, true, 1.5)
+      const processedImage = await processImageForFilet(rawImage, settings.threshold, settings.invert, true, settings.mode)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       2,
@@ -143,6 +143,37 @@ export default function FiletSettingsPage() {
             </p>
           </div>
         )}
+
+        {/* ── Silhouette mode ──────────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
+            Silhouette style
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {([
+              ['clean',    '🔲', 'Clean Silhouette',    'Bold shapes, no interior detail. Best for logos, animals, simple outlines.'],
+              ['detailed', '🔳', 'Detailed Silhouette', 'Preserves interior texture. Best for portraits and faces.'],
+            ] as const).map(([val, icon, label, hint]) => {
+              const active = settings.mode === val
+              return (
+                <button
+                  key={val}
+                  onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { mode: val } })}
+                  style={{
+                    padding: '12px 10px', borderRadius: 12, textAlign: 'left',
+                    border: active ? '2px solid #C4614A' : '1.5px solid #E4D9C8',
+                    background: active ? 'rgba(196,97,74,0.06)' : 'white',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 22, display: 'block', marginBottom: 4 }}>{icon}</span>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12, color: active ? '#C4614A' : '#2C2218', marginBottom: 3 }}>{label}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', lineHeight: 1.3 }}>{hint}</p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         {/* ── Threshold slider ─────────────────────────────────────────── */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
