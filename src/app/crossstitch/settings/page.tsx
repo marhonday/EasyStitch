@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCrossStitch } from '@/context/CrossStitchPatternContext'
 import { generatePattern } from '@/modules/pattern-engine/generatePattern'
+import { preprocessImageForCrossStitch } from '@/lib/crossStitchPreprocess'
 import { logEvent } from '@/lib/log'
 
 const SIZE_PRESETS = [
@@ -61,6 +62,8 @@ export default function CrossStitchSettingsPage() {
     dispatch({ type: 'SET_GENERATING', payload: true })
     logEvent('GENERATION_STARTED')
     try {
+      // Auto-fit: complexity-adaptive fill (70–88%) centred in natural background
+      const { dataUrl: processedImage } = await preprocessImageForCrossStitch(rawImage)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       settings.maxColors,
@@ -69,7 +72,7 @@ export default function CrossStitchSettingsPage() {
         backgroundColor: '#ffffff',
         borderLayers:    [],
       }
-      const result = await generatePattern(rawImage, patternSettings)
+      const result = await generatePattern(processedImage, patternSettings)
       logEvent('GENERATION_COMPLETED')
       dispatch({ type: 'SET_PATTERN', payload: result })
       router.push('/crossstitch/export')
