@@ -98,17 +98,17 @@ export default function KnittingUploadPage() {
         <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
           ← Back
         </button>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>Knitting Graph</p>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Knitting Graph</p>
         <div style={{ width: 48 }} />
       </div>
 
       <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px 120px' }}>
 
         <div style={{ width: '100%', maxWidth: 400, marginBottom: 24, textAlign: 'center' }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             {hasPhoto ? 'Photo ready' : 'Upload your photo'}
           </h1>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65 }}>
             {hasPhoto
               ? 'Set your stitch count and gauge on the next screen.'
               : 'Upload any photo to turn into a knitting colorwork graph.'}
@@ -148,7 +148,7 @@ export default function KnittingUploadPage() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: 28 }}>
               <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📷</div>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#2C2218' }}>Tap to choose a photo</p>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>JPG, PNG, HEIC · Camera roll or files</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>JPG, PNG, HEIC · Camera roll or files</p>
             </div>
           )}
         </label>
@@ -178,8 +178,8 @@ export default function KnittingUploadPage() {
               <div key={title} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
                 <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
                 <div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#2C2218' }}>{title}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>{desc}</p>
                 </div>
               </div>
             ))}

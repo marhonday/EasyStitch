@@ -200,7 +200,7 @@ export default function UnlockPage() {
               <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, color: '#2C2218', marginBottom: 2 }}>{item.title}</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{item.desc}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>{item.desc}</p>
               </div>
             </div>
           ))}
@@ -232,7 +232,7 @@ export default function UnlockPage() {
         <p style={{ textAlign: 'center', marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0' }}>
           One-time · instant download · keep forever
         </p>
-        <p style={{ textAlign: 'center', marginTop: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+        <p style={{ textAlign: 'center', marginTop: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
           🛡️ If your pattern doesn&apos;t turn out right, we&apos;ll fix it or refund you.
         </p>
       </div>

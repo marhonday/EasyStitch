@@ -87,7 +87,7 @@ export default function KnittingSettingsPage() {
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
           ← Back
         </button>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>Knitting Settings</p>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Knitting Settings</p>
         <div style={{ width: 48 }} />
       </div>
 

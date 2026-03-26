@@ -91,7 +91,7 @@ export default function CrossStitchSettingsPage() {
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
           ← Back
         </button>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>Chart Settings</p>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Chart Settings</p>
         <div style={{ width: 48 }} />
       </div>
 
@@ -102,7 +102,7 @@ export default function CrossStitchSettingsPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
             Aida count
           </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 12 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 12 }}>
             Choose your fabric count to see finished size — does not affect the chart.
           </p>
 

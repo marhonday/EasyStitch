@@ -30,7 +30,7 @@ export default function LandingPage() {
 
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
-          fontSize: 14, color: '#6B5744',
+          fontSize: 15, color: '#3D2C1E',
           lineHeight: 1.65, maxWidth: 290,
           marginBottom: 28,
         }}>
@@ -86,7 +86,7 @@ export default function LandingPage() {
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
                   Guided Pattern
                 </p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6, marginBottom: 10 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65, marginBottom: 10 }}>
                   Row-by-row instructions, progress tracking, and a full colour key — everything you need from start to finish.
                 </p>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

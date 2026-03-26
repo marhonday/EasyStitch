@@ -378,7 +378,7 @@ export default function PreviewPage() {
               Last step
             </span>
           </div>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 12, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginBottom: 12, lineHeight: 1.5 }}>
             Stitch a name, date or dedication directly into the pattern border.
           </p>
 
@@ -388,7 +388,7 @@ export default function PreviewPage() {
               checked={state.personalization.enabled}
               onChange={(e) => dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { enabled: e.target.checked } })}
             />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#2C2218' }}>
               Enable personalisation
             </span>
           </label>
@@ -535,7 +535,7 @@ export default function PreviewPage() {
           display: 'flex', gap: 12, alignItems: 'flex-start',
         }}>
           <span style={{ fontSize: 20, flexShrink: 0 }}>💡</span>
-          <p style={{ fontSize: 13, color: '#6B5744', lineHeight: 1.65, fontFamily: "'DM Sans', sans-serif" }}>
+          <p style={{ fontSize: 15, color: '#3D2C1E', lineHeight: 1.655, fontFamily: "'DM Sans', sans-serif" }}>
             Work from the <strong>bottom-left corner</strong>, one row at a time.
             Each symbol = one stitch in that colour.
           </p>

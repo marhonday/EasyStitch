@@ -214,7 +214,7 @@ export default function ExportPage() {
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#4A9050', fontWeight: 600, marginBottom: 4 }}>
                   ✓ Email opened!
                 </p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
                   Hit send in your email app to save the link.
                 </p>
                 <button

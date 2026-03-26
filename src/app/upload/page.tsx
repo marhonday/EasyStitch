@@ -267,7 +267,7 @@ export default function UploadPage() {
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 15, color: '#2C2218' }}>
                 Tap to choose a photo
               </p>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
                 JPG, PNG or HEIC · Camera roll or files
               </p>
             </div>
@@ -327,8 +327,8 @@ export default function UploadPage() {
                 <div key={title as string} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
                   <span style={{ fontSize: 15, flexShrink: 0 }}>{emoji}</span>
                   <div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#2C2218' }}>{title}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>{desc}</p>
                   </div>
                 </div>
               ))}
@@ -347,8 +347,8 @@ export default function UploadPage() {
                 <div key={title as string} style={{ display: 'flex', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2EAD8' }}>
                   <span style={{ fontSize: 15, flexShrink: 0 }}>{emoji}</span>
                   <div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218' }}>{title}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>{desc}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#2C2218' }}>{title}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>{desc}</p>
                   </div>
                 </div>
               ))}

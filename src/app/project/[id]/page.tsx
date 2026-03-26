@@ -140,7 +140,7 @@ export default function ProjectPage() {
           {/* Progress bar */}
           <div style={{ marginTop: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
                 {project.completedRows} of {project.totalRows} rows complete
               </span>
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: done ? '#4A9050' : '#C4614A' }}>
@@ -320,12 +320,12 @@ export default function ProjectPage() {
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218', marginBottom: 2 }}>
                       {est.colorName}
                     </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
                       {est.label}
                     </p>
                   </div>
                   <div style={{ background: '#FAF6EF', borderRadius: 8, padding: '4px 10px', textAlign: 'right' }}>
-                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>{est.yards}</p>
+                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>{est.yards}</p>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>yds</p>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export default function ProjectPage() {
               <span style={{ fontSize: 24 }}>🏷️</span>
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 2 }}>Brand colour matching</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>Lion Brand, Red Heart & Caron matches coming soon</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>Lion Brand, Red Heart & Caron matches coming soon</p>
               </div>
               <div style={{ marginLeft: 'auto', background: '#FAF6EF', borderRadius: 8, padding: '4px 10px', flexShrink: 0 }}>
                 <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#C4614A' }}>Soon</span>

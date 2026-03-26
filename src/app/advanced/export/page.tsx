@@ -93,7 +93,7 @@ export default function AdvancedExportPage() {
         >
           ← Settings
         </button>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>Your Graph</p>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Your Graph</p>
         <button
           onClick={() => { dispatch({ type: 'RESET' }); router.push('/advanced') }}
           style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', fontWeight: 600, cursor: 'pointer' }}

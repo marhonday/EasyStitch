@@ -45,7 +45,7 @@ export default function DonatePage() {
           ].map(([emoji, text]) => (
             <div key={String(text)} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
               <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.5 }}>{emoji}</span>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>{text}</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65 }}>{text}</p>
             </div>
           ))}
         </div>

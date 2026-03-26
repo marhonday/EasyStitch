@@ -131,7 +131,7 @@ export default function GalleryPage() {
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
                 Show us your creation!
               </h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65 }}>
                 Finished a blanket with EasyStitch? We&apos;d love to feature it here — original photo + finished project.
               </p>
             </div>
@@ -265,7 +265,7 @@ export default function GalleryPage() {
             <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
               Thanks for sharing!
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65 }}>
               Attach your photos in the email and send it over — we&apos;ll add you to the gallery.
             </p>
           </div>
@@ -296,7 +296,7 @@ export default function GalleryPage() {
 
                 {/* Details */}
                 <div style={{ padding: '14px 16px' }}>
-                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
                     {entry.title}
                   </p>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', marginBottom: 10 }}>

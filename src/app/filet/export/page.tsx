@@ -96,7 +96,7 @@ export default function FiletExportPage() {
         >
           ← Settings
         </button>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>Your Filet Chart</p>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Your Filet Chart</p>
         <button
           onClick={() => { dispatch({ type: 'RESET' }); router.push('/filet') }}
           style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', fontWeight: 600, cursor: 'pointer' }}

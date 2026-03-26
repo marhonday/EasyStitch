@@ -69,7 +69,7 @@ export default function FaqPage() {
       <div style={{ flex: 1, padding: '8px 20px 60px', maxWidth: 480, margin: '0 auto', width: '100%' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             Frequently Asked Questions
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878' }}>

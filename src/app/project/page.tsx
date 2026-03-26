@@ -157,7 +157,7 @@ function ProjectCard({ project, onOpen, onDelete }: {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: '#2C2218', marginBottom: 3 }}>
               {project.name}
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
               {project.completedRows} of {project.totalRows} rows · {new Date(project.updatedAt).toLocaleDateString()}
             </p>
           </div>
