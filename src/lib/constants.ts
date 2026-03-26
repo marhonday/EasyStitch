@@ -77,6 +77,11 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
     description: 'Open mesh — filled blocks and chain spaces',
     available:   false,   // filet route only
   },
+  crossStitch: {
+    label:       'Cross Stitch',
+    description: 'Square grid for Aida cloth embroidery',
+    available:   false,   // crossstitch route only
+  },
 }
 
 // ─── Symbols ──────────────────────────────────────────────────────────────────
@@ -107,4 +112,5 @@ export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
   knittingStranded: 1.4,
   knittingIntarsia: 1.2,
   filetCrochet:     1.8,
+  crossStitch:      0.3,   // embroidery thread, much less per stitch
 }

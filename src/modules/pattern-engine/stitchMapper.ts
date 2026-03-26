@@ -17,7 +17,7 @@ export interface StitchRenderHints {
   displayName:  string
 }
 
-const HINTS: Record<StitchStyle, StitchRenderHints> = {
+const HINTS: Record<string, StitchRenderHints> = {
   graphghan: {
     cellShape:    'square',
     showSymbol:   true,
@@ -65,6 +65,12 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
     showSymbol:   false,
     borderRadius: 0,
     displayName:  'Filet Crochet',
+  },
+  crossStitch: {
+    cellShape:    'square',
+    showSymbol:   true,    // symbols essential — charts are often used in B&W
+    borderRadius: 0,
+    displayName:  'Cross Stitch',
   },
 }
 

@@ -146,13 +146,15 @@ export default function LandingPage() {
               />
             </Link>
 
-            {/* Cross Stitch — coming soon */}
-            <GraphCard
-              icon="✚"
-              title="Cross Stitch"
-              tags={['Embroidery', 'Aida cloth']}
-              comingSoon
-            />
+            {/* Cross Stitch */}
+            <Link href="/crossstitch" style={{ textDecoration: 'none' }}>
+              <GraphCard
+                icon="✚"
+                title="Cross Stitch"
+                tags={['Embroidery', 'Aida cloth']}
+                badge="New"
+              />
+            </Link>
 
           </div>
         </div>

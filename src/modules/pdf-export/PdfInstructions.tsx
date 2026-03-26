@@ -109,6 +109,17 @@ const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
     ],
     tip: 'Tip: Filet crochet reads most clearly in a single solid colour — the contrast between filled blocks and open spaces creates the image. Use a smooth yarn (not fluffy) so the mesh holes stay open and visible.',
   },
+  crossStitch: {
+    title: 'How to use this cross stitch chart',
+    steps: [
+      'Each coloured square with a symbol = one cross stitch in that thread colour.',
+      'To make a cross stitch: bring needle up at bottom-left, down at top-right (half cross), then up at bottom-right, down at top-left to complete the X.',
+      'Work all half-crosses across a row first, then complete on the return — this keeps all stitches uniform.',
+      'Use the colour key to match each symbol to a thread colour or DMC number.',
+      'Count your Aida cloth carefully before starting — mark the centre and work outward.',
+    ],
+    tip: 'Tip: Use 2 strands of embroidery floss on 14-count Aida, 1–2 strands on 18-count, 1 strand on 28-count. Back-stitch outlines over completed stitches for a crisp, defined finish.',
+  },
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
