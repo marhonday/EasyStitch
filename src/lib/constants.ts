@@ -62,6 +62,16 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
     description: 'Two-colour slip stitch',
     available:   true,
   },
+  knittingStranded: {
+    label:       'Stranded / Fair Isle',
+    description: 'Carry both yarns across every row',
+    available:   false,   // knitting route only
+  },
+  knittingIntarsia: {
+    label:       'Intarsia / Standard',
+    description: 'Separate yarn sections per colour area',
+    available:   false,   // knitting route only
+  },
 }
 
 // ─── Symbols ──────────────────────────────────────────────────────────────────
@@ -85,8 +95,10 @@ export const WIZARD_STEPS = [
 // Based on standard worsted weight yarn averages
 
 export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
-  singleCrochet: 1.5,
-  c2c:           1.8,
-  tapestry:      2.1,
-  mosaic:        1.6,
+  singleCrochet:    1.5,
+  c2c:              1.8,
+  tapestry:         2.1,
+  mosaic:           1.6,
+  knittingStranded: 1.4,
+  knittingIntarsia: 1.2,
 }

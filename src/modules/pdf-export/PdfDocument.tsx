@@ -34,6 +34,7 @@ interface PdfDocumentProps {
   pattern:              PatternData
   title?:               string
   includeInstructions?: boolean
+  cellWidthMultiplier?: number
 }
 
 // Height (pt) reserved for non-grid content per page type
@@ -43,7 +44,7 @@ const FOOTER_H   = 26    // footer bar + padding (all pages)
 const INSTR_H    = 145   // instructions box (last page only)
 const LABEL_H    = 16    // "Pattern Grid" section label (first page only)
 
-export default function PdfDocument({ pattern, title = 'My Crochet Pattern', includeInstructions = true }: PdfDocumentProps) {
+export default function PdfDocument({ pattern, title = 'My Crochet Pattern', includeInstructions = true, cellWidthMultiplier = 1 }: PdfDocumentProps) {
   const { grid, palette, meta } = pattern
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
   const subtitle   = `${meta.width}×${meta.height} · ${meta.colorCount} colours · ${styleLabel}`
@@ -137,6 +138,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
                   cellSize={cellSize}
                   startRow={band.startRow}
                   showRowNums={true}
+                  cellWidthMultiplier={cellWidthMultiplier}
                 />
               </View>
 

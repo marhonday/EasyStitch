@@ -167,6 +167,52 @@ export default function LandingPage() {
             </div>
           </Link>
 
+          {/* Knitting */}
+          <Link href="/knitting" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: 'white', borderRadius: 20,
+              border: '1.5px solid #E4D9C8',
+              padding: '18px 20px',
+              boxShadow: '0 2px 10px rgba(44,34,24,0.06)',
+              display: 'flex', gap: 16, alignItems: 'flex-start',
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                background: '#F2EAD8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24,
+              }}>
+                🧵
+              </div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>
+                    Knitting Graph
+                  </p>
+                  <span style={{
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
+                    color: '#6B5744', background: '#F2EAD8',
+                    borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                  }}>
+                    New
+                  </span>
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6, marginBottom: 10 }}>
+                  Colourwork graphs with correct stitch proportions — rectangular cells for Fair Isle and Intarsia knitting.
+                </p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {['Fair Isle', 'Intarsia', 'Colourwork', 'Sweaters & hats'].map(tag => (
+                    <span key={tag} style={{
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+                      color: '#9A8878', background: '#F5F0E8',
+                      borderRadius: 999, padding: '3px 10px',
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Link>
+
           {/* Diamond Painting — coming soon */}
           <div style={{
             background: '#FAFAFA', borderRadius: 20,

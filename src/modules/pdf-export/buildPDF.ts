@@ -43,13 +43,13 @@ export async function generatePdfBlob(
   pattern:             PatternData,
   title              = 'My Crochet Pattern',
   includeInstructions = true,
+  cellWidthMultiplier = 1,
 ): Promise<Blob> {
   const pdf = await getRenderer()
 
-  // Import document component here (also benefits from lazy-load)
   const { default: PdfDocument } = await import('./PdfDocument')
 
-  const element = React.createElement(PdfDocument, { pattern, title, includeInstructions })
+  const element = React.createElement(PdfDocument, { pattern, title, includeInstructions, cellWidthMultiplier })
   const blob    = await pdf(element).toBlob()
   return blob
 }
@@ -66,8 +66,9 @@ export async function downloadPdf(
   filename           = 'my-crochet-pattern',
   title              = 'My Crochet Pattern',
   includeInstructions = true,
+  cellWidthMultiplier = 1,
 ): Promise<void> {
-  const blob = await generatePdfBlob(pattern, title, includeInstructions)
+  const blob = await generatePdfBlob(pattern, title, includeInstructions, cellWidthMultiplier)
 
   // Create a temporary <a> and click it — standard browser download trigger
   const url  = URL.createObjectURL(blob)

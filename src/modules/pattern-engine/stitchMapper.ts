@@ -48,6 +48,18 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
     borderRadius: 0.05,
     displayName:  'Mosaic',
   },
+  knittingStranded: {
+    cellShape:    'square',
+    showSymbol:   false,
+    borderRadius: 0,
+    displayName:  'Stranded / Fair Isle',
+  },
+  knittingIntarsia: {
+    cellShape:    'square',
+    showSymbol:   false,
+    borderRadius: 0,
+    displayName:  'Intarsia',
+  },
 }
 
 export function getStitchHints(style: StitchStyle): StitchRenderHints {

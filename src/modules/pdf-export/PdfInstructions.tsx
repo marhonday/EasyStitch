@@ -65,6 +65,28 @@ const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
     ],
     tip: 'Tip: Tapestry crochet uses more yarn than standard graphghan. Buy 20–30% extra of each colour.',
   },
+  knittingStranded: {
+    title: 'Stranded colorwork (Fair Isle) instructions',
+    steps: [
+      'Cast on your stitches. Work in stockinette (knit on RS, purl on WS) throughout.',
+      'Carry both yarn colours across every row — the non-working yarn floats on the wrong side.',
+      'Each square in the graph = one knit stitch. Read RS rows right-to-left, WS rows left-to-right.',
+      'Keep float tension even — floats longer than 5 stitches should be caught to avoid snags.',
+      'Block your finished piece: stranded fabric often pulls in. Blocking opens it to the correct dimensions.',
+    ],
+    tip: 'Tip: Stranded colorwork uses more yarn than plain knitting — add 20–30% extra per colour. Knit a tension swatch first to confirm your stitch-to-row ratio matches the graph.',
+  },
+  knittingIntarsia: {
+    title: 'Intarsia colorwork instructions',
+    steps: [
+      'Wind a separate bobbin of yarn for each distinct colour section — do not carry yarn across.',
+      'Each square in the graph = one knit stitch on the right side.',
+      'At each colour change, twist the yarns around each other on the wrong side to avoid holes.',
+      'Read RS rows right-to-left, WS rows left-to-right (standard knitting graph convention).',
+      'Weave in all yarn tails on the WS as you go — intarsia produces many colour joins.',
+    ],
+    tip: 'Tip: Intarsia works best for large blocks of colour. For small isolated dots or thin lines, consider duplicate stitch over a plain base instead.',
+  },
   mosaic: {
     title: 'Mosaic crochet instructions',
     steps: [

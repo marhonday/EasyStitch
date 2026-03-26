@@ -21,11 +21,12 @@ import { Cell, ColorEntry } from '@/types/pattern'
 import { COLORS } from './pdfStyles'
 
 interface PdfGridProps {
-  rows:        Cell[][]
-  palette:     ColorEntry[]
-  cellSize:    number
-  startRow:    number
-  showRowNums: boolean
+  rows:                Cell[][]
+  palette:             ColorEntry[]
+  cellSize:            number
+  startRow:            number
+  showRowNums:         boolean
+  cellWidthMultiplier?: number
 }
 
 const ROW_LABEL_W = 14
@@ -37,13 +38,17 @@ export default function PdfGrid({
   cellSize,
   startRow,
   showRowNums,
+  cellWidthMultiplier = 1,
 }: PdfGridProps) {
   const colCount = rows[0]?.length ?? 0
   const rowCount = rows.length
   const labelW   = showRowNums ? ROW_LABEL_W : 0
-  const stride   = cellSize + GAP
-  const svgW     = colCount * stride
-  const svgH     = rowCount * stride
+  const cellW    = cellSize * cellWidthMultiplier
+  const cellH    = cellSize
+  const strideX  = cellW + GAP
+  const strideY  = cellH + GAP
+  const svgW     = colCount * strideX
+  const svgH     = rowCount * strideY
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
@@ -78,7 +83,7 @@ export default function PdfGrid({
           for (let r = 0; r < rows.length; r++) {
             for (let c = 0; c < (rows[r]?.length ?? 0); c++) {
               if (rows[r][c]?.colorIndex === colorIndex) {
-                positions.push({ x: c * stride, y: r * stride })
+                positions.push({ x: c * strideX, y: r * strideY })
               }
             }
           }
@@ -89,8 +94,8 @@ export default function PdfGrid({
               key={`${colorIndex}-${i}`}
               x={pos.x}
               y={pos.y}
-              width={cellSize}
-              height={cellSize}
+              width={cellW}
+              height={cellH}
               fill={entry.hex}
             />
           ))

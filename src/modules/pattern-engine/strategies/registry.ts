@@ -2,8 +2,9 @@ import { StitchStyle }           from '@/types/pattern'
 import { StitchStrategy }        from './types'
 import { c2cStrategy }           from './c2c.strategy'
 import { singleCrochetStrategy } from './singleCrochet.strategy'
-import { tapestryStrategy }      from './tapestry.strategy'
-import { mosaicStrategy }        from './mosaic.strategy'
+import { tapestryStrategy }                               from './tapestry.strategy'
+import { mosaicStrategy }                                from './mosaic.strategy'
+import { knittingStrandedStrategy, knittingIntarsiaStrategy } from './knitting.strategy'
 import { STITCH_STYLE_META }     from '@/lib/constants'
 
 const strategies: StitchStrategy[] = [
@@ -11,6 +12,8 @@ const strategies: StitchStrategy[] = [
   singleCrochetStrategy,
   tapestryStrategy,
   mosaicStrategy,
+  knittingStrandedStrategy,
+  knittingIntarsiaStrategy,
 ]
 
 const strategyMap = new Map<StitchStyle, StitchStrategy>(
