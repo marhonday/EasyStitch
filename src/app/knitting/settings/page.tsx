@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useKnittingPattern } from '@/context/KnittingPatternContext'
 import { generatePattern } from '@/modules/pattern-engine/generatePattern'
+import { preprocessImageForKnitting } from '@/lib/knittingPreprocess'
 import { logEvent } from '@/lib/log'
 
 // Knitting-specific size presets (width × height in stitches × rows)
@@ -56,6 +57,8 @@ export default function KnittingSettingsPage() {
     dispatch({ type: 'SET_GENERATING', payload: true })
     logEvent('GENERATION_STARTED')
     try {
+      // Centre subject at ~70% of grid — leaves natural padding for motif balance
+      const processedImage = await preprocessImageForKnitting(rawImage, 0.70)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       settings.maxColors,
@@ -64,7 +67,7 @@ export default function KnittingSettingsPage() {
         backgroundColor: '#ffffff',
         borderLayers:    [],
       }
-      const result = await generatePattern(rawImage, patternSettings)
+      const result = await generatePattern(processedImage, patternSettings)
       logEvent('GENERATION_COMPLETED')
       dispatch({ type: 'SET_PATTERN', payload: result })
       router.push('/knitting/export')
