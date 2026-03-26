@@ -15,7 +15,7 @@ const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: s
   { id: 'graphic', emoji: '🎨', label: 'Graphic',  hint: 'Logo, clip art, cartoon, flat design' },
 ]
 
-const STITCH_ICONS: Record<StitchStyle, string> = {
+const STITCH_ICONS: Partial<Record<StitchStyle, string>> = {
   c2c:           '◪',
   singleCrochet: '▦',
   tapestry:      '⬛',

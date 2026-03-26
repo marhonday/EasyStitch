@@ -17,7 +17,7 @@ const SIZE_PRESETS = [
   { label: 'Custom', width: 0, height: 0   },
 ]
 
-const STITCH_ICONS: Record<StitchStyle, string> = {
+const STITCH_ICONS: Partial<Record<StitchStyle, string>> = {
   c2c:           '◪',
   singleCrochet: '▦',
   tapestry:      '⬛',

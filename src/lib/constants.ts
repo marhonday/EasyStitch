@@ -72,6 +72,11 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
     description: 'Separate yarn sections per colour area',
     available:   false,   // knitting route only
   },
+  filetCrochet: {
+    label:       'Filet Crochet',
+    description: 'Open mesh — filled blocks and chain spaces',
+    available:   false,   // filet route only
+  },
 }
 
 // ─── Symbols ──────────────────────────────────────────────────────────────────
@@ -101,4 +106,5 @@ export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
   mosaic:           1.6,
   knittingStranded: 1.4,
   knittingIntarsia: 1.2,
+  filetCrochet:     1.8,
 }

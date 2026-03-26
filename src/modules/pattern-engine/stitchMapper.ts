@@ -60,6 +60,12 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
     borderRadius: 0,
     displayName:  'Intarsia',
   },
+  filetCrochet: {
+    cellShape:    'square',
+    showSymbol:   false,
+    borderRadius: 0,
+    displayName:  'Filet Crochet',
+  },
 }
 
 export function getStitchHints(style: StitchStyle): StitchRenderHints {

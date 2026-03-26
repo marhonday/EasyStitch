@@ -98,6 +98,17 @@ const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
     ],
     tip: 'Tip: Mosaic crochet works best with high-contrast colour pairs. The pattern reads most clearly with 2–4 colours maximum.',
   },
+  filetCrochet: {
+    title: 'Filet crochet instructions',
+    steps: [
+      'Foundation: chain a multiple of 3 plus the number needed for your turning chain.',
+      'Each FILLED square = 1 dc + 1 dc (block of 2 dc over existing block) or 2 dc into a chain space.',
+      'Each OPEN square = 1 dc + ch 2 + skip 2 (creates the mesh hole).',
+      'Work left-to-right on RS rows, right-to-left on WS rows. Chain 3 to turn.',
+      'The filled and open squares on the graph directly match your stitch-by-stitch sequence.',
+    ],
+    tip: 'Tip: Filet crochet reads most clearly in a single solid colour — the contrast between filled blocks and open spaces creates the image. Use a smooth yarn (not fluffy) so the mesh holes stay open and visible.',
+  },
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────

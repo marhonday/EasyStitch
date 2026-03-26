@@ -17,7 +17,7 @@
  *                  stitch-count metadata and instructions (placeholder)
  * tapestry       — row-level colour-carry constraints enforced (placeholder)
  */
-export type StitchStyle = 'c2c' | 'singleCrochet' | 'tapestry' | 'mosaic' | 'knittingStranded' | 'knittingIntarsia'
+export type StitchStyle = 'c2c' | 'singleCrochet' | 'tapestry' | 'mosaic' | 'knittingStranded' | 'knittingIntarsia' | 'filetCrochet'
 
 /**
  * How cells are ordered for pattern-reading instructions.

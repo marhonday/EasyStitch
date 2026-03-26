@@ -5,6 +5,7 @@ import { singleCrochetStrategy } from './singleCrochet.strategy'
 import { tapestryStrategy }                               from './tapestry.strategy'
 import { mosaicStrategy }                                from './mosaic.strategy'
 import { knittingStrandedStrategy, knittingIntarsiaStrategy } from './knitting.strategy'
+import { filetStrategy }                                     from './filet.strategy'
 import { STITCH_STYLE_META }     from '@/lib/constants'
 
 const strategies: StitchStrategy[] = [
@@ -14,6 +15,7 @@ const strategies: StitchStrategy[] = [
   mosaicStrategy,
   knittingStrandedStrategy,
   knittingIntarsiaStrategy,
+  filetStrategy,
 ]
 
 const strategyMap = new Map<StitchStyle, StitchStrategy>(

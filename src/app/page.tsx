@@ -136,13 +136,15 @@ export default function LandingPage() {
               />
             </Link>
 
-            {/* Filet Crochet — coming soon */}
-            <GraphCard
-              icon="🔲"
-              title="Filet Crochet"
-              tags={['Open mesh', 'Filled grid']}
-              comingSoon
-            />
+            {/* Filet Crochet */}
+            <Link href="/filet" style={{ textDecoration: 'none' }}>
+              <GraphCard
+                icon="🔲"
+                title="Filet Crochet"
+                tags={['Open mesh', 'Filled grid']}
+                badge="New"
+              />
+            </Link>
 
             {/* Cross Stitch — coming soon */}
             <GraphCard
