@@ -58,7 +58,7 @@ export default function KnittingSettingsPage() {
     logEvent('GENERATION_STARTED')
     try {
       // Centre subject at ~70% of grid — leaves natural padding for motif balance
-      const processedImage = await preprocessImageForKnitting(rawImage, 0.70)
+      const processedImage = await preprocessImageForKnitting(rawImage, settings.imageType)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       settings.maxColors,
@@ -103,8 +103,8 @@ export default function KnittingSettingsPage() {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {([
-              ['knittingStranded', '🧵', 'Fair Isle / Stranded', 'Carry both yarns across each row. Great for repeating colourwork motifs.'],
-              ['knittingIntarsia',  '🪢', 'Intarsia / Standard', 'Separate yarn per colour block. Best for large solid colour sections.'],
+              ['knittingStranded', '🧵', 'Stranded Colorwork', 'Carry both yarns across each row. Bold shapes, repeating motifs.'],
+              ['knittingIntarsia',  '🪢', 'Intarsia', 'Separate yarn per colour block. Best for large solid colour sections.'],
             ] as const).map(([val, icon, label, hint]) => {
               const active = settings.style === val
               return (
@@ -128,8 +128,8 @@ export default function KnittingSettingsPage() {
           {/* Cell ratio info */}
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 10 }}>
             {settings.style === 'knittingIntarsia'
-              ? 'Graph cells will be rendered 1.25× wider than tall to match standard knitting stitch proportions.'
-              : 'Graph cells will be rendered square — Fair Isle stitches are nearly square.'}
+              ? 'Graph cells will be rendered 1.25× wider than tall to match standard stockinette proportions.'
+              : 'Graph cells will be rendered square — stranded stitches are nearly square.'}
           </p>
         </div>
 

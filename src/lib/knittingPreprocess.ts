@@ -10,8 +10,9 @@
  *   2. Fill the output canvas with that colour.
  *   3. Draw the subject scaled to `fill` × canvas dimensions, centred.
  *
- * Target fill 0.70 → subject occupies ~70% of each dimension,
- * leaving ~15% neutral padding on each side — 65-75% visual coverage.
+ * Target fill varies by image type:
+ *   photo   → 0.70 (15% padding each side — motif with breathing room)
+ *   graphic → 0.82 (9% padding — logos need more real estate or they read tiny)
  */
 
 /** Average colour of the outermost ring of pixels (border width = `rim` px). */
@@ -41,8 +42,9 @@ function toHex(c: { r: number; g: number; b: number }): string {
 
 export async function preprocessImageForKnitting(
   imageDataUrl: string,
-  fill = 0.70,    // 0.65–0.75 keeps a good motif feel
+  imageType:    'photo' | 'graphic' = 'photo',
 ): Promise<string> {
+  const fill = imageType === 'graphic' ? 0.82 : 0.70
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {

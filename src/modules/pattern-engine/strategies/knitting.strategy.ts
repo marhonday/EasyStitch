@@ -177,6 +177,93 @@ function removeSmallClusters(
   return out
 }
 
+// ─── Thicken dark areas ───────────────────────────────────────────────────────
+
+/**
+ * Expand dark-colour regions by 1 cell where they have ≥ `minNeighbors`
+ * dark neighbours. Thickens outlines and fills hairline gaps in bold shapes.
+ * Only used for stranded (Fair Isle) where bold graphic readability matters.
+ */
+function thickenDarkAreas(
+  grid:         Cell[][],
+  palette:      ColorEntry[],
+  minNeighbors: number = 2,
+): Cell[][] {
+  const H = grid.length
+  if (H === 0) return grid
+  const W = grid[0].length
+
+  // Identify "dark" colour indices: bottom 40% by perceived lightness
+  const lightnessValues = palette.map((e, i) => ({
+    idx: i,
+    L:   0.299 * e.r + 0.587 * e.g + 0.114 * e.b,
+  }))
+  lightnessValues.sort((a, b) => a.L - b.L)
+  const darkCutoff = Math.max(1, Math.ceil(palette.length * 0.4))
+  const darkSet    = new Set(lightnessValues.slice(0, darkCutoff).map(v => v.idx))
+
+  const out: Cell[][] = grid.map(row => row.map(cell => ({ ...cell })))
+
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      if (darkSet.has(grid[r][c].colorIndex)) continue  // already dark
+      // Count dark 4-neighbours
+      let darkCount = 0
+      const nbrs: [number, number][] = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]
+      let dominantDark = -1, dominantCount = 0
+      const darkFreq = new Map<number, number>()
+      for (const [nr, nc] of nbrs) {
+        if (nr < 0 || nr >= H || nc < 0 || nc >= W) continue
+        const ci = grid[nr][nc].colorIndex
+        if (darkSet.has(ci)) {
+          darkCount++
+          darkFreq.set(ci, (darkFreq.get(ci) ?? 0) + 1)
+        }
+      }
+      if (darkCount >= minNeighbors) {
+        for (const [ci, ct] of darkFreq) {
+          if (ct > dominantCount) { dominantCount = ct; dominantDark = ci }
+        }
+        if (dominantDark >= 0) {
+          out[r][c] = { colorIndex: dominantDark, symbol: palette[dominantDark].symbol ?? '' }
+        }
+      }
+    }
+  }
+  return out
+}
+
+// ─── Compact palette ──────────────────────────────────────────────────────────
+
+/**
+ * Remove any palette entries with zero cells in the grid, remap indices.
+ * This is the fix for the colour-key bug: after smoothing/merging/cleaning,
+ * some palette slots become empty but stay in the key.
+ */
+function compactPalette(
+  grid:    Cell[][],
+  palette: ColorEntry[],
+): { grid: Cell[][]; palette: ColorEntry[] } {
+  const counts = new Array<number>(palette.length).fill(0)
+  for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
+
+  const keepIndices = palette
+    .map((_, i) => i)
+    .filter(i => counts[i] > 0)
+
+  if (keepIndices.length === palette.length) return { grid, palette }  // nothing to remove
+
+  const remap       = new Map(keepIndices.map((orig, newIdx) => [orig, newIdx]))
+  const newPalette  = keepIndices.map(i => ({ ...palette[i] }))
+  const newGrid     = grid.map(row =>
+    row.map(cell => {
+      const newIdx = remap.get(cell.colorIndex)!
+      return { colorIndex: newIdx, symbol: newPalette[newIdx].symbol ?? '' }
+    })
+  )
+  return { grid: newGrid, palette: newPalette }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function countFromGrid(grid: Cell[][], paletteSize: number): number[] {
@@ -225,20 +312,23 @@ class KnittingStrategy implements StitchStrategy {
       // 3. Remove tiny isolated clusters (min region = 8 for intarsia)
       const cleaned = removeSmallClusters(merged, mergedPalette, 8)
 
-      const counts = countFromGrid(cleaned, mergedPalette.length)
-      const annotatedPalette: ColorEntry[] = mergedPalette.map((entry, i) => ({
+      // 4. Compact — remove zero-count palette slots (fixes colour key bug)
+      const { grid: compacted, palette: compactedPalette } = compactPalette(cleaned, mergedPalette)
+
+      const counts = countFromGrid(compacted, compactedPalette.length)
+      const annotatedPalette: ColorEntry[] = compactedPalette.map((entry, i) => ({
         ...entry,
         label:       entry.label ?? hexToColorName(entry.hex),
         stitchCount: counts[i],
       }))
 
       return {
-        grid: cleaned,
+        grid: compacted,
         palette: annotatedPalette,
         meta: {
           width:          pixelGrid.width,
           height:         pixelGrid.height,
-          colorCount:     activeColorCount(cleaned),
+          colorCount:     activeColorCount(compacted),
           stitchStyle,
           traversalOrder: this.traversalOrder,
           totalStitches:  pixelGrid.width * pixelGrid.height,
@@ -247,15 +337,27 @@ class KnittingStrategy implements StitchStrategy {
       }
     }
 
-    // ── Stranded / Fair Isle pipeline ────────────────────────────────────────
-    // Lighter touch: smooth for photos with few colours, cleanPattern for noise
-    const shouldSmooth = !isGraphic && maxColors <= 6
-    const smoothed     = shouldSmooth ? smoothGrid(rawGrid, palette) : rawGrid
-    const shouldClean  = !isGraphic && maxColors <= 4
-    const { grid }     = shouldClean ? cleanPattern(smoothed, palette) : { grid: smoothed }
+    // ── Stranded colorwork pipeline ───────────────────────────────────────────
+    // Goal: bold, readable shapes — not photo detail.
+    // 1. Merge similar colours (ΔE < 18) to enforce the chosen count
+    const mergeThreshold = isGraphic ? 12 : 18
+    const { grid: merged, palette: mergedPalette } =
+      mergeSimilarColors(rawGrid, palette, maxColors, mergeThreshold)
 
-    const counts = countFromGrid(grid, palette.length)
-    const annotatedPalette: ColorEntry[] = palette.map((entry, i) => ({
+    // 2. Smooth always (removes single-pixel noise before shape work)
+    const smoothed = smoothGrid(merged, mergedPalette)
+
+    // 3. Thicken dark areas — keeps outlines bold and readable
+    const thickened = thickenDarkAreas(smoothed, mergedPalette, 2)
+
+    // 4. Remove stray small clusters (min region = 6 — lighter than intarsia's 8)
+    const cleaned = removeSmallClusters(thickened, mergedPalette, 6)
+
+    // 5. Compact — remove zero-count palette slots (fixes colour key bug)
+    const { grid, palette: finalPalette } = compactPalette(cleaned, mergedPalette)
+
+    const counts = countFromGrid(grid, finalPalette.length)
+    const annotatedPalette: ColorEntry[] = finalPalette.map((entry, i) => ({
       ...entry,
       label:       entry.label ?? hexToColorName(entry.hex),
       stitchCount: counts[i],
