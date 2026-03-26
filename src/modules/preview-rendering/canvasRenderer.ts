@@ -63,7 +63,7 @@ export function drawPatternToCanvas(
 
   // Gap > 0: use a visible warm grey as the grid-line colour.
   // Gap = 0 (thumbnails): use the pattern's background colour instead.
-  ctx.fillStyle = gap > 0 ? '#A09080' : (pattern.meta.backgroundColor ?? '#FFFFFF')
+  ctx.fillStyle = gap > 0 ? '#C8BEB2' : (pattern.meta.backgroundColor ?? '#FFFFFF')
   ctx.fillRect(0, 0, width, height)
 
   const { grid, palette } = pattern
