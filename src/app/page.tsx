@@ -4,7 +4,7 @@ export default function LandingPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
 
-      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px 24px', textAlign: 'center' }}>
+      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px 40px', textAlign: 'center' }}>
 
         {/* Badge */}
         <div style={{
@@ -20,9 +20,9 @@ export default function LandingPage() {
         {/* Headline */}
         <h1 style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: 36, fontWeight: 700,
+          fontSize: 34, fontWeight: 700,
           color: '#2C2218', lineHeight: 1.2,
-          marginBottom: 14, maxWidth: 320,
+          marginBottom: 12, maxWidth: 320,
         }}>
           Turn any photo into<br />
           <span style={{ color: '#C4614A' }}>a crochet pattern.</span>
@@ -30,86 +30,186 @@ export default function LandingPage() {
 
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
-          fontSize: 15, color: '#6B5744',
+          fontSize: 14, color: '#6B5744',
           lineHeight: 1.65, maxWidth: 290,
-          marginBottom: 32,
+          marginBottom: 28,
         }}>
           Upload a pet, portrait, or favourite memory — and get a colour-by-colour pattern to stitch, instantly.
         </p>
 
         {/* Sample grid card */}
         <div style={{
-          width: '100%', maxWidth: 300,
-          background: 'white', borderRadius: 24,
-          boxShadow: '0 8px 32px rgba(44,34,24,0.10)',
-          padding: 16, marginBottom: 32,
+          width: '100%', maxWidth: 280,
+          background: 'white', borderRadius: 20,
+          boxShadow: '0 6px 24px rgba(44,34,24,0.10)',
+          padding: 14, marginBottom: 36,
         }}>
-          <div style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 12, background: '#F2EAD8', aspectRatio: '1' }}>
+          <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 10, background: '#F2EAD8', aspectRatio: '1' }}>
             <SamplePatternGrid />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
             <div style={{ display: 'flex', gap: 6 }}>
               {['#e8786e','#89a882','#c9a96e','#faf3e7','#5c7a55','#2a2118'].map(hex => (
-                <div key={hex} style={{ width: 16, height: 16, borderRadius: '50%', background: hex, boxShadow: '0 1px 4px rgba(44,34,24,0.15)' }} />
+                <div key={hex} style={{ width: 14, height: 14, borderRadius: '50%', background: hex, boxShadow: '0 1px 4px rgba(44,34,24,0.15)' }} />
               ))}
             </div>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>20×20 · 6 colours</span>
           </div>
         </div>
 
-        {/* How it works — 3 steps */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          {[['📷','Upload'],['🎨','Tune it'],['⬇','Stitch']].map(([icon, label], i) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                <span style={{ fontSize: 16 }}>{icon}</span>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>{label}</span>
-              </div>
-              {i < 2 && <span style={{ color: '#C8BFB0', fontSize: 14 }}>→</span>}
-            </div>
-          ))}
+        {/* Path selector heading */}
+        <div style={{ width: '100%', maxWidth: 400, marginBottom: 14, textAlign: 'left' }}>
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11, fontWeight: 700,
+            color: '#C4614A', textTransform: 'uppercase',
+            letterSpacing: '0.08em', marginBottom: 4,
+          }}>
+            Choose your path
+          </p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878' }}>
+            Pick the experience that fits how you crochet.
+          </p>
         </div>
 
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginBottom: 8 }}>
-          C2C · Tapestry · Graphgan · Works on any phone
+        {/* Path cards */}
+        <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* Beginner / Guided */}
+          <Link href="/upload" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: 'white', borderRadius: 20,
+              border: '2px solid #C4614A',
+              padding: '18px 20px',
+              boxShadow: '0 4px 16px rgba(196,97,74,0.12)',
+              display: 'flex', gap: 16, alignItems: 'flex-start',
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                background: 'rgba(196,97,74,0.10)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24,
+              }}>
+                🧶
+              </div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>
+                    Guided Pattern
+                  </p>
+                  <span style={{
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
+                    color: '#C4614A', background: 'rgba(196,97,74,0.10)',
+                    borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                  }}>
+                    Beginner friendly
+                  </span>
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6, marginBottom: 10 }}>
+                  Row-by-row instructions, progress tracking, and a full colour key — everything you need to stitch from start to finish.
+                </p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {['Single crochet', 'C2C', 'Tapestry', 'Graphgan'].map(tag => (
+                    <span key={tag} style={{
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+                      color: '#9A8878', background: '#F5F0E8',
+                      borderRadius: 999, padding: '3px 10px',
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Advanced / Graph only */}
+          <Link href="/advanced" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: 'white', borderRadius: 20,
+              border: '1.5px solid #E4D9C8',
+              padding: '18px 20px',
+              boxShadow: '0 2px 10px rgba(44,34,24,0.06)',
+              display: 'flex', gap: 16, alignItems: 'flex-start',
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                background: '#F2EAD8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24,
+              }}>
+                📐
+              </div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>
+                    Graph Only
+                  </p>
+                  <span style={{
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
+                    color: '#6B5744', background: '#F2EAD8',
+                    borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                  }}>
+                    Advanced
+                  </span>
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6, marginBottom: 10 }}>
+                  Just the grid. Upload your photo and get a clean graph to work from your own way — no instructions, your style.
+                </p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {['Any stitch style', 'Clothing', 'Blankets', 'Custom sizing'].map(tag => (
+                    <span key={tag} style={{
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+                      color: '#9A8878', background: '#F5F0E8',
+                      borderRadius: 999, padding: '3px 10px',
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Diamond Painting — coming soon */}
+          <div style={{
+            background: '#FAFAFA', borderRadius: 20,
+            border: '1.5px solid #EDE8E0',
+            padding: '18px 20px',
+            display: 'flex', gap: 16, alignItems: 'flex-start',
+            opacity: 0.55,
+            cursor: 'not-allowed',
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+              background: '#F0EBE2',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 24,
+            }}>
+              💎
+            </div>
+            <div style={{ flex: 1, textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>
+                  Diamond Painting
+                </p>
+                <span style={{
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
+                  color: '#B8AAA0', background: '#EDE8E0',
+                  borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}>
+                  Coming soon
+                </span>
+              </div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', lineHeight: 1.6 }}>
+                Convert any photo into a diamond painting grid with colour codes and bead counts.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginTop: 24 }}>
+          No signup · works on any phone · free to start
         </p>
 
       </section>
-
-      {/* Sticky CTA */}
-      <div style={{
-        position: 'sticky', bottom: 0,
-        background: 'linear-gradient(to bottom, transparent, #FAF6EF 35%)',
-        padding: '20px 24px max(24px, env(safe-area-inset-bottom))',
-      }}>
-        <Link
-          href="/upload"
-          style={{
-            display: 'block', width: '100%',
-            padding: '17px 24px',
-            background: '#C4614A', color: 'white',
-            borderRadius: 16, textAlign: 'center',
-            fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 600,
-            textDecoration: 'none',
-            boxShadow: '0 4px 20px rgba(196,97,74,0.30)',
-          }}
-        >
-          Make My Pattern — Free →
-        </Link>
-        <p style={{
-          textAlign: 'center', marginTop: 10,
-          fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0',
-        }}>
-          No signup · PNG &amp; PDF export · keeps in session
-        </p>
-        <p style={{
-          textAlign: 'center', marginTop: 8,
-          fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-          color: '#9A8878',
-        }}>
-          🛡️ If your pattern doesn&apos;t turn out right, we&apos;ll fix it or refund you.
-        </p>
-      </div>
 
     </main>
   )
