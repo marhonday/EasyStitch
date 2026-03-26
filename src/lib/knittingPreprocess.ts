@@ -77,9 +77,11 @@ export async function preprocessImageForKnitting(
       const offX  = Math.round((W - drawW) / 2)
       const offY  = Math.round((H - drawH) / 2)
 
+      ctx.filter = 'blur(0.5px)'   // soften before quantization — reduces speckle colours
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
       ctx.drawImage(img, 0, 0, W, H, offX, offY, drawW, drawH)
+      ctx.filter = 'none'
 
       resolve(out.toDataURL('image/jpeg', 0.95))
     }

@@ -31,7 +31,7 @@ type Action =
 const DEFAULT_SETTINGS: KnittingSettings = {
   width:     80,
   height:    100,
-  maxColors: 6,
+  maxColors: 7,
   style:     'knittingStranded',
   imageType: 'photo',
 }

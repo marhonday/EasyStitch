@@ -1,35 +1,197 @@
-import { PatternData, ColorEntry, StitchStyle } from '@/types/pattern'
+import { PatternData, ColorEntry, Cell, StitchStyle } from '@/types/pattern'
 import { StitchStrategy, StrategyInput } from './types'
 import { buildGrid } from '../gridBuilder'
 import { hexToColorName } from '../../palette-reduction/colorNames'
 import { smoothGrid } from '../smoothGrid'
 import { cleanPattern } from '../cleanPattern'
+import { rgbToLab, labDistance } from '../../palette-reduction/colorUtils'
 
 /**
  * Knitting colorwork strategies.
  *
- * Both stranded and intarsia use the same square grid generation as single
- * crochet — the visual difference (rectangular stitches) is handled entirely
- * in the renderer via cellWidthMultiplier, NOT in the grid data itself.
+ * knittingStranded — Fair Isle / carry-yarn. Stitches nearly square.
+ *   cellWidthMultiplier = 1.0. Moderate cleanup.
  *
- * knittingStranded — Fair Isle / carry-yarn technique. Stitches pull square
- *   due to two-yarn tension. cellWidthMultiplier = 1.0 (square rendering).
- *
- * knittingIntarsia — Separate yarn sections, standard stockinette tension.
- *   Stitches are wider than tall. cellWidthMultiplier = 1.25 at render time.
+ * knittingIntarsia — Separate yarn per colour block. Standard stockinette.
+ *   cellWidthMultiplier = 1.25 at render time.
+ *   Applies aggressive post-processing:
+ *     1. Merge similar colours (ΔE < 15) down to maxColors
+ *     2. Remove small isolated clusters (min region = 8 cells)
+ *   This ensures the key shows the exact chosen colour count with
+ *   genuinely distinct colours — no near-duplicate shades.
  */
 
-function countFromGrid(grid: PatternData['grid'], paletteSize: number): number[] {
+// ─── Palette merge ────────────────────────────────────────────────────────────
+
+/**
+ * Iteratively merge the closest pair of palette colours (by ΔE) until either:
+ *   • no pair is closer than `threshold`, OR
+ *   • active colour count reaches `targetCount`
+ *
+ * Grid cells are remapped in place. Returns the compacted palette + new grid.
+ */
+function mergeSimilarColors(
+  grid:        Cell[][],
+  palette:     ColorEntry[],
+  targetCount: number,
+  threshold    = 15,
+): { grid: Cell[][]; palette: ColorEntry[] } {
+  // Build a mutable "canonical index" map: mapping[i] → active representative
+  const canonical = palette.map((_, i) => i)
+  const counts    = new Array<number>(palette.length).fill(0)
+
+  for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
+
+  function activeIndices(): number[] {
+    return [...new Set(canonical)]
+  }
+
+  let changed = true
+  while (changed) {
+    changed = false
+    const active = activeIndices()
+    if (active.length <= targetCount) break
+
+    let bestI = -1, bestJ = -1, bestDist = Infinity
+    for (let ai = 0; ai < active.length; ai++) {
+      const i  = active[ai]
+      const li = rgbToLab(palette[i].r, palette[i].g, palette[i].b)
+      for (let aj = ai + 1; aj < active.length; aj++) {
+        const j  = active[aj]
+        const lj = rgbToLab(palette[j].r, palette[j].g, palette[j].b)
+        const d  = labDistance(li, lj)
+        if (d < bestDist) { bestDist = d; bestI = i; bestJ = j }
+      }
+    }
+
+    if (bestDist > threshold || bestI === -1) break
+
+    // Merge smaller-count into larger-count
+    const keep = counts[bestI] >= counts[bestJ] ? bestI : bestJ
+    const drop = counts[bestI] >= counts[bestJ] ? bestJ : bestI
+    counts[keep] += counts[drop]
+    counts[drop] = 0
+    for (let k = 0; k < canonical.length; k++) {
+      if (canonical[k] === drop) canonical[k] = keep
+    }
+    changed = true
+  }
+
+  // Compact to a dense new palette
+  const activeSet    = activeIndices()
+  const reindex      = new Map(activeSet.map((orig, newIdx) => [orig, newIdx]))
+  const newPalette   = activeSet.map((orig, i) => ({
+    ...palette[orig],
+    symbol: palette[orig].symbol,  // keep original symbol assignment; caller re-symbols
+  }))
+
+  const newGrid: Cell[][] = grid.map(row =>
+    row.map(cell => {
+      const newIdx = reindex.get(canonical[cell.colorIndex])!
+      return { colorIndex: newIdx, symbol: newPalette[newIdx].symbol }
+    })
+  )
+
+  return { grid: newGrid, palette: newPalette }
+}
+
+// ─── Small cluster removal ────────────────────────────────────────────────────
+
+/**
+ * Remove small connected components (< minSize cells) by reassigning each
+ * small-cluster cell to its most common same-color or neighbour color.
+ * Intarsia-tuned: minSize = 8 (vs cleanPattern's 4).
+ */
+function removeSmallClusters(
+  grid:    Cell[][],
+  palette: ColorEntry[],
+  minSize  = 8,
+): Cell[][] {
+  const H = grid.length
+  if (H === 0) return grid
+  const W = grid[0].length
+
+  // Union-Find
+  const n      = W * H
+  const parent = Array.from({ length: n }, (_, i) => i)
+  const rank   = new Array<number>(n).fill(0)
+
+  function find(x: number): number {
+    if (parent[x] !== x) parent[x] = find(parent[x])
+    return parent[x]
+  }
+  function union(x: number, y: number) {
+    const px = find(x), py = find(y)
+    if (px === py) return
+    if (rank[px] < rank[py]) parent[px] = py
+    else if (rank[px] > rank[py]) parent[py] = px
+    else { parent[py] = px; rank[px]++ }
+  }
+
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const idx   = r * W + c
+      const color = grid[r][c].colorIndex
+      if (c + 1 < W && grid[r][c + 1].colorIndex === color) union(idx, idx + 1)
+      if (r + 1 < H && grid[r + 1][c].colorIndex === color) union(idx, idx + W)
+    }
+  }
+
+  const regionSize = new Map<number, number>()
+  for (let i = 0; i < n; i++) {
+    const root = find(i)
+    regionSize.set(root, (regionSize.get(root) ?? 0) + 1)
+  }
+
+  const out: Cell[][] = grid.map(row => row.map(cell => ({ ...cell })))
+
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const idx  = r * W + c
+      const root = find(idx)
+      if ((regionSize.get(root) ?? 0) < minSize) {
+        // Replace with most common non-small neighbour
+        const freq = new Map<number, number>()
+        const nbrs: [number, number][] = [
+          [r-1,c],[r+1,c],[r,c-1],[r,c+1],
+          [r-1,c-1],[r-1,c+1],[r+1,c-1],[r+1,c+1],
+        ]
+        for (const [nr, nc] of nbrs) {
+          if (nr < 0 || nr >= H || nc < 0 || nc >= W) continue
+          const ni  = nr * W + nc
+          const nr2 = find(ni)
+          if ((regionSize.get(nr2) ?? 0) >= minSize) {
+            const ci = grid[nr][nc].colorIndex
+            freq.set(ci, (freq.get(ci) ?? 0) + 1)
+          }
+        }
+        if (freq.size > 0) {
+          let bestColor = grid[r][c].colorIndex, bestCount = 0
+          for (const [ci, ct] of freq) { if (ct > bestCount) { bestCount = ct; bestColor = ci } }
+          out[r][c] = { colorIndex: bestColor, symbol: palette[bestColor]?.symbol ?? '' }
+        }
+      }
+    }
+  }
+
+  return out
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function countFromGrid(grid: Cell[][], paletteSize: number): number[] {
   const counts = new Array<number>(paletteSize).fill(0)
   for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
   return counts
 }
 
-function activeColorCount(grid: PatternData['grid']): number {
+function activeColorCount(grid: Cell[][]): number {
   const seen = new Set<number>()
   for (const row of grid) for (const cell of row) seen.add(cell.colorIndex)
   return seen.size
 }
+
+// ─── Strategy ─────────────────────────────────────────────────────────────────
 
 class KnittingStrategy implements StitchStrategy {
   constructor(
@@ -43,13 +205,54 @@ class KnittingStrategy implements StitchStrategy {
   execute(input: StrategyInput): PatternData {
     const { palette, colorMap, settings, pixelGrid } = input
     const { stitchStyle, imageType, maxColors } = settings
+    const isIntarsia = stitchStyle === 'knittingIntarsia'
+    const isGraphic  = imageType === 'graphic'
 
-    const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
-    const isGraphic = imageType === 'graphic'
-    const shouldSmooth = !isGraphic && maxColors <= 5
-    const smoothed  = shouldSmooth ? smoothGrid(rawGrid, palette) : rawGrid
-    const shouldClean  = !isGraphic && maxColors <= 3
-    const { grid }  = shouldClean ? cleanPattern(smoothed, palette) : { grid: smoothed }
+    let rawGrid = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
+
+    if (isIntarsia) {
+      // ── Intarsia pipeline ────────────────────────────────────────────────
+      // 1. Smooth first (removes single-pixel speckle before component work)
+      rawGrid = smoothGrid(rawGrid, palette)
+
+      // 2. Merge perceptually similar colours — enforces the chosen count
+      //    threshold = 15 ΔE so genuinely similar shades collapse.
+      //    For graphics use a tighter threshold (colours are intentionally distinct).
+      const mergeThreshold = isGraphic ? 10 : 15
+      const { grid: merged, palette: mergedPalette } =
+        mergeSimilarColors(rawGrid, palette, maxColors, mergeThreshold)
+
+      // 3. Remove tiny isolated clusters (min region = 8 for intarsia)
+      const cleaned = removeSmallClusters(merged, mergedPalette, 8)
+
+      const counts = countFromGrid(cleaned, mergedPalette.length)
+      const annotatedPalette: ColorEntry[] = mergedPalette.map((entry, i) => ({
+        ...entry,
+        label:       entry.label ?? hexToColorName(entry.hex),
+        stitchCount: counts[i],
+      }))
+
+      return {
+        grid: cleaned,
+        palette: annotatedPalette,
+        meta: {
+          width:          pixelGrid.width,
+          height:         pixelGrid.height,
+          colorCount:     activeColorCount(cleaned),
+          stitchStyle,
+          traversalOrder: this.traversalOrder,
+          totalStitches:  pixelGrid.width * pixelGrid.height,
+          generatedAt:    new Date().toISOString(),
+        },
+      }
+    }
+
+    // ── Stranded / Fair Isle pipeline ────────────────────────────────────────
+    // Lighter touch: smooth for photos with few colours, cleanPattern for noise
+    const shouldSmooth = !isGraphic && maxColors <= 6
+    const smoothed     = shouldSmooth ? smoothGrid(rawGrid, palette) : rawGrid
+    const shouldClean  = !isGraphic && maxColors <= 4
+    const { grid }     = shouldClean ? cleanPattern(smoothed, palette) : { grid: smoothed }
 
     const counts = countFromGrid(grid, palette.length)
     const annotatedPalette: ColorEntry[] = palette.map((entry, i) => ({

@@ -198,16 +198,18 @@ export default function KnittingSettingsPage() {
             </span>
           </div>
           <input
-            type="range" min={2} max={12} step={1} value={settings.maxColors}
+            type="range" min={2} max={8} step={1} value={Math.min(settings.maxColors, 8)}
             onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: parseInt(e.target.value) } })}
             style={{ width: '100%', accentColor: '#C4614A' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>2 — bold contrast</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>12 — detailed</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>8 — detailed</p>
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 6 }}>
-            Knitting colourwork typically uses 2–6 colours per row.
+            {settings.imageType === 'photo'
+              ? 'Pets & portraits: 6–8 colours recommended.'
+              : 'Graphics & logos: 4–6 colours recommended.'}
           </p>
         </div>
 
@@ -222,7 +224,11 @@ export default function KnittingSettingsPage() {
               return (
                 <button
                   key={val}
-                  onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: val } })}
+                  onClick={() => {
+                    // Auto-set a sensible colour count when switching image type
+                    const defaultColors = val === 'photo' ? 7 : 5
+                    dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: val, maxColors: defaultColors } })
+                  }}
                   style={{
                     padding: '12px 10px', borderRadius: 12, textAlign: 'left',
                     border: active ? '2px solid #C4614A' : '1.5px solid #E4D9C8',
