@@ -44,12 +44,22 @@ export interface StitchStyleMeta {
 export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
   c2c: {
     label:       'Corner to Corner',
-    description: 'Diagonal stitch pattern',
+    description: 'Diagonal stitch blocks',
     available:   true,
   },
   singleCrochet: {
     label:       'Single Crochet',
     description: 'Tight, detailed grid',
+    available:   true,
+  },
+  tapestry: {
+    label:       'Tapestry',
+    description: 'Carry yarn across rows',
+    available:   true,
+  },
+  mosaic: {
+    label:       'Mosaic',
+    description: 'Two-colour slip stitch',
     available:   true,
   },
 }
@@ -77,4 +87,6 @@ export const WIZARD_STEPS = [
 export const YARDS_PER_STITCH: Record<StitchStyle, number> = {
   singleCrochet: 1.5,
   c2c:           1.8,
+  tapestry:      2.1,
+  mosaic:        1.6,
 }

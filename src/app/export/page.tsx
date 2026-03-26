@@ -34,7 +34,8 @@ export default function ExportPage() {
   const [savedId,     setSavedId]     = useState<string | null>(null)
   const [emailInput,  setEmailInput]  = useState('')
   const [linkCopied,  setLinkCopied]  = useState(false)
-  const [emailSent,   setEmailSent]   = useState(false)
+  const [emailSent,         setEmailSent]         = useState(false)
+  const [includeInstructions, setIncludeInstructions] = useState(true)
 
   function getShareUrl() {
     if (!exportPattern) return ''
@@ -88,7 +89,7 @@ export default function ExportPage() {
     setError(null)
     try {
       const { downloadPdf } = await import('@/modules/pdf-export/buildPDF')
-      await downloadPdf(exportPattern, projectName.replace(/\s+/g, '-').toLowerCase(), projectName)
+      await downloadPdf(exportPattern, projectName.replace(/\s+/g, '-').toLowerCase(), projectName, includeInstructions)
       handleSaveProject()
       setStatus('done-pdf')
     } catch (err) {
@@ -329,11 +330,37 @@ export default function ExportPage() {
               <span style={{ fontSize: 26 }}>📄</span>
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Full Pattern PDF</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Row-by-row instructions · colour key · printable</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Colour key · printable grid{includeInstructions ? ' · row-by-row instructions' : ''}</p>
               </div>
             </div>
+
+            {/* Instructions toggle */}
+            <button
+              onClick={() => setIncludeInstructions(v => !v)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: '#FAF6EF', border: '1px solid #EDE4D8', borderRadius: 10,
+                padding: '10px 14px', marginBottom: 10, cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218' }}>
+                Include row-by-row instructions
+              </span>
+              <span style={{
+                width: 36, height: 20, borderRadius: 10, display: 'flex', alignItems: 'center',
+                background: includeInstructions ? '#C4614A' : '#C8BFB0',
+                padding: '2px', transition: 'background 0.2s',
+              }}>
+                <span style={{
+                  width: 16, height: 16, borderRadius: '50%', background: 'white',
+                  transform: includeInstructions ? 'translateX(16px)' : 'translateX(0)',
+                  transition: 'transform 0.2s',
+                }} />
+              </span>
+            </button>
+
             <button onClick={handleDownloadPdf} disabled={!exportPattern} style={{ width: '100%', padding: '13px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed', boxShadow: exportPattern ? '0 4px 16px rgba(196,97,74,0.22)' : 'none' }}>
-              ⬇ Download Full PDF
+              ⬇ Download PDF
             </button>
           </div>
 

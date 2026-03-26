@@ -18,6 +18,8 @@ const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: s
 const STITCH_ICONS: Record<StitchStyle, string> = {
   c2c:           '◪',
   singleCrochet: '▦',
+  tapestry:      '⬛',
+  mosaic:        '◈',
 }
 
 // Difficulty tiers — suggest color count based on photo complexity

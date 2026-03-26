@@ -42,6 +42,12 @@ const HINTS: Record<StitchStyle, StitchRenderHints> = {
     borderRadius: 0,
     displayName:  'Tapestry',
   },
+  mosaic: {
+    cellShape:    'square',
+    showSymbol:   true,
+    borderRadius: 0.05,
+    displayName:  'Mosaic',
+  },
 }
 
 export function getStitchHints(style: StitchStyle): StitchRenderHints {

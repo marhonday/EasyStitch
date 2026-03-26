@@ -65,6 +65,17 @@ const INSTRUCTIONS: Record<StitchStyle, InstructionSet> = {
     ],
     tip: 'Tip: Tapestry crochet uses more yarn than standard graphghan. Buy 20–30% extra of each colour.',
   },
+  mosaic: {
+    title: 'Mosaic crochet instructions',
+    steps: [
+      'Work with 2 colours only per section — one active, one resting at the side edge.',
+      'Each row: work in the active colour only. Slip stitch over any stitches you skip.',
+      'To create the overlay effect: on the next same-colour row, work a DC into the skipped stitch 2 rows below.',
+      'Switch colours every 2 rows — pick up the resting colour from the edge without cutting.',
+      'Read the grid 2 rows at a time — each pair of rows forms one complete mosaic "layer".',
+    ],
+    tip: 'Tip: Mosaic crochet works best with high-contrast colour pairs. The pattern reads most clearly with 2–4 colours maximum.',
+  },
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────

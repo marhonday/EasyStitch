@@ -40,15 +40,16 @@ async function getRenderer() {
  * @returns        - A Blob with MIME type application/pdf
  */
 export async function generatePdfBlob(
-  pattern: PatternData,
-  title   = 'My Crochet Pattern'
+  pattern:             PatternData,
+  title              = 'My Crochet Pattern',
+  includeInstructions = true,
 ): Promise<Blob> {
   const pdf = await getRenderer()
 
   // Import document component here (also benefits from lazy-load)
   const { default: PdfDocument } = await import('./PdfDocument')
 
-  const element = React.createElement(PdfDocument, { pattern, title })
+  const element = React.createElement(PdfDocument, { pattern, title, includeInstructions })
   const blob    = await pdf(element).toBlob()
   return blob
 }
@@ -61,11 +62,12 @@ export async function generatePdfBlob(
  * @param title     - Human-readable title for the PDF header
  */
 export async function downloadPdf(
-  pattern:  PatternData,
-  filename = 'my-crochet-pattern',
-  title    = 'My Crochet Pattern'
+  pattern:             PatternData,
+  filename           = 'my-crochet-pattern',
+  title              = 'My Crochet Pattern',
+  includeInstructions = true,
 ): Promise<void> {
-  const blob = await generatePdfBlob(pattern, title)
+  const blob = await generatePdfBlob(pattern, title, includeInstructions)
 
   // Create a temporary <a> and click it — standard browser download trigger
   const url  = URL.createObjectURL(blob)
