@@ -1,84 +1,191 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Header from '@/components/layout/Header'
+import { useState, useEffect } from 'react'
+import { useAdvancedPattern } from '@/context/AdvancedPatternContext'
+import { analyzeImageWithVibrant } from '@/modules/image-processing/vibrant'
+import CropTool   from '@/components/upload/CropTool'
+import BgRemoval  from '@/components/upload/BgRemoval'
+import { logEvent } from '@/lib/log'
 
-/**
- * Advanced / Graph-Only route — placeholder.
- * Full route will be built out as a streamlined upload → graph → download flow
- * with no row instructions, no progress tracking, focused on clean grid output.
- */
-export default function AdvancedPage() {
+const MAX_EDGE_PX = 1600
+
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const { naturalWidth: w, naturalHeight: h } = img
+      const scale  = Math.min(1, MAX_EDGE_PX / Math.max(w, h))
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(w * scale)
+      canvas.height = Math.round(h * scale)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return reject(new Error('Canvas unavailable'))
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.88))
+    }
+    img.onerror = () => reject(new Error('Could not load image'))
+    img.src = url
+  })
+}
+
+export default function AdvancedUploadPage() {
   const router = useRouter()
+  const { state, dispatch } = useAdvancedPattern()
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState<string | null>(null)
+  const [cropUrl,      setCropUrl]      = useState<string | null>(null)
+  const [bgRemovalUrl, setBgRemovalUrl] = useState<string | null>(null)
+
+  useEffect(() => { logEvent('VISIT') }, [])
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    logEvent('UPLOAD_STARTED')
+    setError(null)
+    setLoading(true)
+    try {
+      const dataUrl = await compressImage(file)
+      dispatch({ type: 'SET_IMAGE', payload: dataUrl })
+      try {
+        const analysis = await analyzeImageWithVibrant(dataUrl)
+        dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: analysis.recommendedColors } })
+      } catch { /* palette analysis is best-effort */ }
+      setCropUrl(dataUrl)
+    } catch {
+      setError("Couldn't read that photo. Try a different one.")
+    } finally {
+      setLoading(false)
+      e.target.value = ''
+    }
+  }
+
+  if (cropUrl) {
+    return (
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+        <CropTool
+          imageUrl={cropUrl}
+          onConfirm={(url) => { setCropUrl(null); setBgRemovalUrl(url) }}
+          onSkip={() => { const u = cropUrl; setCropUrl(null); setBgRemovalUrl(u) }}
+        />
+      </main>
+    )
+  }
+
+  if (bgRemovalUrl) {
+    return (
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+        <BgRemoval
+          imageUrl={bgRemovalUrl}
+          onAccept={(url) => { setBgRemovalUrl(null); dispatch({ type: 'SET_IMAGE', payload: url }) }}
+          onSkip={() => { const u = bgRemovalUrl; setBgRemovalUrl(null); dispatch({ type: 'SET_IMAGE', payload: u }) }}
+          onCancel={() => { const u = bgRemovalUrl; setBgRemovalUrl(null); setCropUrl(u) }}
+        />
+      </main>
+    )
+  }
+
+  const hasPhoto = !!state.rawImage
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
-      <Header />
 
-      <section style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '40px 24px', textAlign: 'center',
-      }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>📐</div>
-
-        <h1 style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 28, fontWeight: 700, color: '#2C2218',
-          marginBottom: 12,
-        }}>
-          Graph Only
-        </h1>
-
-        <p style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: 14, color: '#6B5744',
-          lineHeight: 1.7, maxWidth: 300, marginBottom: 32,
-        }}>
-          The streamlined route for experienced crocheters — upload your photo and get a clean graph, sized your way.
-        </p>
-
-        <div style={{
-          background: 'white', borderRadius: 16,
-          border: '1.5px solid #E4D9C8',
-          padding: '16px 20px', maxWidth: 320, width: '100%',
-          marginBottom: 32,
-        }}>
-          <p style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12, fontWeight: 700, color: '#C4614A',
-            textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8,
-          }}>
-            Coming in this route
-          </p>
-          {[
-            ['📷', 'Upload your photo'],
-            ['📏', 'Set your grid dimensions'],
-            ['🎨', 'Choose colour count'],
-            ['⬇', 'Download your graph — PNG or PDF'],
-          ].map(([icon, label]) => (
-            <div key={label as string} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '8px 0', borderBottom: '1px solid #F2EAD8',
-            }}>
-              <span style={{ fontSize: 16 }}>{icon}</span>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218' }}>{label}</p>
-            </div>
-          ))}
-        </div>
-
+      {/* Minimal header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #EDE4D8' }}>
         <button
           onClick={() => router.push('/')}
+          style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          ← Back
+        </button>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#2C2218' }}>
+          Graph Only
+        </p>
+        <div style={{ width: 48 }} />
+      </div>
+
+      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px 120px' }}>
+
+        <div style={{ width: '100%', maxWidth: 400, marginBottom: 24, textAlign: 'center' }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+            {hasPhoto ? 'Photo ready' : 'Upload your photo'}
+          </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.6 }}>
+            {hasPhoto ? 'Set your grid dimensions on the next screen.' : 'Upload any photo — pets, portraits, logos, or your own art.'}
+          </p>
+        </div>
+
+        {/* Upload area */}
+        <label
+          htmlFor="adv-upload"
           style={{
-            background: 'none', border: 'none',
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 13, color: '#9A8878',
-            cursor: 'pointer', textDecoration: 'underline',
+            width: '100%', maxWidth: 400,
+            height: hasPhoto ? 'auto' : 160,
+            borderRadius: 20,
+            border: hasPhoto ? 'none' : '2px dashed #E4D9C8',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: loading ? 'wait' : 'pointer',
+            background: hasPhoto ? 'transparent' : 'white',
+            boxShadow: hasPhoto ? 'none' : '0 1px 6px rgba(44,34,24,0.05)',
           }}
         >
-          ← Back to path selection
-        </button>
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 32 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E4D9C8', borderTopColor: '#C4614A', animation: 'adv-spin 0.8s linear infinite' }} />
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>Reading photo…</p>
+            </div>
+          )}
+
+          {hasPhoto && !loading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: '12px 16px', boxShadow: '0 2px 12px rgba(44,34,24,0.08)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={state.rawImage!} alt="Your photo" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>✅ Photo loaded</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0' }}>Tap to swap photo</p>
+              </div>
+            </div>
+          )}
+
+          {!hasPhoto && !loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: 28 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📷</div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#2C2218' }}>Tap to choose a photo</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>JPG, PNG, HEIC · Camera roll or files</p>
+            </div>
+          )}
+        </label>
+
+        <input id="adv-upload" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+          onChange={handleFileChange} disabled={loading}
+        />
+
+        {error && (
+          <div style={{ marginTop: 12, width: '100%', maxWidth: 400, background: 'rgba(196,97,74,0.08)', borderRadius: 12, padding: '10px 16px' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
+          </div>
+        )}
+
       </section>
+
+      {/* Bottom CTA */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to bottom, transparent, #FAF6EF 35%)', padding: '20px 20px max(24px, env(safe-area-inset-bottom))' }}>
+        <div style={{ maxWidth: 400, margin: '0 auto' }}>
+          <button
+            onClick={() => router.push('/advanced/settings')}
+            disabled={!hasPhoto || loading}
+            style={{ width: '100%', padding: '16px', background: hasPhoto ? '#C4614A' : '#E4D9C8', color: hasPhoto ? 'white' : '#B8AAA0', border: 'none', borderRadius: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, cursor: hasPhoto ? 'pointer' : 'not-allowed', boxShadow: hasPhoto ? '0 4px 20px rgba(196,97,74,0.28)' : 'none' }}
+          >
+            Set Grid Dimensions →
+          </button>
+        </div>
+      </div>
+
+      <style>{`@keyframes adv-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </main>
   )
 }
