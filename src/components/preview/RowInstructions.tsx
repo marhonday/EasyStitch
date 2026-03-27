@@ -206,7 +206,7 @@ const STYLE_CONFIG: Partial<Record<StitchStyle, StyleConfig>> = {
     foundationHint: () => 'Start at bottom-right of your Aida cloth — work upward, row by row',
     rowNote: (row, { palette }) => {
       const colorList = palette
-        .filter(p => p.stitchCount > 0)
+        .filter(p => (p.stitchCount ?? 0) > 0)
         .map(p => p.label ?? p.hex)
         .join(', ')
       const dir = row.rowNumber % 2 !== 0 ? 'left → right' : 'right → left'

@@ -325,7 +325,7 @@ export default function ProjectPage() {
                     </p>
                   </div>
                   <div style={{ background: '#FAF6EF', borderRadius: 8, padding: '4px 10px', textAlign: 'right' }}>
-                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>{est.yards}</p>
+                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>{est.yardsMax}</p>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>yds</p>
                   </div>
                 </div>

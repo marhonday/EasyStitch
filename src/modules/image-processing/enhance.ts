@@ -286,6 +286,6 @@ export function simplifyCrochet(src: ImageData): EnhanceResult {
   const pass1 = runPass(data)
   const pass2 = runPass(pass1)
 
-  const out = new ImageData(pass2, width, height)
+  const out = new ImageData(new Uint8ClampedArray(pass2), width, height)
   return { data: out, applied: true }
 }

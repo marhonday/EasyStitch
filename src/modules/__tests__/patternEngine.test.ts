@@ -45,9 +45,12 @@ function makeStrategyInput(width = 4, height = 4, maxColors = 4): StrategyInput 
     palette,
     colorMap,
     settings: {
-      stitchStyle: 'graphghan',
-      gridSize:    { label: 'Small', width, height },
+      stitchStyle:     'graphghan',
+      gridSize:        { label: 'Small', width, height },
       maxColors,
+      imageType:       'photo',
+      backgroundColor: '#ffffff',
+      borderLayers:    [],
     },
   }
 }

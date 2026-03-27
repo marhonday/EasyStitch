@@ -49,7 +49,7 @@ export function useRowProgress(patternKey: string): RowProgressResult {
       if (completedRows.size === 0) {
         localStorage.removeItem(storageKey)
       } else {
-        localStorage.setItem(storageKey, JSON.stringify([...completedRows]))
+        localStorage.setItem(storageKey, JSON.stringify(Array.from(completedRows)))
       }
     } catch {
       // localStorage full or unavailable — silently ignore

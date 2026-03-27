@@ -32,6 +32,8 @@ export interface RowInstruction {
    * null         = not a C2C pattern
    */
   phase: 'growing' | 'peak' | 'decreasing' | null
+  /** Tapestry only — colours carried (not stitched) across this row */
+  carriedColors?: string[]
 }
 
 function runLengthEncode(

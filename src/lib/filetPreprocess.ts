@@ -60,8 +60,8 @@ function cleanupPass(
   W:             number,
   H:             number,
   voteThreshold: number = 6,
-): Uint8Array {
-  const out = new Uint8Array(binary)
+): Uint8Array<ArrayBuffer> {
+  const out = new Uint8Array(binary.buffer.slice(0)) as Uint8Array<ArrayBuffer>
   for (let y = 1; y < H - 1; y++) {
     for (let x = 1; x < W - 1; x++) {
       const idx     = y * W + x
