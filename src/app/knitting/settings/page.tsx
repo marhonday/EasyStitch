@@ -58,7 +58,7 @@ export default function KnittingSettingsPage() {
     logEvent('GENERATION_STARTED')
     try {
       // Centre subject at ~70% of grid — leaves natural padding for motif balance
-      const processedImage = await preprocessImageForKnitting(rawImage, settings.imageType)
+      const processedImage = await preprocessImageForKnitting(rawImage, settings.imageType, settings.width, settings.height)
       const patternSettings = {
         gridSize:        { label: 'Custom', width: settings.width, height: settings.height },
         maxColors:       settings.maxColors,
