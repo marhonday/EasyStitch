@@ -209,6 +209,8 @@ export default function KnittingSettingsPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 6 }}>
             {settings.imageType === 'photo'
               ? 'Pets & portraits: 6–8 colours recommended.'
+              : settings.imageType === 'pixel'
+              ? 'Match the number of colours in the original pattern.'
               : 'Graphics & logos: 4–6 colours recommended.'}
           </p>
         </div>

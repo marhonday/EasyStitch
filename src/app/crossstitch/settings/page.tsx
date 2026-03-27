@@ -209,7 +209,7 @@ export default function CrossStitchSettingsPage() {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>20 — detailed</p>
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 6 }}>
-            {settings.imageType === 'photo' ? 'Portraits & pets: 10–16 colours recommended.' : 'Graphics & logos: 6–12 colours recommended.'}
+            {settings.imageType === 'photo' ? 'Portraits & pets: 10–16 colours recommended.' : settings.imageType === 'pixel' ? 'Match the number of colours in the original pattern.' : 'Graphics & logos: 6–12 colours recommended.'}
           </p>
         </div>
 
