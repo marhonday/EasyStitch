@@ -11,7 +11,7 @@ import { useState } from 'react'
 // Leave a path as '' to show a placeholder card until you have the image.
 const GALLERY_ITEMS: { style: string; subject: string; before: string; after: string }[] = [
   { style: 'Single Crochet', subject: 'Dog portrait',      before: '', after: '/gallery/single%20of%20dog.png' },
-  { style: 'Cross Stitch',   subject: 'Yellow flower',     before: '', after: '/gallery/yellow%20flower.png' },
+  { style: 'Cross Stitch',   subject: 'Yellow flower',     before: '/gallery/beforeflower.png', after: '/gallery/yellow%20flower.png' },
   { style: 'Mosaic',         subject: 'Colourful cross',   before: '', after: '/gallery/mosaic.png' },
   { style: 'C2C',            subject: 'Baby',              before: '', after: '/gallery/baby%20c2c.png' },
   { style: 'Filet Crochet',  subject: 'Animal silhouette', before: '', after: '' },
