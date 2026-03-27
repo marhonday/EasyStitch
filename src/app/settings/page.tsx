@@ -11,8 +11,9 @@ import { GRID_SIZES, STITCH_STYLE_META, MIN_COLORS, MAX_COLORS } from '@/lib/con
 import { StitchStyle, GridSize, ImageType } from '@/types/pattern'
 
 const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: string }[] = [
-  { id: 'photo',   emoji: '📷', label: 'Photo',   hint: 'Real photo — pet, portrait, flowers, landscape' },
-  { id: 'graphic', emoji: '🎨', label: 'Graphic',  hint: 'Logo, clip art, cartoon, flat design' },
+  { id: 'photo',   emoji: '📷', label: 'Photo',     hint: 'Real photo — pet, portrait, flowers, landscape' },
+  { id: 'graphic', emoji: '🎨', label: 'Graphic',   hint: 'Logo, clip art, cartoon, flat design' },
+  { id: 'pixel',   emoji: '🔲', label: 'Pixel Art', hint: 'Existing grid pattern or chart' },
 ]
 
 const STITCH_ICONS: Partial<Record<StitchStyle, string>> = {
