@@ -1,10 +1,17 @@
 /**
- * Minimal event logger.
- * To remove all logging: delete this file and remove the imports/calls below.
- *
- * Usage: logEvent('EVENT_NAME')  →  [EVENT_NAME] - 2026-03-25T14:32:01.123Z
+ * Minimal event logger — logs to console AND sends to Vercel Analytics.
+ * Usage: logEvent('EVENT_NAME', 'optional-detail')
  */
+import { track } from '@vercel/analytics'
+
 export function logEvent(name: string, detail?: string) {
-  const ts = new Date().toISOString()
-  console.log(`[${name}] - ${ts}${detail ? ` | ${detail}` : ''}`)
+  if (process.env.NODE_ENV !== 'production') {
+    const ts = new Date().toISOString()
+    console.log(`[${name}] - ${ts}${detail ? ` | ${detail}` : ''}`)
+  }
+  try {
+    track(name, detail ? { detail } : undefined)
+  } catch {
+    // analytics unavailable (dev, ad-blocker) — fail silently
+  }
 }
