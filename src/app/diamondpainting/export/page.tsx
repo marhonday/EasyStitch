@@ -350,6 +350,22 @@ export default function DiamondPaintingExportPage() {
           </p>
         </div>
 
+        {/* Kit sourcing notice */}
+        <div style={{ width: '100%', maxWidth: 400, background: '#FFF8F0', borderRadius: 16, padding: '16px 18px', border: '1px solid #F0E4D0' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#C4614A', marginBottom: 6 }}>
+            💎 About physical kits
+          </p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.7, marginBottom: 8 }}>
+            This chart shows exactly what your finished diamond painting would look like. We&apos;re actively working on partnering with a supplier so you can order a full kit — printed canvas, diamonds, and tools — directly through EasyStitch.
+          </p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.7, marginBottom: 8 }}>
+            For now, most custom kit companies convert from your original photo themselves and don&apos;t accept external pattern files — so this chart is best used as a preview and reference while you source your own diamonds using the shopping list above.
+          </p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', lineHeight: 1.6 }}>
+            Individual diamond bags by DMC code are available from Amazon, Etsy sellers, and dedicated diamond painting suppliers — the codes and counts above are all you need.
+          </p>
+        </div>
+
         {/* Row tracker */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
