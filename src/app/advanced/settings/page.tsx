@@ -8,6 +8,14 @@ import { STITCH_STYLE_META }  from '@/lib/constants'
 import { StitchStyle }        from '@/types/pattern'
 import { logEvent }           from '@/lib/log'
 
+// Colour limits per stitch style
+const COLOR_LIMITS: Partial<Record<StitchStyle, { min: number; max: number; hint: string }>> = {
+  mosaic:        { min: 2, max: 3,  hint: '2–3 colours (2-colour stitch by design)' },
+  tapestry:      { min: 2, max: 8,  hint: '2–8 colours — carrying more gets impractical' },
+  c2c:           { min: 2, max: 12, hint: '2–12 colours' },
+  singleCrochet: { min: 2, max: 16, hint: '2–16 colours' },
+}
+
 // Quick-pick size presets
 const SIZE_PRESETS = [
   { label: 'S',    width: 40,  height: 40  },
@@ -158,25 +166,36 @@ export default function AdvancedSettingsPage() {
         </div>
 
         {/* ── Colour count ─────────────────────────────────────────────── */}
-        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              Colours
-            </p>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: '#2C2218' }}>
-              {settings.maxColors}
-            </span>
-          </div>
-          <input
-            type="range" min={2} max={32} step={1} value={settings.maxColors}
-            onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: parseInt(e.target.value) } })}
-            style={{ width: '100%', accentColor: '#C4614A' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>2 — simple/bold</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>32 — photo-realistic</p>
-          </div>
-        </div>
+        {(() => {
+          const limits = COLOR_LIMITS[settings.stitchStyle] ?? { min: 2, max: 16, hint: '2–16 colours' }
+          const clampedMax = settings.imageType === 'pixel' ? Math.min(limits.max, 16) : limits.max
+          const clampedVal = Math.max(limits.min, Math.min(settings.maxColors, clampedMax))
+          return (
+            <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  Colours
+                </p>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: '#2C2218' }}>
+                  {clampedVal}
+                </span>
+              </div>
+              <input
+                type="range" min={limits.min} max={clampedMax} step={1} value={clampedVal}
+                onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: parseInt(e.target.value) } })}
+                style={{ width: '100%', accentColor: '#C4614A' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>{limits.hint}</p>
+              </div>
+              {settings.imageType === 'pixel' && (
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 6 }}>
+                  Pixel Art mode stops at however many distinct colours are found in your image
+                </p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* ── Stitch style ─────────────────────────────────────────────── */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
@@ -190,7 +209,13 @@ export default function AdvancedSettingsPage() {
               return (
                 <button
                   key={style}
-                  onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { stitchStyle: style } })}
+                  onClick={() => {
+                    const lim = COLOR_LIMITS[style]
+                    const payload: Record<string, unknown> = { stitchStyle: style }
+                    if (lim && settings.maxColors > lim.max) payload.maxColors = lim.max
+                    if (lim && settings.maxColors < lim.min) payload.maxColors = lim.min
+                    dispatch({ type: 'UPDATE_SETTINGS', payload })
+                  }}
                   style={{
                     padding: '12px 10px', borderRadius: 12, textAlign: 'left',
                     border: active ? '2px solid #C4614A' : '1.5px solid #E4D9C8',

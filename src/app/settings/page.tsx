@@ -430,15 +430,18 @@ function SettingsInner() {
                 <input
                   type="range"
                   min={MIN_COLORS}
-                  max={MAX_COLORS}
-                  value={Math.max(MIN_COLORS, Math.min(settings.maxColors, MAX_COLORS))}
+                  max={settings.stitchStyle === 'mosaic' ? 3 : settings.stitchStyle === 'tapestry' ? 8 : settings.stitchStyle === 'c2c' ? 12 : settings.imageType === 'pixel' ? 16 : MAX_COLORS}
+                  value={Math.max(MIN_COLORS, Math.min(settings.maxColors, settings.stitchStyle === 'mosaic' ? 3 : settings.stitchStyle === 'tapestry' ? 8 : settings.stitchStyle === 'c2c' ? 12 : settings.imageType === 'pixel' ? 16 : MAX_COLORS))}
                   onChange={(e) => setMaxColors(Number(e.target.value))}
                   style={{ width: '100%', accentColor: '#C4614A' }}
                 />
                 <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
                   <span>{MIN_COLORS} colours</span>
-                  <span>{MAX_COLORS} colours</span>
+                  <span>{settings.stitchStyle === 'mosaic' ? '3 max' : settings.stitchStyle === 'tapestry' ? '8 max' : settings.stitchStyle === 'c2c' ? '12 max' : settings.imageType === 'pixel' ? '16 max' : `${MAX_COLORS} colours`}</span>
                 </div>
+                {settings.imageType === 'pixel' && (
+                  <p className="text-xs font-body mt-1" style={{ color: '#9A8878' }}>Stops at however many distinct colours are found</p>
+                )}
                 {state.detectedColors && state.recommendedColors && (
                   <>
                     <p className="font-body text-xs text-ink/50 mt-2">
