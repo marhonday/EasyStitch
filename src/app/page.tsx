@@ -161,10 +161,11 @@ export default function LandingPage() {
             <StyleCard href="/upload?style=tapestry"      icon="⬛" title="Tapestry Crochet" tags={['Multi-colour', 'Carry yarn']} />
             <StyleCard href="/upload?style=c2c"           icon="◪" title="C2C Crochet"      tags={['Corner to corner', 'Diagonal']} />
             <StyleCard href="/upload?style=mosaic"        icon="◈" title="Mosaic Crochet"   tags={['2 colours', 'Slip stitch']} />
-            <StyleCard href="/knitting"  icon="🧵" title="Knitting"       tags={['Fair Isle', 'Intarsia']}       badge="New" />
-            <StyleCard href="/filet"     icon="🔲" title="Filet Crochet"  tags={['Open mesh', 'Filled grid']}    badge="New" />
-            <StyleCard href="/crossstitch" icon="✚" title="Cross Stitch" tags={['Embroidery', 'Aida cloth']}    badge="New" />
-            <StyleCard icon="💎" title="Diamond Painting" tags={['Bead counts', 'Colour codes']} comingSoon />
+            <StyleCard href="/knitting"      icon="🧵" title="Knitting"         tags={['Fair Isle', 'Intarsia']}        badge="New" />
+            <StyleCard href="/filet"          icon="🕸️" title="Filet Crochet"  tags={['Open mesh', 'Filled grid']}     badge="New" />
+            <StyleCard href="/crossstitch"    icon="✚"  title="Cross Stitch"   tags={['Embroidery', 'Aida cloth']}     badge="New" />
+            <StyleCard href="/diamondpainting" icon="💎" title="Diamond Painting" tags={['Bead counts', 'DMC codes']}  badge="New" />
+            <StyleCard href="/pbn"            icon="🎨" title="Paint by Number" tags={['Numbered regions', 'Printable']} badge="New" />
           </div>
         </div>
 
