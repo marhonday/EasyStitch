@@ -458,7 +458,7 @@ function GalleryCard({ style, subject, before, after }: {
 //   1. Go to https://formspree.io and create a free account
 //   2. Create a new form — set the notification email to your Gmail
 //   3. Copy your form ID (looks like "xpwzabcd") and replace YOUR_FORM_ID below
-const FORMSPREE_ID = 'YOUR_FORM_ID'
+const FORMSPREE_ID = 'mykbzdae'
 
 function FeedbackForm() {
   const [email,   setEmail]   = useState('')
