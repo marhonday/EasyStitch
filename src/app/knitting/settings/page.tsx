@@ -198,13 +198,16 @@ export default function KnittingSettingsPage() {
             </span>
           </div>
           <input
-            type="range" min={2} max={8} step={1} value={Math.min(settings.maxColors, 8)}
+            type="range" min={2} max={settings.style === 'knittingStranded' ? 8 : 16} step={1}
+            value={Math.min(settings.maxColors, settings.style === 'knittingStranded' ? 8 : 16)}
             onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: parseInt(e.target.value) } })}
             style={{ width: '100%', accentColor: '#C4614A' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>2 — bold contrast</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>8 — detailed</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>
+              {settings.style === 'knittingStranded' ? '8 max — carrying more yarns gets impractical' : '16 max — separate yarn per section'}
+            </p>
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 6 }}>
             {settings.imageType === 'photo'
@@ -213,6 +216,11 @@ export default function KnittingSettingsPage() {
               ? 'Match the number of colours in the original pattern.'
               : 'Graphics & logos: 4–6 colours recommended.'}
           </p>
+          {settings.imageType === 'pixel' && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 4 }}>
+              Stops at however many distinct colours are found in your image
+            </p>
+          )}
         </div>
 
         {/* ── Image type ───────────────────────────────────────────────── */}
