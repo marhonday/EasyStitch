@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { PatternData } from '@/types/pattern'
+import { removeColorFromPattern } from '@/lib/removeColor'
 import Header         from '@/components/layout/Header'
 import StepIndicator  from '@/components/ui/StepIndicator'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -26,44 +27,6 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
 
 type Status = 'idle' | 'loading-pdf' | 'loading-png' | 'done-pdf' | 'done-png' | 'error'
 
-/** Remap all cells of one palette index to the nearest remaining colour, then compact. */
-function removeColorFromPattern(pattern: PatternData, removeIdx: number): PatternData {
-  const { grid, palette } = pattern
-  if (palette.length <= 1) return pattern  // can't remove the only colour
-
-  // Find nearest remaining colour by RGB distance
-  const rem = palette[removeIdx]
-  let nearestIdx = 0
-  let nearestDist = Infinity
-  for (let i = 0; i < palette.length; i++) {
-    if (i === removeIdx) continue
-    const e = palette[i]
-    const d = (rem.r - e.r) ** 2 + (rem.g - e.g) ** 2 + (rem.b - e.b) ** 2
-    if (d < nearestDist) { nearestDist = d; nearestIdx = i }
-  }
-
-  // Remap removed cells → nearest, then shift indices > removeIdx down by 1
-  const newPalette = palette.filter((_, i) => i !== removeIdx)
-  const newGrid = grid.map(row =>
-    row.map(cell => {
-      const ci = cell.colorIndex === removeIdx ? nearestIdx : cell.colorIndex
-      const ni = ci > removeIdx ? ci - 1 : ci
-      return { colorIndex: ni, symbol: newPalette[ni].symbol }
-    })
-  )
-
-  // Recount stitches
-  const counts = new Array(newPalette.length).fill(0)
-  for (const row of newGrid) for (const cell of row) counts[cell.colorIndex]++
-  const finalPalette = newPalette.map((e, i) => ({ ...e, stitchCount: counts[i] }))
-
-  return {
-    ...pattern,
-    grid: newGrid,
-    palette: finalPalette,
-    meta: { ...pattern.meta, colorCount: finalPalette.filter(e => (e.stitchCount ?? 0) > 0).length },
-  }
-}
 
 export default function ExportPage() {
   const router  = useRouter()

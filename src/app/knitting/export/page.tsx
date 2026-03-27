@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useKnittingPattern, getCellWidthMultiplier } from '@/context/KnittingPatternContext'
 import { useProjectStorage } from '@/hooks/useProjectStorage'
@@ -10,6 +10,8 @@ import RowInstructions from '@/components/preview/RowInstructions'
 import { STITCH_STYLE_META }   from '@/lib/constants'
 import { logEvent }            from '@/lib/log'
 import { isUnlocked }         from '@/lib/unlock'
+import { PatternData }         from '@/types/pattern'
+import { removeColorFromPattern } from '@/lib/removeColor'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -28,6 +30,14 @@ export default function KnittingExportPage() {
   const [includeInstructions, setIncludeInstructions] = useState(false)
   const [patternName,         setPatternName]         = useState('My Knitting Graph')
   const [savedId,             setSavedId]             = useState<string | null>(null)
+
+  // Working copy — user can remove colours without re-generating
+  const [workingPattern, setWorkingPattern] = useState<PatternData | null>(null)
+  useEffect(() => { setWorkingPattern(patternData ?? null) }, [patternData])
+  const removeColor = useCallback((idx: number) => {
+    setWorkingPattern(prev => prev ? removeColorFromPattern(prev, idx) : prev)
+  }, [])
+  const activePattern = workingPattern ?? patternData
 
   // ── Row progress (localStorage-persisted) ─────────────────────────────
   const patternKey = useMemo(() => {
@@ -71,32 +81,32 @@ export default function KnittingExportPage() {
 
   // Draw pattern + row highlight whenever pattern, style, or current row changes
   useEffect(() => {
-    if (!patternData || !canvasRef.current) return
+    if (!activePattern || !canvasRef.current) return
     const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
-    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(activePattern.meta.width, activePattern.meta.height))))
     cellSizeRef.current = cs
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false, cellWidthMultiplier })
+    drawPatternToCanvas(canvasRef.current, activePattern, { cellSize: cs, gap: 1, showSymbols: false, cellWidthMultiplier })
     if (highlightGridRow !== undefined) {
       drawRowHighlight(canvasRef.current, highlightGridRow, cs)
     }
-  }, [patternData, settings.style, highlightGridRow])
+  }, [activePattern, settings.style, highlightGridRow])
 
   if (!patternData) return null
 
-  const { meta, palette } = patternData
+  const { meta, palette } = activePattern ?? patternData
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
   const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
 
   async function handleDownloadPdf() {
     if (!isUnlocked()) { router.push('/unlock?return=/knitting/export'); return }
-    if (!patternData) return
+    if (!activePattern) return
     logEvent('EXPORT_TRIGGERED', 'knitting-pdf')
     setStatus('loading-pdf')
     setError(null)
     try {
       const { downloadPdf } = await import('@/modules/pdf-export/buildPDF')
       await downloadPdf(
-        patternData,
+        activePattern,
         patternName.replace(/\s+/g, '-').toLowerCase(),
         patternName,
         includeInstructions,
@@ -195,20 +205,35 @@ export default function KnittingExportPage() {
           )}
         </div>
 
-        {/* Colour key */}
-        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Colour key</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {palette.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 18, height: 18, borderRadius: 5, background: c.hex, flexShrink: 0, boxShadow: '0 1px 3px rgba(44,34,24,0.15)' }} />
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#2C2218' }}>
-                  {c.symbol} {c.label ?? c.hex}
-                </span>
-              </div>
-            ))}
+        {/* ── Colour palette editor ───────────────────────────────────── */}
+        {workingPattern && workingPattern.palette.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Colours
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                {workingPattern.palette.length} found · tap × to remove
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {workingPattern.palette.map((entry, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FAF6EF', borderRadius: 999, padding: '5px 10px 5px 6px', border: '1px solid #EDE4D8' }}>
+                  <span style={{ width: 16, height: 16, borderRadius: 4, background: entry.hex, border: '1.5px solid rgba(0,0,0,0.1)', flexShrink: 0, display: 'inline-block' }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', fontWeight: 500 }}>
+                    {entry.symbol}
+                  </span>
+                  {workingPattern.palette.length > 1 && (
+                    <button onClick={() => removeColor(i)} style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(44,34,24,0.08)', border: 'none', fontFamily: 'monospace', fontSize: 10, color: '#9A8878', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 10 }}>
+              Removing a colour merges those stitches into the nearest remaining colour.
+            </p>
           </div>
-        </div>
+        )}
 
         {/* ── Row-by-row tracker ───────────────────────────────────────── */}
         <div style={{ width: '100%', maxWidth: 400 }}>

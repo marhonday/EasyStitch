@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDiamondPainting } from '@/context/DiamondPaintingContext'
+import { PatternData } from '@/types/pattern'
+import { removeColorFromPattern } from '@/lib/removeColor'
 import { useRowProgress } from '@/hooks/useRowProgress'
 import RowInstructions from '@/components/preview/RowInstructions'
 import { matchToDmc, canvasSizeCm, canvasSizeInches, shoppingTotals } from '@/modules/diamond/dmcMatcher'
@@ -66,6 +68,14 @@ export default function DiamondPaintingExportPage() {
   const [error,       setError]       = useState<string | null>(null)
   const [patternName, setPatternName] = useState('My Diamond Painting')
 
+  // Working copy — user can remove colours without re-generating
+  const [workingPattern, setWorkingPattern] = useState<PatternData | null>(null)
+  useEffect(() => { setWorkingPattern(patternData ?? null) }, [patternData])
+  const removeColor = useCallback((idx: number) => {
+    setWorkingPattern(prev => prev ? removeColorFromPattern(prev, idx) : prev)
+  }, [])
+  const activePattern = workingPattern ?? patternData
+
   // ── Row tracker ────────────────────────────────────────────────────────────
   const patternKey = useMemo(() => {
     if (!patternData) return ''
@@ -96,15 +106,15 @@ export default function DiamondPaintingExportPage() {
 
   // ── DMC matches ────────────────────────────────────────────────────────────
   const dmcMatches = useMemo(() => {
-    if (!patternData) return []
-    return matchToDmc(patternData.palette)
-  }, [patternData])
+    if (!activePattern) return []
+    return matchToDmc(activePattern.palette)
+  }, [activePattern])
 
   const totals = useMemo(() => shoppingTotals(dmcMatches), [dmcMatches])
 
   // ── Canvas size ────────────────────────────────────────────────────────────
-  const cm  = useMemo(() => patternData ? canvasSizeCm(patternData.meta.width, patternData.meta.height) : { w: 0, h: 0 }, [patternData])
-  const ins = useMemo(() => patternData ? canvasSizeInches(patternData.meta.width, patternData.meta.height) : { w: '0', h: '0' }, [patternData])
+  const cm  = useMemo(() => activePattern ? canvasSizeCm(activePattern.meta.width, activePattern.meta.height) : { w: 0, h: 0 }, [activePattern])
+  const ins = useMemo(() => activePattern ? canvasSizeInches(activePattern.meta.width, activePattern.meta.height) : { w: '0', h: '0' }, [activePattern])
 
   // ── Redirect if no pattern ─────────────────────────────────────────────────
   useEffect(() => {
@@ -113,10 +123,10 @@ export default function DiamondPaintingExportPage() {
 
   // ── Draw canvas ────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!patternData || !canvasRef.current) return
-    const cs = Math.max(4, Math.min(12, Math.floor(360 / Math.max(patternData.meta.width, patternData.meta.height))))
+    if (!activePattern || !canvasRef.current) return
+    const cs = Math.max(4, Math.min(12, Math.floor(360 / Math.max(activePattern.meta.width, activePattern.meta.height))))
     cellSizeRef.current = cs
-    drawDiamondCanvas(canvasRef.current, patternData.grid, patternData.palette, settings.drillType, cs)
+    drawDiamondCanvas(canvasRef.current, activePattern.grid, activePattern.palette, settings.drillType, cs)
 
     // Row highlight overlay
     if (highlightGridRow !== undefined) {
@@ -129,11 +139,11 @@ export default function DiamondPaintingExportPage() {
         ctx.restore()
       }
     }
-  }, [patternData, settings.drillType, highlightGridRow])
+  }, [activePattern, settings.drillType, highlightGridRow])
 
   if (!patternData) return null
 
-  const { meta, palette } = patternData
+  const { meta, palette } = activePattern ?? patternData
 
   function handleDownloadPng() {
     if (!isUnlocked()) { router.push('/unlock?return=/diamondpainting/export'); return }
@@ -239,6 +249,36 @@ export default function DiamondPaintingExportPage() {
             style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1.5px solid #E4D9C8', fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218', background: 'white', boxSizing: 'border-box' }}
           />
         </div>
+
+        {/* ── Colour palette editor ───────────────────────────────────── */}
+        {workingPattern && workingPattern.palette.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Colours
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                {workingPattern.palette.length} found · tap × to remove
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {workingPattern.palette.map((entry, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FAF6EF', borderRadius: 999, padding: '5px 10px 5px 6px', border: '1px solid #EDE4D8' }}>
+                  <span style={{ width: 16, height: 16, borderRadius: settings.drillType === 'round' ? '50%' : 4, background: entry.hex, border: '1.5px solid rgba(0,0,0,0.1)', flexShrink: 0, display: 'inline-block' }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744', fontWeight: 500 }}>
+                    {(entry.stitchCount ?? 0).toLocaleString()}
+                  </span>
+                  {workingPattern.palette.length > 1 && (
+                    <button onClick={() => removeColor(i)} style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(44,34,24,0.08)', border: 'none', fontFamily: 'monospace', fontSize: 10, color: '#9A8878', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 10 }}>
+              Removing a colour merges those diamonds into the nearest remaining colour.
+            </p>
+          </div>
+        )}
 
         {/* DMC Colour Legend */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
