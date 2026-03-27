@@ -10,10 +10,10 @@ import { useState } from 'react'
 //    after  = screenshot of the pattern preview  (e.g. /gallery/cat-pattern.jpg)
 // Leave a path as '' to show a placeholder card until you have the image.
 const GALLERY_ITEMS: { style: string; subject: string; before: string; after: string }[] = [
-  { style: 'Single Crochet', subject: 'Pet portrait',      before: '', after: '' },
-  { style: 'Cross Stitch',   subject: 'Floral close-up',   before: '', after: '' },
-  { style: 'Tapestry',       subject: 'Bold graphic',      before: '', after: '' },
-  { style: 'C2C',            subject: 'Portrait',          before: '', after: '' },
+  { style: 'Single Crochet', subject: 'Dog portrait',      before: '', after: '/gallery/single%20of%20dog.png' },
+  { style: 'Cross Stitch',   subject: 'Yellow flower',     before: '', after: '/gallery/yellow%20flower.png' },
+  { style: 'Mosaic',         subject: 'Colourful cross',   before: '', after: '/gallery/mosaic.png' },
+  { style: 'C2C',            subject: 'Baby',              before: '', after: '/gallery/baby%20c2c.png' },
   { style: 'Filet Crochet',  subject: 'Animal silhouette', before: '', after: '' },
   { style: 'Knitting',       subject: 'Geometric motif',   before: '', after: '' },
 ]
@@ -370,7 +370,9 @@ function Divider() {
 function GalleryCard({ style, subject, before, after }: {
   style: string; subject: string; before: string; after: string
 }) {
-  const hasImages = before !== '' && after !== ''
+  const hasBoth   = before !== '' && after !== ''
+  const afterOnly = before === '' && after !== ''
+  const noImages  = before === '' && after === ''
 
   return (
     <div style={{
@@ -381,58 +383,48 @@ function GalleryCard({ style, subject, before, after }: {
       boxShadow: '0 2px 8px rgba(44,34,24,0.06)',
       scrollSnapAlign: 'start',
     }}>
-      {/* Before / After images */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 160 }}>
-        {/* Before */}
-        <div style={{ position: 'relative', borderRight: '1px solid #EDE4D8' }}>
-          {hasImages ? (
-            // eslint-disable-next-line @next/next/no-img-element
+      {/* Image area */}
+      {hasBoth ? (
+        /* Split before / after */
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 160 }}>
+          <div style={{ position: 'relative', borderRight: '1px solid #EDE4D8' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={before} alt={`${subject} original photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              background: '#F5F0E8',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-            }}>
+            <span style={{ position: 'absolute', bottom: 6, left: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700, color: 'white', background: 'rgba(44,34,24,0.55)', borderRadius: 999, padding: '2px 7px' }}>Before</span>
+          </div>
+          <div style={{ position: 'relative' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={after} alt={`${subject} pattern`} style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} />
+            <span style={{ position: 'absolute', bottom: 6, right: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700, color: 'white', background: 'rgba(196,97,74,0.75)', borderRadius: 999, padding: '2px 7px' }}>After</span>
+          </div>
+        </div>
+      ) : afterOnly ? (
+        /* Pattern only — full width */
+        <div style={{ position: 'relative', height: 160 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={after} alt={`${subject} pattern`} style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} />
+          <span style={{ position: 'absolute', bottom: 6, right: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700, color: 'white', background: 'rgba(196,97,74,0.75)', borderRadius: 999, padding: '2px 7px' }}>Pattern</span>
+        </div>
+      ) : (
+        /* No images yet — placeholder */
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 160 }}>
+          <div style={{ position: 'relative', borderRight: '1px solid #EDE4D8' }}>
+            <div style={{ width: '100%', height: '100%', background: '#F5F0E8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               <span style={{ fontSize: 28 }}>📷</span>
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0' }}>Photo</span>
             </div>
-          )}
-          <span style={{
-            position: 'absolute', bottom: 6, left: 6,
-            fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-            color: 'white', background: 'rgba(44,34,24,0.55)',
-            borderRadius: 999, padding: '2px 7px',
-          }}>
-            Before
-          </span>
-        </div>
-
-        {/* After */}
-        <div style={{ position: 'relative' }}>
-          {hasImages ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={after} alt={`${subject} pattern`} style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} />
-          ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              background: '#FAF6EF',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-            }}>
+            <span style={{ position: 'absolute', bottom: 6, left: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700, color: 'white', background: 'rgba(44,34,24,0.55)', borderRadius: 999, padding: '2px 7px' }}>Before</span>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ width: '100%', height: '100%', background: '#FAF6EF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               <span style={{ fontSize: 28 }}>🧶</span>
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0' }}>Pattern</span>
             </div>
-          )}
-          <span style={{
-            position: 'absolute', bottom: 6, right: 6,
-            fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-            color: 'white', background: 'rgba(196,97,74,0.75)',
-            borderRadius: 999, padding: '2px 7px',
-          }}>
-            After
-          </span>
+            <span style={{ position: 'absolute', bottom: 6, right: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700, color: 'white', background: 'rgba(196,97,74,0.75)', borderRadius: 999, padding: '2px 7px' }}>After</span>
+          </div>
         </div>
-      </div>
+      )}
+      {noImages && <></>}{/* satisfies exhaustive check */}
 
       {/* Label */}
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
