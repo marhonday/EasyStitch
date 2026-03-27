@@ -1,8 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useFiletPattern } from '@/context/FiletPatternContext'
+import { logEvent } from '@/lib/log'
 
 const MAX_EDGE_PX = 1600
 
@@ -32,6 +33,8 @@ export default function FiletUploadPage() {
   const { state, dispatch } = useFiletPattern()
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
+
+  useEffect(() => { logEvent('VISIT', 'filet-crochet') }, [])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

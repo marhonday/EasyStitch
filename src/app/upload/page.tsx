@@ -68,7 +68,7 @@ function UploadInner() {
   const hasPhoto = !!state.rawImage
 
   // [VISIT] — fires once when the upload/home page loads
-  useEffect(() => { logEvent('VISIT') }, [])
+  useEffect(() => { logEvent('VISIT', 'single-crochet') }, [])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

@@ -39,7 +39,7 @@ export default function AdvancedUploadPage() {
   const [cropUrl,      setCropUrl]      = useState<string | null>(null)
   const [bgRemovalUrl, setBgRemovalUrl] = useState<string | null>(null)
 
-  useEffect(() => { logEvent('VISIT') }, [])
+  useEffect(() => { logEvent('VISIT', 'advanced') }, [])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

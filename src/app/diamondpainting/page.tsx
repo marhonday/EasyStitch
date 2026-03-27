@@ -34,7 +34,7 @@ export default function DiamondPaintingUploadPage() {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
 
-  useEffect(() => { logEvent('VISIT') }, [])
+  useEffect(() => { logEvent('VISIT', 'diamond-painting') }, [])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
