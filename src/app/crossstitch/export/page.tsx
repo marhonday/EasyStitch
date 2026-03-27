@@ -6,6 +6,7 @@ import { useCrossStitch } from '@/context/CrossStitchPatternContext'
 import { useRowProgress }  from '@/hooks/useRowProgress'
 import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
 import RowInstructions from '@/components/preview/RowInstructions'
+import ZoomableCanvas  from '@/components/preview/ZoomableCanvas'
 import { logEvent } from '@/lib/log'
 import { isUnlocked } from '@/lib/unlock'
 import { PatternData } from '@/types/pattern'
@@ -191,20 +192,11 @@ export default function CrossStitchExportPage() {
         </div>
 
         {/* Chart canvas — with symbols + row highlight */}
-        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 8 }}>
-            Chart preview · symbols shown
-          </p>
-          <canvas
-            ref={canvasRef}
-            style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
-          />
-          {highlightGridRow !== undefined && (
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
-              ← Highlighted row = current row in tracker below
-            </p>
-          )}
-        </div>
+        <ZoomableCanvas
+          canvasRef={canvasRef}
+          label="Chart preview · symbols shown"
+          showRowHint={highlightGridRow !== undefined}
+        />
 
         {/* ── Palette editor ──────────────────────────────────────────── */}
         {activePattern && activePattern.palette.length > 1 && (

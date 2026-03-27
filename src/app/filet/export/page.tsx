@@ -6,6 +6,7 @@ import { useFiletPattern } from '@/context/FiletPatternContext'
 import { useRowProgress }  from '@/hooks/useRowProgress'
 import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
 import RowInstructions from '@/components/preview/RowInstructions'
+import ZoomableCanvas  from '@/components/preview/ZoomableCanvas'
 import { logEvent }    from '@/lib/log'
 import { isUnlocked }  from '@/lib/unlock'
 
@@ -165,17 +166,10 @@ export default function FiletExportPage() {
         </div>
 
         {/* Graph canvas — row highlight drawn on top */}
-        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
-          <canvas
-            ref={canvasRef}
-            style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
-          />
-          {highlightGridRow !== undefined && (
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
-              ← Highlighted row = current row in tracker below
-            </p>
-          )}
-        </div>
+        <ZoomableCanvas
+          canvasRef={canvasRef}
+          showRowHint={highlightGridRow !== undefined}
+        />
 
         {/* Legend */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
