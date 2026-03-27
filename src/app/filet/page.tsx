@@ -39,6 +39,7 @@ export default function FiletUploadPage() {
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    logEvent('UPLOAD_STARTED', 'filet-crochet')
     setError(null)
     setLoading(true)
     try {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdvancedPattern } from '@/context/AdvancedPatternContext'
 import { useRowProgress }     from '@/hooks/useRowProgress'
@@ -9,6 +9,8 @@ import RowInstructions        from '@/components/preview/RowInstructions'
 import { STITCH_STYLE_META }  from '@/lib/constants'
 import { logEvent }           from '@/lib/log'
 import { isUnlocked }         from '@/lib/unlock'
+import { PatternData }        from '@/types/pattern'
+import { removeColorFromPattern } from '@/lib/removeColor'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -24,6 +26,14 @@ export default function AdvancedExportPage() {
   const [error,                setError]                = useState<string | null>(null)
   const [includeInstructions,  setIncludeInstructions]  = useState(false)
   const [patternName,          setPatternName]          = useState('My Graph Pattern')
+
+  // ── Palette editor ────────────────────────────────────────────────────
+  const [workingPattern, setWorkingPattern] = useState<PatternData | null>(null)
+  useEffect(() => { setWorkingPattern(patternData ?? null) }, [patternData])
+  const removeColor = useCallback((idx: number) => {
+    setWorkingPattern(prev => prev ? removeColorFromPattern(prev, idx) : prev)
+  }, [])
+  const activePattern = workingPattern ?? patternData
 
   // ── Row progress (localStorage-persisted) ─────────────────────────────
   const patternKey = useMemo(() => {
@@ -67,30 +77,30 @@ export default function AdvancedExportPage() {
 
   // Draw pattern + row highlight whenever pattern or current row changes
   useEffect(() => {
-    if (!patternData || !canvasRef.current) return
-    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    if (!activePattern || !canvasRef.current) return
+    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(activePattern.meta.width, activePattern.meta.height))))
     cellSizeRef.current = cs
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false })
+    drawPatternToCanvas(canvasRef.current, activePattern, { cellSize: cs, gap: 1, showSymbols: false })
     if (highlightGridRow !== undefined) {
       drawRowHighlight(canvasRef.current, highlightGridRow, cs)
     }
-  }, [patternData, highlightGridRow])
+  }, [activePattern, highlightGridRow])
 
   if (!patternData) return null
 
-  const { meta, palette } = patternData
+  const { meta, palette } = activePattern ?? patternData
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
 
   async function handleDownloadPdf() {
     if (!isUnlocked()) { router.push('/unlock?return=/advanced/export'); return }
-    if (!patternData) return
+    if (!activePattern) return
     logEvent('EXPORT_TRIGGERED', 'advanced-pdf')
     setStatus('loading-pdf')
     setError(null)
     try {
       const { downloadPdf } = await import('@/modules/pdf-export/buildPDF')
       await downloadPdf(
-        patternData,
+        activePattern,
         patternName.replace(/\s+/g, '-').toLowerCase(),
         patternName,
         includeInstructions,
@@ -183,6 +193,32 @@ export default function AdvancedExportPage() {
           )}
         </div>
 
+        {/* ── Palette editor ──────────────────────────────────────────── */}
+        {activePattern && activePattern.palette.length > 1 && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Edit colours</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 10 }}>Tap × to remove a colour — stitches merge into the nearest shade</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {activePattern.palette.map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#FAF6EF', borderRadius: 20, padding: '4px 8px 4px 6px', border: '1px solid #EDE4D8' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 5, background: c.hex, flexShrink: 0, border: '1px solid rgba(44,34,24,0.12)' }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>{c.symbol}</span>
+                  {c.stitchCount != null && (
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>{c.stitchCount}</span>
+                  )}
+                  {activePattern.palette.length > 1 && (
+                    <button
+                      onClick={() => removeColor(i)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: 13, color: '#C8BFB0', lineHeight: 1 }}
+                      title={`Remove ${c.label ?? c.hex}`}
+                    >×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Colour key */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Colour key</p>
@@ -209,7 +245,7 @@ export default function AdvancedExportPage() {
             Row tracker
           </p>
           <RowInstructions
-            pattern={patternData}
+            pattern={activePattern ?? patternData}
             completedRows={completedRows}
             onToggleRow={handleToggleRow}
             onResetProgress={handleResetProgress}
