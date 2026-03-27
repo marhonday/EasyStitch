@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react'
 import { PatternContextState, PatternSettings, PatternData, PersonalizationSettings } from '@/types/pattern'
 import { DEFAULT_SETTINGS } from '@/lib/constants'
+import type { ComplexityResult } from '@/modules/image-processing/analyzeComplexity'
 
 // ─── State & Actions ─────────────────────────────────────────────────────────
 
@@ -13,6 +14,7 @@ type Action =
   | { type: 'SET_DETECTED_COLORS';  payload: number }
   | { type: 'SET_DOMINANT_PALETTE'; payload: { hex: string; population: number }[] }
   | { type: 'SET_RECOMMENDED_COLORS'; payload: number }
+  | { type: 'SET_IMAGE_COMPLEXITY'; payload: ComplexityResult }
   | { type: 'UPDATE_PERSONALIZATION'; payload: Partial<PersonalizationSettings> }
   | { type: 'UPDATE_SETTINGS';      payload: Partial<PatternSettings> }
   | { type: 'SET_PATTERN_DATA';     payload: PatternData }
@@ -20,14 +22,15 @@ type Action =
   | { type: 'RESET' }
 
 const initialState: PatternContextState = {
-  rawImage:       null,
-  enhancedImage:  null,
-  settings:       DEFAULT_SETTINGS,
-  patternData:    null,
-  isGenerating:   false,
-  detectedColors: null,
+  rawImage:        null,
+  enhancedImage:   null,
+  settings:        DEFAULT_SETTINGS,
+  patternData:     null,
+  isGenerating:    false,
+  detectedColors:  null,
   dominantPalette: null,
   recommendedColors: null,
+  imageComplexity: null,
   personalization: {
     enabled: false,
     titleText: '',
@@ -47,14 +50,15 @@ function saveToSession(state: PatternContextState) {
     // Only persist the data-heavy parts — rawImage can be large, store it too
     // so navigating to /project and back doesn't lose everything.
     const toSave = {
-      rawImage:      state.rawImage,
-      enhancedImage: state.enhancedImage,
-      settings:      state.settings,
-      patternData:   state.patternData,
+      rawImage:        state.rawImage,
+      enhancedImage:   state.enhancedImage,
+      settings:        state.settings,
+      patternData:     state.patternData,
       personalization: state.personalization,
-      detectedColors: state.detectedColors,
+      detectedColors:  state.detectedColors,
       recommendedColors: state.recommendedColors,
       dominantPalette: state.dominantPalette,
+      imageComplexity: state.imageComplexity,
     }
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(toSave))
   } catch {
@@ -82,9 +86,10 @@ function buildInitialState(): PatternContextState {
     settings:       saved.settings       ?? DEFAULT_SETTINGS,
     patternData:    saved.patternData    ?? null,
     personalization: saved.personalization ?? initialState.personalization,
-    detectedColors: saved.detectedColors ?? null,
+    detectedColors:   saved.detectedColors   ?? null,
     recommendedColors: saved.recommendedColors ?? null,
-    dominantPalette: saved.dominantPalette ?? null,
+    dominantPalette:  saved.dominantPalette  ?? null,
+    imageComplexity:  (saved as any).imageComplexity ?? null,
   }
 }
 
@@ -93,14 +98,17 @@ function patternReducer(state: PatternContextState, action: Action): PatternCont
     case 'SET_RAW_IMAGE':
       return {
         ...state,
-        rawImage: action.payload,
-        enhancedImage: null,
-        patternData: null,
-        detectedColors: null,
+        rawImage:        action.payload,
+        enhancedImage:   null,
+        patternData:     null,
+        detectedColors:  null,
         dominantPalette: null,
         recommendedColors: null,
+        imageComplexity: null,
         personalization: initialState.personalization,
       }
+    case 'SET_IMAGE_COMPLEXITY':
+      return { ...state, imageComplexity: action.payload }
     case 'SET_ENHANCED_IMAGE':
       return { ...state, enhancedImage: action.payload }
     case 'CLEAR_ENHANCED_IMAGE':
@@ -113,8 +121,18 @@ function patternReducer(state: PatternContextState, action: Action): PatternCont
       return { ...state, recommendedColors: action.payload }
     case 'UPDATE_PERSONALIZATION':
       return { ...state, personalization: { ...state.personalization, ...action.payload } }
-    case 'UPDATE_SETTINGS':
-      return { ...state, settings: { ...state.settings, ...action.payload } }
+    case 'UPDATE_SETTINGS': {
+      const next = { ...state.settings, ...action.payload }
+      // If the stitch style or grid size changed after a pattern was already
+      // generated, wipe patternData so the user is forced to regenerate with
+      // the new settings rather than seeing a stale/mismatched pattern.
+      const styleChanged    = 'stitchStyle' in action.payload && action.payload.stitchStyle !== state.settings.stitchStyle
+      const gridChanged     = 'gridSize'    in action.payload && action.payload.gridSize?.label !== state.settings.gridSize?.label
+      const shouldInvalidate = state.patternData !== null && (styleChanged || gridChanged)
+      return shouldInvalidate
+        ? { ...state, settings: next, patternData: null }
+        : { ...state, settings: next }
+    }
     case 'SET_PATTERN_DATA':
       return { ...state, patternData: action.payload, isGenerating: false }
     case 'SET_GENERATING':

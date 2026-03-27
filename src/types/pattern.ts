@@ -107,14 +107,15 @@ export interface Cell {
  * Includes traversal order so renderers know how to draw row guides.
  */
 export interface PatternMeta {
-  width:           number
-  height:          number
-  colorCount:      number
-  stitchStyle:     StitchStyle
-  traversalOrder:  TraversalOrder
-  totalStitches:   number
-  generatedAt:     string
-  noiseCleaned?:   number   // cells reassigned by noise detection pass
+  width:            number
+  height:           number
+  colorCount:       number
+  requestedColors?: number  // what the user selected — compare with colorCount to detect simplification
+  stitchStyle:      StitchStyle
+  traversalOrder:   TraversalOrder
+  totalStitches:    number
+  generatedAt:      string
+  noiseCleaned?:    number   // cells reassigned by noise detection pass
   backgroundColor?: string  // hex — the chosen background colour, used by canvas renderer
 }
 
@@ -154,6 +155,7 @@ export interface PatternSettings {
   imageType:       ImageType
   backgroundColor: string         // hex — always one palette slot, default '#ffffff'
   borderLayers:    BorderLayer[]  // 0–3 border layers, outermost first
+  dithering?:      boolean        // optional ordered dithering at colour transitions
 }
 
 export type PersonalizationPlacement = 'above' | 'below'
@@ -181,5 +183,7 @@ export interface PatternContextState {
   detectedColors: number | null  // actual distinct colors found in uploaded image
   dominantPalette: { hex: string; population: number }[] | null
   recommendedColors: number | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  imageComplexity: any | null    // ComplexityResult — typed loosely to avoid circular import
   personalization: PersonalizationSettings
 }

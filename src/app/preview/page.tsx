@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useRouter } from 'next/navigation'
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useRowProgress } from '@/hooks/useRowProgress'
 import Header             from '@/components/layout/Header'
 import StepIndicator      from '@/components/ui/StepIndicator'
 import LoadingSpinner     from '@/components/ui/LoadingSpinner'
@@ -13,8 +14,8 @@ import PatternMetadata    from '@/components/preview/PatternMetadata'
 import OriginalImageThumb from '@/components/preview/OriginalImageThumb'
 import RowInstructions    from '@/components/preview/RowInstructions'
 import { usePattern }     from '@/context/PatternContext'
+import { isUnlocked } from '@/lib/unlock'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
-import { FREE_MODE } from '@/lib/constants'
 import { ColorEntry }     from '@/types/pattern'
 import {
   applyPersonalizationToPattern,
@@ -65,24 +66,31 @@ export default function PreviewPage() {
     return applyPersonalizationToPattern(activePattern, state.personalization)
   }, [activePattern, state.personalization])
 
-  // ── Row progress tracking ────────────────────────────────────────────
-  const [completedRows, setCompletedRows] = useState<Set<number>>(new Set())
+  // ── Row progress tracking (auto-persisted to localStorage) ──────────
+  // Key is stable for the same generated pattern so progress survives
+  // a browser close/reopen on the same device.
+  const patternKey = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
+    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
+  }, [patternData])
 
-  function handleToggleRow(rowNumber: number) {
-    setCompletedRows(prev => {
-      const next = new Set(prev)
-      if (next.has(rowNumber)) {
-        next.delete(rowNumber)
-      } else {
-        next.add(rowNumber)
-      }
-      return next
-    })
-  }
+  const {
+    completedRows,
+    toggleRow:     handleToggleRow,
+    resetProgress: handleResetProgress,
+  } = useRowProgress(patternKey)
 
-  function handleResetProgress() {
-    setCompletedRows(new Set())
-  }
+  // Human-readable label used in the email session-save
+  const patternLabel = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height } = patternData.meta
+    const styleLabel = stitchStyle
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, s => s.toUpperCase())
+      .trim()
+    return `${width}×${height} ${styleLabel}`
+  }, [patternData])
 
   const totalRows = personalizedPattern?.meta.height ?? 0
 
@@ -144,6 +152,9 @@ export default function PreviewPage() {
   function handleColorChange(paletteIndex: number, newHex: string) {
     setColorOverrides(prev => ({ ...prev, [paletteIndex]: newHex }))
   }
+
+  // Grid line colour for the preview canvas
+  const [gridLineColor, setGridLineColor] = useState<string>('#FFFFFF')
 
   // Cell-level overrides — user can tap individual grid cells to recolor
   const [cellOverrides, setCellOverrides] = useState<Map<string, number>>(new Map())
@@ -246,14 +257,41 @@ export default function PreviewPage() {
         <OriginalImageThumb originalSrc={imageToShow} pattern={activePattern!} />
 
         <div>
-          <p style={{
-            fontSize: 11, fontWeight: 500,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
-            marginBottom: 8,
-          }}>
-            Pattern Grid
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <p style={{
+              fontSize: 11, fontWeight: 500,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+              margin: 0,
+            }}>
+              Pattern Grid
+            </p>
+            {/* Grid line colour picker */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>Grid lines:</span>
+              {[
+                { color: '#FFFFFF', label: 'None' },
+                { color: '#D4CCC4', label: 'Light' },
+                { color: '#8C7B6E', label: 'Medium' },
+                { color: '#2C2218', label: 'Dark' },
+              ].map(({ color, label }) => (
+                <button
+                  key={color}
+                  title={label}
+                  onClick={() => setGridLineColor(color)}
+                  style={{
+                    width: 18, height: 18, borderRadius: 5,
+                    background: color,
+                    border: gridLineColor === color
+                      ? '2px solid #C4614A'
+                      : '1.5px solid #D4CCC4',
+                    cursor: 'pointer', padding: 0, flexShrink: 0,
+                    boxShadow: gridLineColor === color ? '0 0 0 2px rgba(196,97,74,0.2)' : 'none',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
           <PatternCanvas
             pattern={personalizedPattern!}
             cellSize={14}
@@ -261,6 +299,7 @@ export default function PreviewPage() {
             paletteOverrides={personalizedPattern!.palette}
             onCellTap={handleCellTap}
             highlightRow={highlightGridRow}
+            gapColor={gridLineColor}
           />
 
           {/* Cell color picker popover */}
@@ -361,6 +400,7 @@ export default function PreviewPage() {
           onToggleRow={handleToggleRow}
           onResetProgress={handleResetProgress}
           currentRowNumber={currentRowNumber}
+          patternLabel={patternLabel}
         />
 
         <PatternMetadata meta={personalizedPattern!.meta} />
@@ -569,7 +609,7 @@ export default function PreviewPage() {
           + Add a Name or Date
         </button>
         <button
-          onClick={() => router.push(FREE_MODE ? '/export' : '/unlock')}
+          onClick={() => router.push(isUnlocked() ? '/export' : '/unlock?return=/export')}
           style={{
             width: '100%', padding: '17px 24px',
             background: '#C4614A', color: 'white',
@@ -579,7 +619,7 @@ export default function PreviewPage() {
             boxShadow: '0 4px 20px rgba(196,97,74,0.28)',
           }}
         >
-          {FREE_MODE ? 'Get Full Pattern Instructions →' : '🔓 Unlock Full Pattern →'}
+          {isUnlocked() ? 'Get Full Pattern Instructions →' : '🔓 Unlock Full Pattern — $2 →'}
         </button>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', textAlign: 'center', margin: 0 }}>
           Row-by-row steps · Printable PDF · Track your progress

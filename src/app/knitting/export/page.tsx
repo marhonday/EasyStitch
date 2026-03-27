@@ -1,11 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useKnittingPattern, getCellWidthMultiplier } from '@/context/KnittingPatternContext'
-import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
+import { useProjectStorage } from '@/hooks/useProjectStorage'
+import { useRowProgress }    from '@/hooks/useRowProgress'
+import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
+import RowInstructions from '@/components/preview/RowInstructions'
 import { STITCH_STYLE_META }   from '@/lib/constants'
 import { logEvent }            from '@/lib/log'
+import { isUnlocked }         from '@/lib/unlock'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -13,25 +17,69 @@ export default function KnittingExportPage() {
   const router = useRouter()
   const { state, dispatch } = useKnittingPattern()
   const { patternData, settings } = state
+  const { createProject } = useProjectStorage()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Track the cell size used for drawing so the highlight uses the same stride
+  const cellSizeRef = useRef(12)
+
   const [status,              setStatus]              = useState<Status>('idle')
   const [error,               setError]               = useState<string | null>(null)
   const [includeInstructions, setIncludeInstructions] = useState(false)
   const [patternName,         setPatternName]         = useState('My Knitting Graph')
+  const [savedId,             setSavedId]             = useState<string | null>(null)
+
+  // ── Row progress (localStorage-persisted) ─────────────────────────────
+  const patternKey = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
+    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
+  }, [patternData])
+
+  const patternLabel = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height } = patternData.meta
+    const styleLabel = STITCH_STYLE_META[stitchStyle]?.label ?? stitchStyle
+    return `${width}×${height} ${styleLabel}`
+  }, [patternData])
+
+  const {
+    completedRows,
+    toggleRow:     handleToggleRow,
+    resetProgress: handleResetProgress,
+  } = useRowProgress(patternKey)
+
+  const totalRows = patternData?.meta.height ?? 0
+
+  const currentRowNumber = useMemo(() => {
+    for (let i = 1; i <= totalRows; i++) {
+      if (!completedRows.has(i)) return i
+    }
+    return totalRows + 1
+  }, [completedRows, totalRows])
+
+  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
+  const highlightGridRow = useMemo(() => {
+    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
+    return totalRows - currentRowNumber
+  }, [totalRows, currentRowNumber])
 
   // Redirect if no pattern
   useEffect(() => {
     if (!patternData) router.replace('/knitting')
   }, [patternData, router])
 
-  // Render canvas whenever pattern changes
+  // Draw pattern + row highlight whenever pattern, style, or current row changes
   useEffect(() => {
     if (!patternData || !canvasRef.current) return
     const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
-    const cellSize = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize, gap: 1, showSymbols: false, cellWidthMultiplier })
-  }, [patternData, settings.style])
+    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    cellSizeRef.current = cs
+    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false, cellWidthMultiplier })
+    if (highlightGridRow !== undefined) {
+      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
+    }
+  }, [patternData, settings.style, highlightGridRow])
 
   if (!patternData) return null
 
@@ -40,6 +88,7 @@ export default function KnittingExportPage() {
   const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
 
   async function handleDownloadPdf() {
+    if (!isUnlocked()) { router.push('/unlock?return=/knitting/export'); return }
     if (!patternData) return
     logEvent('EXPORT_TRIGGERED', 'knitting-pdf')
     setStatus('loading-pdf')
@@ -61,6 +110,7 @@ export default function KnittingExportPage() {
   }
 
   function handleDownloadPng() {
+    if (!isUnlocked()) { router.push('/unlock?return=/knitting/export'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'knitting-png')
     setStatus('loading-png')
@@ -81,6 +131,12 @@ export default function KnittingExportPage() {
       setError('Could not save image.')
       setStatus('error')
     }
+  }
+
+  function handleSaveProject() {
+    if (!patternData || savedId) return
+    const project = createProject(patternData, patternName)
+    setSavedId(project.id)
   }
 
   const busy = status === 'loading-pdf' || status === 'loading-png'
@@ -120,13 +176,23 @@ export default function KnittingExportPage() {
             </div>
           ))}
         </div>
+        {meta.requestedColors != null && meta.colorCount < meta.requestedColors && (
+          <p style={{ width: '100%', maxWidth: 400, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', textAlign: 'center' }}>
+            Using {meta.colorCount} of {meta.requestedColors} colours (simplified for a cleaner pattern)
+          </p>
+        )}
 
-        {/* Graph canvas */}
+        {/* Graph canvas — row highlight drawn on top */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
           <canvas
             ref={canvasRef}
             style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
           />
+          {highlightGridRow !== undefined && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
+              ← Highlighted row = current row in tracker below
+            </p>
+          )}
         </div>
 
         {/* Colour key */}
@@ -142,6 +208,26 @@ export default function KnittingExportPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <p style={{
+            fontSize: 11, fontWeight: 500,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+            marginBottom: 8,
+          }}>
+            Row tracker
+          </p>
+          <RowInstructions
+            pattern={patternData}
+            completedRows={completedRows}
+            onToggleRow={handleToggleRow}
+            onResetProgress={handleResetProgress}
+            currentRowNumber={currentRowNumber}
+            patternLabel={patternLabel}
+          />
         </div>
 
         {/* Pattern name */}
@@ -169,8 +255,6 @@ export default function KnittingExportPage() {
                 </p>
               </div>
             </div>
-
-            {/* Instructions toggle */}
             <button
               onClick={() => setIncludeInstructions(v => !v)}
               style={{
@@ -184,7 +268,6 @@ export default function KnittingExportPage() {
                 <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'white', transform: includeInstructions ? 'translateX(16px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
               </span>
             </button>
-
             <button
               onClick={handleDownloadPdf}
               disabled={busy}
@@ -229,6 +312,25 @@ export default function KnittingExportPage() {
             </button>
           </div>
 
+        </div>
+
+        {/* Save to My Patterns */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          {savedId ? (
+            <button
+              onClick={() => router.push(`/project/${savedId}`)}
+              style={{ width: '100%', padding: '13px', background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.3)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#4A9050', cursor: 'pointer' }}
+            >
+              ✓ Saved — Open in My Patterns →
+            </button>
+          ) : (
+            <button
+              onClick={handleSaveProject}
+              style={{ width: '100%', padding: '13px', background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#6B5744', cursor: 'pointer' }}
+            >
+              📋 Save to My Patterns
+            </button>
+          )}
         </div>
 
         {error && (

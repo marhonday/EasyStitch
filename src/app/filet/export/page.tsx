@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFiletPattern } from '@/context/FiletPatternContext'
-import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
-import { logEvent } from '@/lib/log'
+import { useRowProgress }  from '@/hooks/useRowProgress'
+import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
+import RowInstructions from '@/components/preview/RowInstructions'
+import { logEvent }    from '@/lib/log'
+import { isUnlocked }  from '@/lib/unlock'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -13,34 +16,73 @@ export default function FiletExportPage() {
   const { state, dispatch } = useFiletPattern()
   const { patternData } = state
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef   = useRef<HTMLCanvasElement>(null)
+  const cellSizeRef = useRef(12)
+
   const [status,      setStatus]      = useState<Status>('idle')
   const [error,       setError]       = useState<string | null>(null)
   const [patternName, setPatternName] = useState('My Filet Chart')
+
+  // ── Row progress (localStorage-persisted) ─────────────────────────────
+  const patternKey = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
+    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
+  }, [patternData])
+
+  const patternLabel = useMemo(() => {
+    if (!patternData) return ''
+    const { width, height } = patternData.meta
+    return `${width}×${height} Filet Crochet`
+  }, [patternData])
+
+  const {
+    completedRows,
+    toggleRow:     handleToggleRow,
+    resetProgress: handleResetProgress,
+  } = useRowProgress(patternKey)
+
+  const totalRows = patternData?.meta.height ?? 0
+
+  const currentRowNumber = useMemo(() => {
+    for (let i = 1; i <= totalRows; i++) {
+      if (!completedRows.has(i)) return i
+    }
+    return totalRows + 1
+  }, [completedRows, totalRows])
+
+  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
+  const highlightGridRow = useMemo(() => {
+    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
+    return totalRows - currentRowNumber
+  }, [totalRows, currentRowNumber])
 
   // Redirect if no pattern in state
   useEffect(() => {
     if (!patternData) router.replace('/filet')
   }, [patternData, router])
 
-  // Render canvas whenever pattern changes
+  // Draw pattern + row highlight whenever pattern or current row changes
   useEffect(() => {
     if (!patternData || !canvasRef.current) return
-    const cellSize = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize, gap: 1, showSymbols: false })
-  }, [patternData])
+    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    cellSizeRef.current = cs
+    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false })
+    if (highlightGridRow !== undefined) {
+      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
+    }
+  }, [patternData, highlightGridRow])
 
   if (!patternData) return null
 
   const { meta, palette } = patternData
 
-  // Count filled vs open squares
-  const filledEntry = palette[0]
-  const openEntry   = palette[1]
-  const filledCount = filledEntry?.stitchCount ?? 0
-  const openCount   = openEntry?.stitchCount   ?? 0
+  // Count filled vs open squares for stats
+  const filledCount = palette[0]?.stitchCount ?? 0
+  const openCount   = palette[1]?.stitchCount ?? 0
 
   async function handleDownloadPdf() {
+    if (!isUnlocked()) { router.push('/unlock?return=/filet/export'); return }
     if (!patternData) return
     logEvent('EXPORT_TRIGGERED', 'filet-pdf')
     setStatus('loading-pdf')
@@ -61,6 +103,7 @@ export default function FiletExportPage() {
   }
 
   function handleDownloadPng() {
+    if (!isUnlocked()) { router.push('/unlock?return=/filet/export'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'filet-png')
     setStatus('loading-png')
@@ -121,12 +164,17 @@ export default function FiletExportPage() {
           ))}
         </div>
 
-        {/* Graph canvas */}
+        {/* Graph canvas — row highlight drawn on top */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
           <canvas
             ref={canvasRef}
             style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
           />
+          {highlightGridRow !== undefined && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
+              ← Highlighted row = current row in tracker below
+            </p>
+          )}
         </div>
 
         {/* Legend */}
@@ -135,9 +183,13 @@ export default function FiletExportPage() {
           <div style={{ display: 'flex', gap: 16 }}>
             {palette.map((c, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 20, height: 20, borderRadius: 4, background: c.hex, flexShrink: 0, boxShadow: '0 1px 3px rgba(44,34,24,0.15)', border: c.hex === '#fafafa' || c.hex.toLowerCase() === '#ffffff' ? '1px solid #E4D9C8' : 'none' }} />
+                <div style={{
+                  width: 20, height: 20, borderRadius: 4, background: c.hex, flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(44,34,24,0.15)',
+                  border: c.hex === '#fafafa' || c.hex.toLowerCase() === '#ffffff' ? '1px solid #E4D9C8' : 'none',
+                }} />
                 <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#2C2218' }}>
-                  {c.label ?? c.hex}
+                  {c.symbol}  {c.label ?? c.hex}
                 </span>
               </div>
             ))}
@@ -145,6 +197,26 @@ export default function FiletExportPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 8 }}>
             Mesh lines shown as gaps between squares
           </p>
+        </div>
+
+        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <p style={{
+            fontSize: 11, fontWeight: 500,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+            marginBottom: 8,
+          }}>
+            Row tracker
+          </p>
+          <RowInstructions
+            pattern={patternData}
+            completedRows={completedRows}
+            onToggleRow={handleToggleRow}
+            onResetProgress={handleResetProgress}
+            currentRowNumber={currentRowNumber}
+            patternLabel={patternLabel}
+          />
         </div>
 
         {/* Pattern name */}
@@ -168,7 +240,7 @@ export default function FiletExportPage() {
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Download PDF</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>
-                  Chart + colour key + filet instructions
+                  Chart + legend + filet instructions
                 </p>
               </div>
             </div>

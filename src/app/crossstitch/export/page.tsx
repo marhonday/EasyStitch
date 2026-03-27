@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCrossStitch } from '@/context/CrossStitchPatternContext'
-import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
+import { useRowProgress }  from '@/hooks/useRowProgress'
+import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
+import RowInstructions from '@/components/preview/RowInstructions'
 import { logEvent } from '@/lib/log'
+import { isUnlocked } from '@/lib/unlock'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -13,22 +16,64 @@ export default function CrossStitchExportPage() {
   const { state, dispatch } = useCrossStitch()
   const { patternData, settings } = state
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef   = useRef<HTMLCanvasElement>(null)
+  const cellSizeRef = useRef(10)
+
   const [status,              setStatus]              = useState<Status>('idle')
   const [error,               setError]               = useState<string | null>(null)
-  const [includeInstructions, setIncludeInstructions] = useState(true)   // on by default
+  const [includeInstructions, setIncludeInstructions] = useState(true)
   const [patternName,         setPatternName]         = useState('My Cross Stitch Pattern')
 
+  // ── Row progress (localStorage-persisted) ─────────────────────────────
+  const patternKey = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
+    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
+  }, [patternData])
+
+  const patternLabel = useMemo(() => {
+    if (!patternData) return ''
+    const { width, height } = patternData.meta
+    return `${width}×${height} Cross Stitch`
+  }, [patternData])
+
+  const {
+    completedRows,
+    toggleRow:     handleToggleRow,
+    resetProgress: handleResetProgress,
+  } = useRowProgress(patternKey)
+
+  const totalRows = patternData?.meta.height ?? 0
+
+  const currentRowNumber = useMemo(() => {
+    for (let i = 1; i <= totalRows; i++) {
+      if (!completedRows.has(i)) return i
+    }
+    return totalRows + 1
+  }, [completedRows, totalRows])
+
+  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
+  const highlightGridRow = useMemo(() => {
+    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
+    return totalRows - currentRowNumber
+  }, [totalRows, currentRowNumber])
+
+  // Redirect if no pattern in state
   useEffect(() => {
     if (!patternData) router.replace('/crossstitch')
   }, [patternData, router])
 
+  // Draw pattern + row highlight whenever pattern or current row changes
   useEffect(() => {
     if (!patternData || !canvasRef.current) return
-    const cellSize = Math.max(4, Math.min(14, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
-    // showSymbols: true — essential for cross stitch charts (used in B&W)
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize, gap: 1, showSymbols: true })
-  }, [patternData])
+    const cs = Math.max(4, Math.min(14, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    cellSizeRef.current = cs
+    // showSymbols: true — essential for cross stitch charts
+    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: true })
+    if (highlightGridRow !== undefined) {
+      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
+    }
+  }, [patternData, highlightGridRow])
 
   if (!patternData) return null
 
@@ -37,6 +82,7 @@ export default function CrossStitchExportPage() {
   const finishedH = (meta.height / settings.aidaCount).toFixed(1)
 
   async function handleDownloadPdf() {
+    if (!isUnlocked()) { router.push('/unlock?return=/crossstitch/export'); return }
     if (!patternData) return
     logEvent('EXPORT_TRIGGERED', 'crossstitch-pdf')
     setStatus('loading-pdf')
@@ -57,6 +103,7 @@ export default function CrossStitchExportPage() {
   }
 
   function handleDownloadPng() {
+    if (!isUnlocked()) { router.push('/unlock?return=/crossstitch/export'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'crossstitch-png')
     setStatus('loading-png')
@@ -84,8 +131,12 @@ export default function CrossStitchExportPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
 
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #EDE4D8' }}>
-        <button onClick={() => router.push('/crossstitch/settings')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
+        <button
+          onClick={() => router.push('/crossstitch/settings')}
+          style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}
+        >
           ← Settings
         </button>
         <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Your Chart</p>
@@ -103,7 +154,7 @@ export default function CrossStitchExportPage() {
         <div style={{ width: '100%', maxWidth: 400, display: 'flex', gap: 8 }}>
           {[
             [meta.width + '×' + meta.height, 'Stitches'],
-            [meta.colorCount + '', 'Colours'],
+            [meta.colorCount + '',           'Colours'],
             [meta.totalStitches.toLocaleString(), 'Total'],
           ].map(([val, label]) => (
             <div key={label} style={{ flex: 1, background: 'white', borderRadius: 12, padding: '10px 12px', textAlign: 'center', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
@@ -113,17 +164,23 @@ export default function CrossStitchExportPage() {
           ))}
         </div>
 
+        {meta.requestedColors != null && meta.colorCount < meta.requestedColors && (
+          <p style={{ width: '100%', maxWidth: 400, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', textAlign: 'center' }}>
+            Using {meta.colorCount} of {meta.requestedColors} colours (simplified for a cleaner pattern)
+          </p>
+        )}
+
         {/* Finished size card */}
         <div style={{ width: '100%', maxWidth: 400, background: 'rgba(196,97,74,0.06)', border: '1px solid #EDE4D8', borderRadius: 14, padding: '12px 16px' }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>
-            📏 At {settings.aidaCount}-count Aida: <strong style={{ color: '#2C2218' }}>{finishedW}" wide × {finishedH}" tall</strong>
+            📏 At {settings.aidaCount}-count Aida: <strong style={{ color: '#2C2218' }}>{finishedW}&quot; wide × {finishedH}&quot; tall</strong>
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 4 }}>
             Use 2 strands on 14ct · 1–2 strands on 18ct · 1 strand on 28ct
           </p>
         </div>
 
-        {/* Chart canvas — with symbols */}
+        {/* Chart canvas — with symbols + row highlight */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 8 }}>
             Chart preview · symbols shown
@@ -132,6 +189,11 @@ export default function CrossStitchExportPage() {
             ref={canvasRef}
             style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
           />
+          {highlightGridRow !== undefined && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
+              ← Highlighted row = current row in tracker below
+            </p>
+          )}
         </div>
 
         {/* Colour key with symbols */}
@@ -156,11 +218,33 @@ export default function CrossStitchExportPage() {
           </div>
         </div>
 
+        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <p style={{
+            fontSize: 11, fontWeight: 500,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+            marginBottom: 8,
+          }}>
+            Row tracker
+          </p>
+          <RowInstructions
+            pattern={patternData}
+            completedRows={completedRows}
+            onToggleRow={handleToggleRow}
+            onResetProgress={handleResetProgress}
+            currentRowNumber={currentRowNumber}
+            patternLabel={patternLabel}
+          />
+        </div>
+
         {/* Pattern name */}
         <div style={{ width: '100%', maxWidth: 400 }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 6 }}>Pattern name (used in filename)</p>
           <input
-            type="text" value={patternName} onChange={e => setPatternName(e.target.value)}
+            type="text"
+            value={patternName}
+            onChange={e => setPatternName(e.target.value)}
             style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1.5px solid #E4D9C8', fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218', background: 'white', boxSizing: 'border-box' }}
           />
         </div>
@@ -193,7 +277,14 @@ export default function CrossStitchExportPage() {
             <button
               onClick={handleDownloadPdf}
               disabled={busy}
-              style={{ width: '100%', padding: '13px', background: busy ? '#E4D9C8' : '#C4614A', color: busy ? '#B8AAA0' : 'white', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', boxShadow: busy ? 'none' : '0 4px 16px rgba(196,97,74,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              style={{
+                width: '100%', padding: '13px', background: busy ? '#E4D9C8' : '#C4614A',
+                color: busy ? '#B8AAA0' : 'white', border: 'none', borderRadius: 12,
+                fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
+                cursor: busy ? 'not-allowed' : 'pointer',
+                boxShadow: busy ? 'none' : '0 4px 16px rgba(196,97,74,0.22)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
             >
               {status === 'loading-pdf' ? (
                 <><span style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', animation: 'cs-spin 0.8s linear infinite', display: 'inline-block' }} /> Generating PDF…</>
@@ -213,7 +304,13 @@ export default function CrossStitchExportPage() {
             <button
               onClick={handleDownloadPng}
               disabled={busy}
-              style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: busy ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              style={{
+                width: '100%', padding: '12px', background: 'white',
+                color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 12,
+                fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500,
+                cursor: busy ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
             >
               {status === 'loading-png' ? (
                 <><span style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #E4D9C8', borderTopColor: '#C4614A', animation: 'cs-spin 0.8s linear infinite', display: 'inline-block' }} /> Saving…</>

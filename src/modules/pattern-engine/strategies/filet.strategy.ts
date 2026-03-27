@@ -27,13 +27,14 @@ class FiletStrategy implements StitchStrategy {
       grid,
       palette: annotatedPalette,
       meta: {
-        width: pixelGrid.width,
-        height: pixelGrid.height,
-        colorCount: seen.size,
-        stitchStyle: 'filetCrochet',
-        traversalOrder: 'rowByRow',
-        totalStitches: pixelGrid.width * pixelGrid.height,
-        generatedAt: new Date().toISOString(),
+        width:           pixelGrid.width,
+        height:          pixelGrid.height,
+        colorCount:      seen.size,
+        requestedColors: 2,  // filet is always binary — ignore user color slider
+        stitchStyle:     'filetCrochet',
+        traversalOrder:  'rowByRow',
+        totalStitches:   pixelGrid.width * pixelGrid.height,
+        generatedAt:     new Date().toISOString(),
       },
     }
   }

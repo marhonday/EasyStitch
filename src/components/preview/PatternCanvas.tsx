@@ -21,6 +21,7 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import { PatternData, ColorEntry } from '@/types/pattern'
 import {
   drawPatternToCanvas,
+  drawRowHighlight,
   computeCanvasSize,
   PREVIEW_DEFAULTS,
 } from '@/modules/preview-rendering/canvasRenderer'
@@ -34,29 +35,10 @@ interface PatternCanvasProps {
   onCellTap?:       (row: number, col: number, screenX: number, screenY: number) => void
   /** Grid row index (0 = top of canvas) for the current active row highlight */
   highlightRow?:    number
+  /** Colour of the 1 px gap/grid lines between cells. Default white (invisible). */
+  gapColor?:        string
 }
 
-function drawRowHighlight(canvas: HTMLCanvasElement, gridRow: number, cellSize: number) {
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const stride   = cellSize + 1
-  const currentY = gridRow * stride
-
-  // Dim already-completed rows (below current row = higher canvas Y values)
-  const doneY = currentY + stride
-  if (doneY < canvas.height) {
-    ctx.fillStyle = 'rgba(240,234,224,0.52)'
-    ctx.fillRect(0, doneY, canvas.width, canvas.height - doneY)
-  }
-
-  // Current row highlight
-  ctx.fillStyle = 'rgba(196,97,74,0.13)'
-  ctx.fillRect(0, currentY, canvas.width, stride)
-
-  // Left accent bar
-  ctx.fillStyle = 'rgba(196,97,74,0.55)'
-  ctx.fillRect(0, currentY, 4, stride)
-}
 
 interface Transform {
   scale: number
@@ -105,6 +87,7 @@ export default function PatternCanvas({
   paletteOverrides,
   onCellTap,
   highlightRow,
+  gapColor,
 }: PatternCanvasProps) {
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -137,7 +120,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
     tfRef.current = INITIAL_TRANSFORM
     applyTransform()
@@ -149,7 +132,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellOverrides, paletteOverrides, highlightRow])
@@ -166,7 +149,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   }, [pattern, cellSize, cellOverrides, paletteOverrides, highlightRow])
 

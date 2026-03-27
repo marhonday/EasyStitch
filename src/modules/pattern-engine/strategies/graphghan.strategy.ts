@@ -4,12 +4,7 @@ import { buildGrid } from '../gridBuilder'
 import { hexToColorName } from '../../palette-reduction/colorNames'
 import { smoothGrid } from '../smoothGrid'
 import { cleanPattern } from '../cleanPattern'
-
-function countFromGrid(grid: PatternData['grid'], paletteSize: number): number[] {
-  const counts = new Array<number>(paletteSize).fill(0)
-  for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
-  return counts
-}
+import { compactPalette } from './knitting.strategy'
 
 function activeColorCount(grid: PatternData['grid']): number {
   const seen = new Set<number>()
@@ -25,17 +20,21 @@ class GraphghanStrategy implements StitchStrategy {
 
   execute(input: StrategyInput): PatternData {
     const { colorMap, palette, settings, pixelGrid } = input
-    const { stitchStyle, imageType } = settings
+    const { stitchStyle, imageType, maxColors } = settings
 
     const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
     const isGraphic = imageType === 'graphic'
     const smoothed  = isGraphic ? rawGrid : smoothGrid(rawGrid, palette)
-    const { grid, mergedCount } = isGraphic
+    const { grid: cleaned, mergedCount } = isGraphic
       ? { grid: smoothed, mergedCount: 0 }
       : cleanPattern(smoothed, palette)
 
-    const counts = countFromGrid(grid, palette.length)
-    const annotatedPalette: ColorEntry[] = palette.map((entry, i) => ({
+    const { grid, palette: finalPalette } = compactPalette(cleaned, palette)
+
+    const counts = new Array<number>(finalPalette.length).fill(0)
+    for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
+
+    const annotatedPalette: ColorEntry[] = finalPalette.map((entry, i) => ({
       ...entry,
       label:       entry.label ?? hexToColorName(entry.hex),
       stitchCount: counts[i],
@@ -45,14 +44,15 @@ class GraphghanStrategy implements StitchStrategy {
       grid,
       palette: annotatedPalette,
       meta: {
-        width:          pixelGrid.width,
-        height:         pixelGrid.height,
-        colorCount:     activeColorCount(grid),
+        width:           pixelGrid.width,
+        height:          pixelGrid.height,
+        colorCount:      activeColorCount(grid),
+        requestedColors: maxColors,
         stitchStyle,
-        traversalOrder: this.traversalOrder,
-        totalStitches:  pixelGrid.width * pixelGrid.height,
-        generatedAt:    new Date().toISOString(),
-        noiseCleaned:   mergedCount,
+        traversalOrder:  this.traversalOrder,
+        totalStitches:   pixelGrid.width * pixelGrid.height,
+        generatedAt:     new Date().toISOString(),
+        noiseCleaned:    mergedCount,
       },
     }
   }

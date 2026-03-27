@@ -9,6 +9,7 @@ export interface CrossStitchSettings {
   maxColors: number
   imageType: 'photo' | 'graphic'
   aidaCount: 14 | 18 | 28
+  dithering: boolean
 }
 
 interface CrossStitchState {
@@ -31,6 +32,7 @@ const DEFAULT_SETTINGS: CrossStitchSettings = {
   maxColors: 12,
   imageType: 'photo',
   aidaCount: 14,
+  dithering: false,
 }
 
 const initialState: CrossStitchState = {

@@ -1,35 +1,31 @@
-import { PatternData, Cell, ColorEntry } from '@/types/pattern'
+import { PatternData, ColorEntry } from '@/types/pattern'
 import { StitchStrategy, StrategyInput } from './types'
 import { buildGrid } from '../gridBuilder'
 import { hexToColorName } from '../../palette-reduction/colorNames'
 import { smoothGrid } from '../smoothGrid'
+import {
+  mergeSimilarColors,
+  removeSmallClusters,
+  thickenDarkAreas,
+  compactPalette,
+} from './knitting.strategy'
 
 /**
- * Mosaic crochet strategy.
+ * Mosaic crochet strategy — simplified stranded colorwork pipeline.
  *
- * Mosaic (overlay/slip-stitch) uses a 1:1 square grid — identical geometry
- * to single crochet. The distinction is in the technique: only 2 colours are
- * worked per row (one active, one resting), and a DC is dropped into a stitch
- * 2 rows below to create the overlay pattern.
+ * Mosaic (overlay/slip-stitch) works 2 colours per row: one active, one resting.
+ * This means the grid must read as bold, high-contrast shapes — NOT photo gradients.
  *
- * For grid generation purposes the output is the same square pixel grid as SC.
- * The stitch style label, PDF instructions, and yarn estimate differ.
- *
- * Colour constraint: mosaic works best with a limited palette (2–4 colours).
- * We clamp maxColors to 4 to guide the engine toward mosaic-appropriate output.
+ * Pipeline (mirrors stranded knitting, stricter constraints):
+ *   1. buildGrid
+ *   2. Aggressively merge similar colours → target 2–3 max (ΔE < 25)
+ *   3. smoothGrid — removes single-pixel speckle
+ *   4. thickenDarkAreas — bold outlines, readable at distance
+ *   5. removeSmallClusters (min 8) — isolated cells force row colour-changes; remove them
+ *   6. compactPalette — colour key built from final grid only (fixes ghost-colour bug)
  */
 
-function countFromGrid(grid: Cell[][], paletteSize: number): number[] {
-  const counts = new Array<number>(paletteSize).fill(0)
-  for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
-  return counts
-}
-
-function activeColorCount(grid: Cell[][]): number {
-  const seen = new Set<number>()
-  for (const row of grid) for (const cell of row) seen.add(cell.colorIndex)
-  return seen.size
-}
+const MOSAIC_MAX_COLORS = 3  // hard cap — mosaic is a 2-colour-per-row technique
 
 class MosaicStrategy implements StitchStrategy {
   readonly id             = 'mosaic' as const
@@ -39,16 +35,38 @@ class MosaicStrategy implements StitchStrategy {
 
   execute(input: StrategyInput): PatternData {
     const { palette, colorMap, settings, pixelGrid } = input
-    const { stitchStyle } = settings
+    const { stitchStyle, maxColors } = settings
 
-    // Clamp to 4 colours max — mosaic reads best with a tight palette
-    const clampedColorMap = colorMap.map(idx => Math.min(idx, Math.min(palette.length, 4) - 1))
+    // Respect user's chosen count but cap at MOSAIC_MAX_COLORS
+    const targetColors = Math.min(maxColors, MOSAIC_MAX_COLORS)
 
-    const rawGrid = buildGrid(clampedColorMap, palette, pixelGrid.width, pixelGrid.height)
-    const grid    = smoothGrid(rawGrid, palette)
+    const rawGrid = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
 
-    const counts = countFromGrid(grid, palette.length)
-    const annotatedPalette: ColorEntry[] = palette.map((entry, i) => ({
+    // 1. Aggressively collapse near-duplicate shades down to target count
+    //    ΔE threshold 25 — very aggressive merge befitting a 2-colour technique
+    const { grid: merged, palette: mergedPalette } =
+      mergeSimilarColors(rawGrid, palette, targetColors, 25)
+
+    // 2. Smooth — removes single-pixel noise before shape work
+    const smoothed = smoothGrid(merged, mergedPalette)
+
+    // 3. Thicken dark regions — keeps bold graphic outlines readable
+    const thickened = thickenDarkAreas(smoothed, mergedPalette, 2)
+
+    // 4. Remove small isolated clusters (min 8 cells) — crucial for mosaic
+    //    because isolated colour cells force unnecessary row colour-changes
+    const cleaned = removeSmallClusters(thickened, mergedPalette, 8)
+
+    // 5. Compact — colour key is built from the final grid only
+    const { grid, palette: finalPalette } = compactPalette(cleaned, mergedPalette)
+
+    const counts = new Array<number>(finalPalette.length).fill(0)
+    for (const row of grid) for (const cell of row) counts[cell.colorIndex]++
+
+    const seen = new Set<number>()
+    for (const row of grid) for (const cell of row) seen.add(cell.colorIndex)
+
+    const annotatedPalette: ColorEntry[] = finalPalette.map((entry, i) => ({
       ...entry,
       label:       entry.label ?? hexToColorName(entry.hex),
       stitchCount: counts[i],
@@ -58,13 +76,14 @@ class MosaicStrategy implements StitchStrategy {
       grid,
       palette: annotatedPalette,
       meta: {
-        width:          pixelGrid.width,
-        height:         pixelGrid.height,
-        colorCount:     activeColorCount(grid),
+        width:           pixelGrid.width,
+        height:          pixelGrid.height,
+        colorCount:      seen.size,
+        requestedColors: maxColors,
         stitchStyle,
-        traversalOrder: this.traversalOrder,
-        totalStitches:  pixelGrid.width * pixelGrid.height,
-        generatedAt:    new Date().toISOString(),
+        traversalOrder:  this.traversalOrder,
+        totalStitches:   pixelGrid.width * pixelGrid.height,
+        generatedAt:     new Date().toISOString(),
       },
     }
   }

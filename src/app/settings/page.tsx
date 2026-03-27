@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo, useState, useEffect, Suspense } from 'react'
 import Header        from '@/components/layout/Header'
 import StepIndicator from '@/components/ui/StepIndicator'
 import BottomCTA     from '@/components/layout/BottomCTA'
@@ -50,12 +50,23 @@ const DIFFICULTY_TIERS = [
   },
 ]
 
-export default function SettingsPage() {
+function SettingsInner() {
   const router  = useRouter()
+  const params  = useSearchParams()
   const { state, dispatch }        = usePattern()
   const { generate, isGenerating, error } = usePatternGeneration()
   const { settings } = state
   const [customizeOpen, setCustomizeOpen] = useState(true)
+
+  // Pre-select style from URL param (e.g. ?style=singleCrochet from home page)
+  useEffect(() => {
+    const styleParam = params.get('style') as StitchStyle | null
+    if (styleParam && styleParam !== settings.stitchStyle) {
+      dispatch({ type: 'UPDATE_SETTINGS', payload: { stitchStyle: styleParam } })
+    }
+  // Only run once on mount — ignore settings.stitchStyle in deps to avoid loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function setImageType(type: ImageType) {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: type } })
@@ -124,7 +135,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={() => router.push('/upload')}
+              onClick={() => router.push('/')}
               style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
             >
               Change
@@ -136,6 +147,23 @@ export default function SettingsPage() {
           <h1 className="font-display text-2xl text-ink mb-1">Pattern settings</h1>
           <p className="font-body text-sm text-ink/50">Customise how your pattern looks.</p>
         </div>
+
+        {/* ── Smart complexity recommendation ───────────────────────────── */}
+        {state.imageComplexity && state.imageComplexity.level !== 'simple' && (
+          <ComplexityBanner
+            complexity={state.imageComplexity}
+            currentImageType={settings.imageType}
+            rawImage={state.rawImage}
+            onAutoOptimize={() => dispatch({
+              type: 'UPDATE_SETTINGS',
+              payload: {
+                imageType:  state.imageComplexity!.recommendation,
+                maxColors:  state.imageComplexity!.suggestedColors,
+              },
+            })}
+            onSetImageType={(t) => dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: t } })}
+          />
+        )}
 
         {/* ── Image Type — auto-detected, user can override ────────────── */}
         <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
@@ -171,13 +199,70 @@ export default function SettingsPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 8 }}>
             Select <strong>Photo</strong> for pets, portraits and landscapes — it unlocks the full colour detail engine.
           </p>
+
+          {/* Inline warning — graphic chosen but image is complex */}
+          {settings.imageType === 'graphic' &&
+           state.imageComplexity && state.imageComplexity.level === 'complex' && (
+            <div style={{
+              marginTop: 10, padding: '10px 13px',
+              background: 'rgba(196,97,74,0.06)', border: '1px solid rgba(196,97,74,0.25)',
+              borderRadius: 12,
+            }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                <div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12, color: '#7A4A38', marginBottom: 3 }}>
+                    Detail loss warning
+                  </p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#7A4A38', lineHeight: 1.5 }}>
+                    Graphic mode uses flat colour regions — fine edges, gradients, and textures in your image will be heavily simplified or lost entirely.
+                  </p>
+                </div>
+              </div>
+              {state.rawImage && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8 }}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ borderRadius: 8, overflow: 'hidden', marginBottom: 4, aspectRatio: '1', background: '#F2EAD8', maxWidth: 80, margin: '0 auto 4px' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={state.rawImage} alt="Original" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Photo mode</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', paddingTop: 28, color: '#C8BFB0', fontSize: 14 }}>→</div>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ borderRadius: 8, overflow: 'hidden', marginBottom: 4, aspectRatio: '1', background: '#F2EAD8', maxWidth: 80, margin: '0 auto 4px' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={state.rawImage}
+                        alt="Graphic mode simulation"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.6) saturate(0.25) brightness(1.1)' }}
+                      />
+                    </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Graphic mode</p>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: 'photo' } })}
+                style={{
+                  width: '100%', padding: '8px 12px',
+                  background: '#C4614A', color: 'white',
+                  border: 'none', borderRadius: 8,
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Switch to Photo mode →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Stitch Style ─────────────────────────────────────────────── */}
         <div>
           <p className="font-body font-semibold text-sm text-ink mb-3">Stitch style</p>
           <div className="grid grid-cols-2 gap-3">
-            {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).map(style => {
+            {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).filter(style => STITCH_STYLE_META[style].available).map(style => {
               const meta     = STITCH_STYLE_META[style]
               const isActive = settings.stitchStyle === style
 
@@ -524,4 +609,142 @@ export default function SettingsPage() {
     </main>
   )
 }
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsInner />
+    </Suspense>
+  )
+}
+// ── Complexity recommendation banner ─────────────────────────────────────────
+
+import type { ComplexityResult } from '@/modules/image-processing/analyzeComplexity'
+
+function ComplexityBanner({
+  complexity,
+  currentImageType,
+  rawImage,
+  onAutoOptimize,
+  onSetImageType,
+}: {
+  complexity:       ComplexityResult
+  currentImageType: ImageType
+  rawImage:         string | null
+  onAutoOptimize:   () => void
+  onSetImageType:   (t: ImageType) => void
+}) {
+  const isAlreadyOptimal = currentImageType === complexity.recommendation
+
+  const levelColor   = complexity.level === 'complex' ? '#C4614A' : '#B07840'
+  const levelBg      = complexity.level === 'complex' ? 'rgba(196,97,74,0.07)' : 'rgba(176,120,64,0.07)'
+  const levelBorder  = complexity.level === 'complex' ? 'rgba(196,97,74,0.22)' : 'rgba(176,120,64,0.22)'
+
+  const levelLabel = complexity.level === 'complex' ? 'Complex image' : 'Detailed image'
+  const meterWidth = Math.round(complexity.score * 100)
+
+  return (
+    <div style={{
+      background: levelBg,
+      border: `1px solid ${levelBorder}`,
+      borderRadius: 16,
+      padding: '14px 16px',
+    }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ fontSize: 16 }}>🔍</span>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: levelColor }}>
+            {levelLabel} detected
+          </p>
+        </div>
+        {/* Complexity meter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 64, height: 6, background: '#E8DDD0', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', width: `${meterWidth}%`,
+              background: levelColor, borderRadius: 3,
+              transition: 'width 0.4s ease',
+            }} />
+          </div>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: levelColor, fontWeight: 600 }}>
+            {meterWidth}%
+          </span>
+        </div>
+      </div>
+
+      {/* Reason text */}
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#5A3E2B', lineHeight: 1.55, marginBottom: 12 }}>
+        {complexity.reason}
+      </p>
+
+      {isAlreadyOptimal ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'rgba(74,144,80,0.08)', borderRadius: 10, border: '1px solid rgba(74,144,80,0.18)' }}>
+          <span style={{ fontSize: 14 }}>✅</span>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#3A7040', fontWeight: 600 }}>
+            {currentImageType === 'photo' ? 'Photo mode is already selected — great choice for this image' : 'Graphic mode selected and this image looks simple enough'}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Auto-optimize CTA */}
+          <button
+            onClick={onAutoOptimize}
+            style={{
+              width: '100%', padding: '10px 14px',
+              background: levelColor, color: 'white',
+              border: 'none', borderRadius: 10,
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            ✨ Auto-optimize for best result
+            <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.85 }}>
+              (switches to {complexity.recommendation === 'photo' ? 'Photo' : 'Graphic'} · adjusts colours)
+            </span>
+          </button>
+
+          {/* Manual options row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <button
+              onClick={() => onSetImageType('photo')}
+              style={{
+                padding: '8px 10px',
+                background: currentImageType === 'photo' ? 'rgba(74,144,80,0.08)' : 'white',
+                border: `1.5px solid ${currentImageType === 'photo' ? '#4A9050' : '#E4D9C8'}`,
+                borderRadius: 10, cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                color: currentImageType === 'photo' ? '#3A7040' : '#2C2218',
+                fontWeight: currentImageType === 'photo' ? 700 : 500,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              }}
+            >
+              📷 Photo mode
+              {complexity.recommendation === 'photo' && (
+                <span style={{ fontSize: 9, color: levelColor, fontWeight: 700 }}>(recommended)</span>
+              )}
+            </button>
+            <button
+              onClick={() => onSetImageType('graphic')}
+              style={{
+                padding: '8px 10px',
+                background: currentImageType === 'graphic' ? 'rgba(196,97,74,0.06)' : 'white',
+                border: `1.5px solid ${currentImageType === 'graphic' ? '#C4614A' : '#E4D9C8'}`,
+                borderRadius: 10, cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                color: currentImageType === 'graphic' ? '#C4614A' : '#9A8878',
+                fontWeight: currentImageType === 'graphic' ? 700 : 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              }}
+            >
+              🎨 Graphic anyway
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // BUILD_MARKER_1774196984

@@ -6,7 +6,8 @@ import Header         from '@/components/layout/Header'
 import StepIndicator  from '@/components/ui/StepIndicator'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { usePattern } from '@/context/PatternContext'
-import { STITCH_STYLE_META, FREE_MODE } from '@/lib/constants'
+import { STITCH_STYLE_META } from '@/lib/constants'
+import { isUnlocked } from '@/lib/unlock'
 import { encodePatternToUrl } from '@/lib/patternUrl'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
@@ -78,11 +79,11 @@ export default function ExportPage() {
   }
 
   function openPaywall() {
-    alert('Unlock your full pattern to download.')
+    router.push('/unlock?return=/export')
   }
 
   async function handleDownloadPdf() {
-    if (!FREE_MODE) { openPaywall(); return }
+    if (!isUnlocked()) { openPaywall(); return }
     if (!exportPattern) return
     logEvent('EXPORT_TRIGGERED', 'pdf')   // [EXPORT_TRIGGERED]
     setStatus('loading-pdf')
@@ -99,7 +100,7 @@ export default function ExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!FREE_MODE) { openPaywall(); return }
+    if (!isUnlocked()) { openPaywall(); return }
     if (!exportPattern || !pngCanvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'png')   // [EXPORT_TRIGGERED]
     setStatus('loading-png')
@@ -319,6 +320,12 @@ export default function ExportPage() {
               <SummaryTile label="Stitches" value={exportPattern.meta.totalStitches.toLocaleString()} />
               <SummaryTile label="Style"    value={styleLabel} />
             </div>
+            {exportPattern.meta.requestedColors != null &&
+             exportPattern.meta.colorCount < exportPattern.meta.requestedColors && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 10, textAlign: 'center' }}>
+                Using {exportPattern.meta.colorCount} of {exportPattern.meta.requestedColors} colours (simplified for a cleaner pattern)
+              </p>
+            )}
           </div>
         )}
 

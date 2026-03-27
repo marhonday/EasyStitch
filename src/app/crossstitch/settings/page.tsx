@@ -71,6 +71,7 @@ export default function CrossStitchSettingsPage() {
         imageType:       settings.imageType,
         backgroundColor: '#ffffff',
         borderLayers:    [],
+        dithering:       settings.dithering,
       }
       const result = await generatePattern(processedImage, patternSettings)
       logEvent('GENERATION_COMPLETED')
@@ -91,7 +92,7 @@ export default function CrossStitchSettingsPage() {
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #EDE4D8' }}>
-        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
+        <button onClick={() => router.push('/crossstitch')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>
           ← Back
         </button>
         <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>Chart Settings</p>
@@ -199,17 +200,48 @@ export default function CrossStitchSettingsPage() {
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: '#2C2218' }}>{settings.maxColors}</span>
           </div>
           <input
-            type="range" min={2} max={32} step={1} value={settings.maxColors}
+            type="range" min={2} max={20} step={1} value={Math.min(settings.maxColors, 20)}
             onChange={e => dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: parseInt(e.target.value) } })}
             style={{ width: '100%', accentColor: '#C4614A' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>2 — bold</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>32 — detailed</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>20 — detailed</p>
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 6 }}>
-            Most cross stitch projects use 6–20 colours.
+            {settings.imageType === 'photo' ? 'Portraits & pets: 10–16 colours recommended.' : 'Graphics & logos: 6–12 colours recommended.'}
           </p>
+        </div>
+
+        {/* ── Dithering toggle ─────────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3 }}>
+                Light dithering
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                Softens colour edges with a subtle dot pattern.
+              </p>
+            </div>
+            <button
+              onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { dithering: !settings.dithering } })}
+              style={{
+                width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+                background: settings.dithering ? '#C4614A' : '#E4D9C8',
+                position: 'relative', flexShrink: 0, marginLeft: 12,
+                transition: 'background 0.2s',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 3,
+                left: settings.dithering ? 21 : 3,
+                width: 20, height: 20, borderRadius: '50%',
+                background: 'white', transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+              }} />
+            </button>
+          </div>
         </div>
 
         {/* ── Image type ───────────────────────────────────────────────── */}

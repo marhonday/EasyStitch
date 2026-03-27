@@ -11,8 +11,8 @@
  * a natural part of uploading rather than a confusing optional detour.
  */
 
-import { useRouter } from 'next/navigation'
-import { useState, useEffect }  from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense }  from 'react'
 import Header        from '@/components/layout/Header'
 import { logEvent }  from '@/lib/log'
 import StepIndicator from '@/components/ui/StepIndicator'
@@ -21,6 +21,7 @@ import { usePattern } from '@/context/PatternContext'
 import CropTool from '@/components/upload/CropTool'
 import BgRemoval from '@/components/upload/BgRemoval'
 import { analyzeImageWithVibrant } from '@/modules/image-processing/vibrant'
+import { analyzeComplexity }       from '@/modules/image-processing/analyzeComplexity'
 
 const MAX_RAW_BYTES = 8 * 1024 * 1024
 const MAX_EDGE_PX   = 1600
@@ -54,8 +55,10 @@ async function compressImage(file: File): Promise<string> {
 
 type LoadState = 'idle' | 'compressing' | 'enhancing' | 'ready' | 'error'
 
-export default function UploadPage() {
-  const router = useRouter()
+function UploadInner() {
+  const router  = useRouter()
+  const params  = useSearchParams()
+  const styleParam = params.get('style') ?? ''
   const { state, dispatch } = usePattern()
   const [loadState, setLoadState] = useState<LoadState>('idle')
   const [error,     setError]     = useState<string | null>(null)
@@ -96,10 +99,15 @@ export default function UploadPage() {
 
     try {
       const analysis = await analyzeImageWithVibrant(dataUrl)
-      dispatch({ type: 'SET_DETECTED_COLORS', payload: analysis.dominantCount })
-      dispatch({ type: 'SET_DOMINANT_PALETTE', payload: analysis.dominantPalette })
+      dispatch({ type: 'SET_DETECTED_COLORS',   payload: analysis.dominantCount })
+      dispatch({ type: 'SET_DOMINANT_PALETTE',  payload: analysis.dominantPalette })
       dispatch({ type: 'SET_RECOMMENDED_COLORS', payload: analysis.recommendedColors })
-      dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: analysis.recommendedColors } })
+      dispatch({ type: 'UPDATE_SETTINGS',        payload: { maxColors: analysis.recommendedColors } })
+
+      // Complexity analysis runs in parallel — best-effort, never blocks upload
+      analyzeComplexity(dataUrl, analysis.recommendedColors)
+        .then(complexity => dispatch({ type: 'SET_IMAGE_COMPLEXITY', payload: complexity }))
+        .catch(() => { /* silent fail */ })
     } catch {
       // Palette analysis is best-effort; upload flow should continue regardless.
     }
@@ -402,7 +410,7 @@ export default function UploadPage() {
 
       <BottomCTA
         primaryLabel="Set Up My Pattern →"
-        onPrimary={() => router.push('/settings')}
+        onPrimary={() => router.push(styleParam ? `/settings?style=${styleParam}` : '/settings')}
         primaryDisabled={!hasPhoto || isLoading}
       />
 
@@ -413,5 +421,13 @@ export default function UploadPage() {
         }
       `}</style>
     </main>
+  )
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={null}>
+      <UploadInner />
+    </Suspense>
   )
 }

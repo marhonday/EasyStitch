@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdvancedPattern } from '@/context/AdvancedPatternContext'
-import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
-import { STITCH_STYLE_META }   from '@/lib/constants'
-import { logEvent }            from '@/lib/log'
+import { useRowProgress }     from '@/hooks/useRowProgress'
+import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
+import RowInstructions        from '@/components/preview/RowInstructions'
+import { STITCH_STYLE_META }  from '@/lib/constants'
+import { logEvent }           from '@/lib/log'
+import { isUnlocked }         from '@/lib/unlock'
 
 type Status = 'idle' | 'loading-pdf' | 'done-pdf' | 'loading-png' | 'done-png' | 'error'
 
@@ -14,23 +17,64 @@ export default function AdvancedExportPage() {
   const { state, dispatch } = useAdvancedPattern()
   const { patternData, settings } = state
 
-  const canvasRef  = useRef<HTMLCanvasElement>(null)
+  const canvasRef   = useRef<HTMLCanvasElement>(null)
+  const cellSizeRef = useRef(12)
+
   const [status,               setStatus]               = useState<Status>('idle')
   const [error,                setError]                = useState<string | null>(null)
-  const [includeInstructions,  setIncludeInstructions]  = useState(false)   // off by default for advanced
+  const [includeInstructions,  setIncludeInstructions]  = useState(false)
   const [patternName,          setPatternName]          = useState('My Graph Pattern')
+
+  // ── Row progress (localStorage-persisted) ─────────────────────────────
+  const patternKey = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
+    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
+  }, [patternData])
+
+  const patternLabel = useMemo(() => {
+    if (!patternData) return ''
+    const { stitchStyle, width, height } = patternData.meta
+    const styleLabel = STITCH_STYLE_META[stitchStyle]?.label ?? stitchStyle
+    return `${width}×${height} ${styleLabel}`
+  }, [patternData])
+
+  const {
+    completedRows,
+    toggleRow:     handleToggleRow,
+    resetProgress: handleResetProgress,
+  } = useRowProgress(patternKey)
+
+  const totalRows = patternData?.meta.height ?? 0
+
+  const currentRowNumber = useMemo(() => {
+    for (let i = 1; i <= totalRows; i++) {
+      if (!completedRows.has(i)) return i
+    }
+    return totalRows + 1
+  }, [completedRows, totalRows])
+
+  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
+  const highlightGridRow = useMemo(() => {
+    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
+    return totalRows - currentRowNumber
+  }, [totalRows, currentRowNumber])
 
   // Redirect if no pattern in state
   useEffect(() => {
     if (!patternData) router.replace('/advanced')
   }, [patternData, router])
 
-  // Render canvas whenever pattern changes
+  // Draw pattern + row highlight whenever pattern or current row changes
   useEffect(() => {
     if (!patternData || !canvasRef.current) return
-    const cellSize = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
-    drawPatternToCanvas(canvasRef.current, patternData, { cellSize, gap: 1, showSymbols: false })
-  }, [patternData])
+    const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
+    cellSizeRef.current = cs
+    drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false })
+    if (highlightGridRow !== undefined) {
+      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
+    }
+  }, [patternData, highlightGridRow])
 
   if (!patternData) return null
 
@@ -38,6 +82,7 @@ export default function AdvancedExportPage() {
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
 
   async function handleDownloadPdf() {
+    if (!isUnlocked()) { router.push('/unlock?return=/advanced/export'); return }
     if (!patternData) return
     logEvent('EXPORT_TRIGGERED', 'advanced-pdf')
     setStatus('loading-pdf')
@@ -58,6 +103,7 @@ export default function AdvancedExportPage() {
   }
 
   function handleDownloadPng() {
+    if (!isUnlocked()) { router.push('/unlock?return=/advanced/export'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'advanced-png')
     setStatus('loading-png')
@@ -108,8 +154,8 @@ export default function AdvancedExportPage() {
         <div style={{ width: '100%', maxWidth: 400, display: 'flex', gap: 8 }}>
           {[
             [meta.width + '×' + meta.height, 'Stitches'],
-            [meta.colorCount + '', 'Colours'],
-            [styleLabel, 'Style'],
+            [meta.colorCount + '',           'Colours'],
+            [styleLabel,                     'Style'],
           ].map(([val, label]) => (
             <div key={label} style={{ flex: 1, background: 'white', borderRadius: 12, padding: '10px 12px', textAlign: 'center', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
               <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#2C2218' }}>{val}</p>
@@ -118,12 +164,23 @@ export default function AdvancedExportPage() {
           ))}
         </div>
 
-        {/* Graph canvas — full width, prominent */}
+        {meta.requestedColors != null && meta.colorCount < meta.requestedColors && (
+          <p style={{ width: '100%', maxWidth: 400, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', textAlign: 'center' }}>
+            Using {meta.colorCount} of {meta.requestedColors} colours (simplified for a cleaner pattern)
+          </p>
+        )}
+
+        {/* Graph canvas — row highlight drawn on top */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)', overflow: 'hidden' }}>
           <canvas
             ref={canvasRef}
             style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, imageRendering: 'pixelated' }}
           />
+          {highlightGridRow !== undefined && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C4614A', textAlign: 'center', marginTop: 8 }}>
+              ← Highlighted row = current row in tracker below
+            </p>
+          )}
         </div>
 
         {/* Colour key */}
@@ -141,7 +198,27 @@ export default function AdvancedExportPage() {
           </div>
         </div>
 
-        {/* Pattern name (used in PDF/filename) */}
+        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <p style={{
+            fontSize: 11, fontWeight: 500,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
+            marginBottom: 8,
+          }}>
+            Row tracker
+          </p>
+          <RowInstructions
+            pattern={patternData}
+            completedRows={completedRows}
+            onToggleRow={handleToggleRow}
+            onResetProgress={handleResetProgress}
+            currentRowNumber={currentRowNumber}
+            patternLabel={patternLabel}
+          />
+        </div>
+
+        {/* Pattern name */}
         <div style={{ width: '100%', maxWidth: 400 }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 6 }}>Pattern name (used in filename)</p>
           <input
@@ -167,14 +244,9 @@ export default function AdvancedExportPage() {
               </div>
             </div>
 
-            {/* Instructions toggle */}
             <button
               onClick={() => setIncludeInstructions(v => !v)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: '#FAF6EF', border: '1px solid #EDE4D8', borderRadius: 10,
-                padding: '9px 14px', marginBottom: 10, cursor: 'pointer',
-              }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FAF6EF', border: '1px solid #EDE4D8', borderRadius: 10, padding: '9px 14px', marginBottom: 10, cursor: 'pointer' }}
             >
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>Include stitch instructions</span>
               <span style={{ width: 36, height: 20, borderRadius: 10, display: 'flex', alignItems: 'center', background: includeInstructions ? '#C4614A' : '#C8BFB0', padding: '2px', transition: 'background 0.2s' }}>
@@ -200,7 +272,7 @@ export default function AdvancedExportPage() {
             </button>
           </div>
 
-          {/* PNG / Image */}
+          {/* PNG */}
           <div style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 2px 12px rgba(44,34,24,0.07)' }}>
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
               <span style={{ fontSize: 24 }}>🖼️</span>

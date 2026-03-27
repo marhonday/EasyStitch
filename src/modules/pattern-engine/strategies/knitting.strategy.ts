@@ -30,7 +30,7 @@ import { rgbToLab, labDistance } from '../../palette-reduction/colorUtils'
  *
  * Grid cells are remapped in place. Returns the compacted palette + new grid.
  */
-function mergeSimilarColors(
+export function mergeSimilarColors(
   grid:        Cell[][],
   palette:     ColorEntry[],
   targetCount: number,
@@ -102,7 +102,7 @@ function mergeSimilarColors(
  * small-cluster cell to its most common same-color or neighbour color.
  * Intarsia-tuned: minSize = 8 (vs cleanPattern's 4).
  */
-function removeSmallClusters(
+export function removeSmallClusters(
   grid:    Cell[][],
   palette: ColorEntry[],
   minSize  = 8,
@@ -184,7 +184,7 @@ function removeSmallClusters(
  * dark neighbours. Thickens outlines and fills hairline gaps in bold shapes.
  * Only used for stranded (Fair Isle) where bold graphic readability matters.
  */
-function thickenDarkAreas(
+export function thickenDarkAreas(
   grid:         Cell[][],
   palette:      ColorEntry[],
   minNeighbors: number = 2,
@@ -240,7 +240,7 @@ function thickenDarkAreas(
  * This is the fix for the colour-key bug: after smoothing/merging/cleaning,
  * some palette slots become empty but stay in the key.
  */
-function compactPalette(
+export function compactPalette(
   grid:    Cell[][],
   palette: ColorEntry[],
 ): { grid: Cell[][]; palette: ColorEntry[] } {
@@ -326,23 +326,38 @@ class KnittingStrategy implements StitchStrategy {
         grid: compacted,
         palette: annotatedPalette,
         meta: {
-          width:          pixelGrid.width,
-          height:         pixelGrid.height,
-          colorCount:     activeColorCount(compacted),
+          width:           pixelGrid.width,
+          height:          pixelGrid.height,
+          colorCount:      annotatedPalette.length,   // always == palette.length after compact
+          requestedColors: maxColors,
           stitchStyle,
-          traversalOrder: this.traversalOrder,
-          totalStitches:  pixelGrid.width * pixelGrid.height,
-          generatedAt:    new Date().toISOString(),
+          traversalOrder:  this.traversalOrder,
+          totalStitches:   pixelGrid.width * pixelGrid.height,
+          generatedAt:     new Date().toISOString(),
         },
       }
     }
 
     // ── Stranded colorwork pipeline ───────────────────────────────────────────
     // Goal: bold, readable shapes — not photo detail.
-    // 1. Merge similar colours (ΔE < 18) to enforce the chosen count
+    // Hard cap at 4 — stranded is a 2-colour-per-row technique; more than 4
+    // total colours makes the repeat unworkable. Respect user choice below the cap.
+    const strandedTarget = Math.min(maxColors, 4)
+
+    // 1. Merge similar colours — soft threshold first (preserves perceptual quality)
     const mergeThreshold = isGraphic ? 12 : 18
-    const { grid: merged, palette: mergedPalette } =
-      mergeSimilarColors(rawGrid, palette, maxColors, mergeThreshold)
+    let { grid: merged, palette: mergedPalette } =
+      mergeSimilarColors(rawGrid, palette, strandedTarget, mergeThreshold)
+
+    // 1b. Forced-merge fallback — if the soft threshold left us above the cap
+    //     (e.g. B&W graphic with grey shades ~14 ΔE apart, just over the 12 limit,
+    //     or a background slot added by the quantizer pushing to maxColors+1),
+    //     merge the closest remaining pairs unconditionally until we hit strandedTarget.
+    if (mergedPalette.length > strandedTarget) {
+      const forced = mergeSimilarColors(merged, mergedPalette, strandedTarget, Infinity)
+      merged       = forced.grid
+      mergedPalette = forced.palette
+    }
 
     // 2. Smooth always (removes single-pixel noise before shape work)
     const smoothed = smoothGrid(merged, mergedPalette)
@@ -353,7 +368,7 @@ class KnittingStrategy implements StitchStrategy {
     // 4. Remove stray small clusters (min region = 6 — lighter than intarsia's 8)
     const cleaned = removeSmallClusters(thickened, mergedPalette, 6)
 
-    // 5. Compact — remove zero-count palette slots (fixes colour key bug)
+    // 5. Compact — remove any zero-count palette slots left after cleanup
     const { grid, palette: finalPalette } = compactPalette(cleaned, mergedPalette)
 
     const counts = countFromGrid(grid, finalPalette.length)
@@ -367,13 +382,14 @@ class KnittingStrategy implements StitchStrategy {
       grid,
       palette: annotatedPalette,
       meta: {
-        width:          pixelGrid.width,
-        height:         pixelGrid.height,
-        colorCount:     activeColorCount(grid),
+        width:           pixelGrid.width,
+        height:          pixelGrid.height,
+        colorCount:      annotatedPalette.length,   // always == palette.length after compact
+        requestedColors: maxColors,
         stitchStyle,
-        traversalOrder: this.traversalOrder,
-        totalStitches:  pixelGrid.width * pixelGrid.height,
-        generatedAt:    new Date().toISOString(),
+        traversalOrder:  this.traversalOrder,
+        totalStitches:   pixelGrid.width * pixelGrid.height,
+        generatedAt:     new Date().toISOString(),
       },
     }
   }

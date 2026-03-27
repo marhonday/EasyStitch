@@ -73,6 +73,20 @@ export default function FaithFooter() {
       }}>
         {verse.ref} &middot; KJV
       </p>
+      <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
+        <a
+          href="/privacy"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', textDecoration: 'none' }}
+        >
+          Privacy
+        </a>
+        <a
+          href="/terms"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', textDecoration: 'none' }}
+        >
+          Terms
+        </a>
+      </div>
     </footer>
   )
 }

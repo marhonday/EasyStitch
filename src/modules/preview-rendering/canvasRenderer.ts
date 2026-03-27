@@ -14,6 +14,12 @@ export interface DrawOptions {
   showSymbols:          boolean
   /** >1 for knitting — stitches are wider than tall. Default 1 (square). */
   cellWidthMultiplier?: number
+  /**
+   * Colour of the 1 px gap lines between cells.
+   * Default '#FFFFFF' (white — invisible against most backgrounds).
+   * Pass a darker value to show visible grid lines for editing.
+   */
+  gapColor?:            string
 }
 
 export const PREVIEW_DEFAULTS: DrawOptions = {
@@ -61,9 +67,9 @@ export function drawPatternToCanvas(
   canvas.width  = width
   canvas.height = height
 
-  // Gap > 0: use a visible warm grey as the grid-line colour.
+  // Gap > 0: fill canvas with the gap colour (default white = invisible seams).
   // Gap = 0 (thumbnails): use the pattern's background colour instead.
-  ctx.fillStyle = gap > 0 ? '#C8BEB2' : (pattern.meta.backgroundColor ?? '#FFFFFF')
+  ctx.fillStyle = gap > 0 ? (options.gapColor ?? '#FFFFFF') : (pattern.meta.backgroundColor ?? '#FFFFFF')
   ctx.fillRect(0, 0, width, height)
 
   const { grid, palette } = pattern
@@ -130,4 +136,39 @@ export function drawPatternThumbnail(
   pattern: PatternData
 ): void {
   drawPatternToCanvas(canvas, pattern, THUMBNAIL_DEFAULTS)
+}
+
+/**
+ * Overlays a row-progress highlight on top of an already-drawn canvas.
+ * Call this AFTER drawPatternToCanvas so it composites correctly.
+ *
+ * @param gridRow  0-indexed canvas row (0 = top of canvas = LAST instruction row)
+ * @param cellSize same cellSize used to draw the pattern
+ * @param gap      same gap (default 1)
+ */
+export function drawRowHighlight(
+  canvas:   HTMLCanvasElement,
+  gridRow:  number,
+  cellSize: number,
+  gap = 1
+): void {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const stride   = cellSize + gap
+  const currentY = gridRow * stride
+
+  // Dim all rows below the current one (already completed)
+  const doneY = currentY + stride
+  if (doneY < canvas.height) {
+    ctx.fillStyle = 'rgba(240,234,224,0.52)'
+    ctx.fillRect(0, doneY, canvas.width, canvas.height - doneY)
+  }
+
+  // Terracotta tint on the active row
+  ctx.fillStyle = 'rgba(196,97,74,0.13)'
+  ctx.fillRect(0, currentY, canvas.width, stride)
+
+  // Left accent bar
+  ctx.fillStyle = 'rgba(196,97,74,0.55)'
+  ctx.fillRect(0, currentY, 4, stride)
 }
