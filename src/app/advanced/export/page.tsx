@@ -93,7 +93,7 @@ export default function AdvancedExportPage() {
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
 
   async function handleDownloadPdf() {
-    if (!isUnlocked()) { router.push('/unlock?return=/advanced/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/advanced/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!activePattern) return
     logEvent('EXPORT_TRIGGERED', 'advanced-pdf')
     setStatus('loading-pdf')
@@ -114,7 +114,7 @@ export default function AdvancedExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { router.push('/unlock?return=/advanced/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/advanced/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'advanced-png')
     setStatus('loading-png')

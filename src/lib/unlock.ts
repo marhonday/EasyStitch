@@ -38,7 +38,11 @@ export function setUnlockRecord(record: UnlockRecord): void {
   localStorage.setItem(KEY, JSON.stringify(record))
 }
 
+// Free window — all downloads free until 12:30 PM CDT 2026-03-27
+const FREE_UNTIL = new Date('2026-03-27T17:30:00Z')
+
 export function isUnlocked(): boolean {
+  if (Date.now() < FREE_UNTIL.getTime()) return true
   const record = getUnlockRecord()
   if (!record) return false
   return Date.now() < record.expiresAt

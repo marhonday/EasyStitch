@@ -93,7 +93,8 @@ export default function ExportPage() {
   }
 
   function openPaywall() {
-    router.push('/unlock?return=/export')
+    const tier = state.settings?.imageType === 'graphic' ? 'graphic' : 'photo'
+    router.push(`/unlock?return=/export&type=${tier}`)
   }
 
   async function handleDownloadPdf() {

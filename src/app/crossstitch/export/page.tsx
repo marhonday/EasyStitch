@@ -93,7 +93,7 @@ export default function CrossStitchExportPage() {
   const finishedH = (meta.height / settings.aidaCount).toFixed(1)
 
   async function handleDownloadPdf() {
-    if (!isUnlocked()) { router.push('/unlock?return=/crossstitch/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/crossstitch/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!activePattern) return
     logEvent('EXPORT_TRIGGERED', 'crossstitch-pdf')
     setStatus('loading-pdf')
@@ -114,7 +114,7 @@ export default function CrossStitchExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { router.push('/unlock?return=/crossstitch/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/crossstitch/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'crossstitch-png')
     setStatus('loading-png')

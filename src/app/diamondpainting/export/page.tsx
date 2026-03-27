@@ -147,7 +147,7 @@ export default function DiamondPaintingExportPage() {
   const { meta, palette } = activePattern ?? patternData
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { router.push('/unlock?return=/diamondpainting/export'); return }
+    if (!isUnlocked()) { router.push('/unlock?return=/diamondpainting/export&type=photo'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'diamondpainting-png')
     setStatus('loading-png')

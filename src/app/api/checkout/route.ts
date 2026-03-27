@@ -11,6 +11,15 @@ export async function POST(req: NextRequest) {
 
   const body      = await req.json().catch(() => ({}))
   const returnUrl = (body.returnUrl as string | undefined) ?? '/export'
+  const tier      = (body.tier as string | undefined) === 'graphic' ? 'graphic' : 'photo'
+
+  const unitAmount = tier === 'graphic' ? 300 : 500   // $3 graphic · $5 photo
+  const productName = tier === 'graphic'
+    ? 'EasyStitch — Graphic Pattern Download'
+    : 'EasyStitch — Photo Pattern Download'
+  const productDesc = tier === 'graphic'
+    ? 'Custom stitch pattern from your logo or graphic. Full PDF with chart, colour key, and row-by-row instructions.'
+    : 'Custom stitch pattern generated from your photo. Full PDF with chart, colour key, and row-by-row instructions.'
 
   // Build absolute success / cancel URLs
   const origin     = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
@@ -23,11 +32,11 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: [{
         price_data: {
-          currency:     'usd',
-          unit_amount:  200,   // $2.00 — launch price
+          currency:    'usd',
+          unit_amount: unitAmount,
           product_data: {
-            name:        'EasyStitch — Custom Pattern Download',
-            description: 'Your one-of-a-kind stitch pattern generated from your image. Includes full PDF with row-by-row instructions, colour key, and chart. Launch price — $2 today, increasing as features grow.',
+            name:        productName,
+            description: productDesc,
             images:      ['https://easystitch.app/icon-512.png'],
           },
         },

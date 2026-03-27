@@ -99,7 +99,7 @@ export default function KnittingExportPage() {
   const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
 
   async function handleDownloadPdf() {
-    if (!isUnlocked()) { router.push('/unlock?return=/knitting/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/knitting/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!activePattern) return
     logEvent('EXPORT_TRIGGERED', 'knitting-pdf')
     setStatus('loading-pdf')
@@ -121,7 +121,7 @@ export default function KnittingExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { router.push('/unlock?return=/knitting/export'); return }
+    if (!isUnlocked()) { router.push(`/unlock?return=/knitting/export&type=${settings.imageType === 'graphic' ? 'graphic' : 'photo'}`); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'knitting-png')
     setStatus('loading-png')

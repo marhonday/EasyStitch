@@ -83,7 +83,7 @@ export default function FiletExportPage() {
   const openCount   = palette[1]?.stitchCount ?? 0
 
   async function handleDownloadPdf() {
-    if (!isUnlocked()) { router.push('/unlock?return=/filet/export'); return }
+    if (!isUnlocked()) { router.push('/unlock?return=/filet/export&type=graphic'); return }
     if (!patternData) return
     logEvent('EXPORT_TRIGGERED', 'filet-pdf')
     setStatus('loading-pdf')
@@ -104,7 +104,7 @@ export default function FiletExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { router.push('/unlock?return=/filet/export'); return }
+    if (!isUnlocked()) { router.push('/unlock?return=/filet/export&type=graphic'); return }
     if (!canvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'filet-png')
     setStatus('loading-png')

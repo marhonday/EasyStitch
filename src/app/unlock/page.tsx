@@ -37,6 +37,8 @@ function UnlockInner() {
   const router    = useRouter()
   const params    = useSearchParams()
   const returnUrl = params.get('return') ?? '/export'
+  const tier      = params.get('type') === 'graphic' ? 'graphic' : 'photo'
+  const price     = tier === 'graphic' ? '$3' : '$5'
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
 
@@ -47,7 +49,7 @@ function UnlockInner() {
       const res  = await fetch('/api/checkout', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ returnUrl }),
+        body:    JSON.stringify({ returnUrl, tier }),
       })
       const data = await res.json()
       if (data.url) {
