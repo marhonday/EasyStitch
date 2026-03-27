@@ -8,17 +8,21 @@ import { logEvent } from '@/lib/log'
 type Status = 'idle' | 'generating' | 'done' | 'error'
 
 const DIFFICULTY_PRESETS = [
-  { label: 'Beginner',   emoji: '🌱', width: 50,  height: 40,  colorCount: 5,  desc: 'Bold regions, very few colours — perfect for first timers' },
-  { label: 'Easy',       emoji: '😊', width: 60,  height: 45,  colorCount: 7,  desc: 'Simple and satisfying, good for kids or relaxed painting' },
-  { label: 'Medium',     emoji: '🎨', width: 80,  height: 60,  colorCount: 10, desc: 'A good challenge with real detail and colour range' },
-  { label: 'Expert',     emoji: '🔥', width: 100, height: 75,  colorCount: 14, desc: 'Complex regions, fine colour gradients, rewarding result' },
+  { label: 'Beginner',   emoji: '🌱', width: 50,  height: 40,  colorCount: 5,  desc: 'Bold regions, very few colours — great for kids or first timers' },
+  { label: 'Easy',       emoji: '😊', width: 60,  height: 45,  colorCount: 8,  desc: 'Simple and satisfying, good for relaxed painting' },
+  { label: 'Medium',     emoji: '🎨', width: 80,  height: 60,  colorCount: 14, desc: 'Real detail and colour range — the sweet spot for most photos' },
+  { label: 'Advanced',   emoji: '⭐', width: 120, height: 90,  colorCount: 24, desc: 'Fine gradients, more regions — portraits and landscapes shine here' },
+  { label: 'Expert',     emoji: '🔥', width: 160, height: 120, colorCount: 36, desc: 'High detail, wide colour range — for dedicated adult painters' },
+  { label: 'Artist',     emoji: '🖼️', width: 200, height: 150, colorCount: 50, desc: 'Near-photographic detail — Van Gogh level complexity' },
 ]
 
 const SIZE_PRESETS = [
-  { label: 'Small',  width: 60,  height: 45,  note: '~A5 print' },
-  { label: 'Medium', width: 80,  height: 60,  note: '~A4 print' },
-  { label: 'Large',  width: 100, height: 75,  note: '~A3 print' },
-  { label: 'Square', width: 80,  height: 80,  note: 'Canvas format' },
+  { label: 'Small',   width: 60,  height: 45,  note: '~A5 print' },
+  { label: 'Medium',  width: 80,  height: 60,  note: '~A4 print' },
+  { label: 'Large',   width: 120, height: 90,  note: '~A3 print' },
+  { label: 'XL',      width: 160, height: 120, note: 'Adult kit size' },
+  { label: 'XXL',     width: 200, height: 150, note: 'Pro/artist size' },
+  { label: 'Square',  width: 100, height: 100, note: 'Canvas format' },
 ]
 
 export default function PbnSettingsPage() {
@@ -183,20 +187,24 @@ export default function PbnSettingsPage() {
             </p>
           </div>
           <input
-            type="range" min={3} max={16} value={settings.colorCount}
+            type="range" min={3} max={50} value={settings.colorCount}
             onChange={e => dispatch({ type: 'SET_SETTINGS', payload: { colorCount: +e.target.value } })}
             style={{ width: '100%', accentColor: '#C4614A' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>3 — very simple</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>16 — very detailed</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>3 — kids / simple</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>50 — artist level</p>
           </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', marginTop: 10, lineHeight: 1.6 }}>
             {settings.colorCount <= 5
-              ? 'Great for beginners and bold graphic images.'
-              : settings.colorCount <= 10
+              ? 'Great for beginners, kids, and bold graphic images.'
+              : settings.colorCount <= 12
               ? 'Good for most portraits and landscapes.'
-              : 'Use for complex photos where fine colour detail matters.'}
+              : settings.colorCount <= 24
+              ? 'Fine colour gradients — portraits and wildlife shine here.'
+              : settings.colorCount <= 36
+              ? 'Expert level — wide colour range for dedicated adult painters.'
+              : 'Artist level — near-photographic detail, Van Gogh complexity.'}
           </p>
         </div>
 
