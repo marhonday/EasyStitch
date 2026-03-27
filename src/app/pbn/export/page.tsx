@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePbnPattern } from '@/context/PbnPatternContext'
 import { PatternData } from '@/types/pattern'
@@ -8,6 +8,7 @@ import { removeColorFromPattern } from '@/lib/removeColor'
 import { logEvent } from '@/lib/log'
 import { isUnlocked } from '@/lib/unlock'
 import { drawPbnRegionCanvas } from '@/lib/pbnRegions'
+import { matchToFolkArt } from '@/modules/paint/folkArtMatcher'
 
 type ViewMode = 'preview' | 'print'
 type Status   = 'idle' | 'loading-png' | 'done-png' | 'error'
@@ -33,6 +34,12 @@ export default function PbnExportPage() {
     setWorkingPattern(prev => prev ? removeColorFromPattern(prev, idx) : prev)
   }, [])
   const activePattern = workingPattern ?? patternData
+
+  // ── Folk Art paint matches ──────────────────────────────────────────────────
+  const folkArtMatches = useMemo(() => {
+    if (!activePattern) return []
+    return activePattern.palette.map(c => matchToFolkArt(c.hex))
+  }, [activePattern])
 
   // ── Redirect guard ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -178,26 +185,39 @@ export default function PbnExportPage() {
 
         {/* Colour key */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Colour key</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {palette.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                  background: c.hex, border: '1.5px solid rgba(0,0,0,0.1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{i + 1}</span>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Colour key</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 12 }}>
+            Paint matches use <strong style={{ color: '#6B5744' }}>Folk Art by Plaid</strong> — widely available at Walmart, Michaels &amp; Amazon
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {palette.map((c, i) => {
+              const match = folkArtMatches[i]
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                    background: c.hex, border: '1.5px solid rgba(0,0,0,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{i + 1}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218', fontWeight: 600 }}>
+                        {match ? match.name : `Colour ${i + 1}`}
+                      </p>
+                      {match && (
+                        <div style={{ width: 14, height: 14, borderRadius: 3, background: match.hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} title={`Folk Art: ${match.hex}`} />
+                      )}
+                    </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878' }}>
+                      Your colour: {c.hex.toUpperCase()}
+                      {c.stitchCount != null ? ` · ${c.stitchCount.toLocaleString()} cells` : ''}
+                    </p>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218', fontWeight: 600 }}>Colour {i + 1}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
-                    {c.hex.toUpperCase()}
-                    {c.stitchCount != null ? ` · ${c.stitchCount.toLocaleString()} cells` : ''}
-                  </p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -226,6 +246,37 @@ export default function PbnExportPage() {
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.6 }}>{tip}</p>
             </div>
           ))}
+        </div>
+
+        {/* What you'll need */}
+        <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 16, padding: '16px 18px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>🛒 What you'll need</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 12 }}>Everything you need to get started — links open Amazon</p>
+          {[
+            { icon: '🖌️', label: 'Detail brush set',        sub: 'Fine-tip brushes for small numbered regions',   href: 'https://www.amazon.com/s?k=detail+paint+brush+set+acrylic' },
+            { icon: '🎨', label: 'Folk Art acrylic paints', sub: 'Plaid Folk Art — matched to your colour key',   href: 'https://www.amazon.com/s?k=folk+art+acrylic+paint+set+plaid' },
+            { icon: '📋', label: 'Canvas board or card',    sub: 'Stiffer surface = cleaner numbered regions',    href: 'https://www.amazon.com/s?k=canvas+board+painting+8x10' },
+            { icon: '💡', label: 'LED light pad (optional)', sub: 'Trace your printed template onto canvas easily', href: 'https://www.amazon.com/s?k=LED+light+pad+tracing' },
+            { icon: '✨', label: 'Acrylic finishing varnish', sub: 'Protect your finished painting — matte or gloss', href: 'https://www.amazon.com/s?k=acrylic+finishing+varnish+spray' },
+          ].map(item => (
+            <a
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #F0E8DC', textDecoration: 'none' }}
+            >
+              <span style={{ fontSize: 22, width: 28, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#2C2218', marginBottom: 1 }}>{item.label}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>{item.sub}</p>
+              </div>
+              <span style={{ fontSize: 12, color: '#C4614A', flexShrink: 0 }}>→</span>
+            </a>
+          ))}
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', marginTop: 10 }}>
+            Links may be affiliate links — supports EasyStitch at no extra cost to you
+          </p>
         </div>
 
         {error && (
