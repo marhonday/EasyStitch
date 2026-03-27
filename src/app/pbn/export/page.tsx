@@ -7,68 +7,10 @@ import { PatternData } from '@/types/pattern'
 import { removeColorFromPattern } from '@/lib/removeColor'
 import { logEvent } from '@/lib/log'
 import { isUnlocked } from '@/lib/unlock'
+import { drawPbnRegionCanvas } from '@/lib/pbnRegions'
 
 type ViewMode = 'preview' | 'print'
 type Status   = 'idle' | 'loading-png' | 'done-png' | 'error'
-
-// ── Canvas renderer ───────────────────────────────────────────────────────────
-function drawPbnCanvas(
-  canvas: HTMLCanvasElement,
-  pattern: PatternData,
-  mode: ViewMode,
-  cellSize: number,
-) {
-  const { grid, palette } = pattern
-  const rows = grid.length
-  const cols = grid[0]?.length ?? 0
-  const gap  = 1
-
-  canvas.width  = cols * (cellSize + gap) + gap
-  canvas.height = rows * (cellSize + gap) + gap
-
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  // Background / grid lines colour
-  ctx.fillStyle = mode === 'print' ? '#cccccc' : '#e0d8cc'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-  const fontSize = Math.max(5, Math.floor(cellSize * 0.45))
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const x = gap + c * (cellSize + gap)
-      const y = gap + r * (cellSize + gap)
-      const { colorIndex } = grid[r][c]
-      const color = palette[colorIndex]
-
-      if (mode === 'preview') {
-        // Fill with actual colour
-        ctx.fillStyle = color.hex
-        ctx.fillRect(x, y, cellSize, cellSize)
-        // Number overlay (only if cell is big enough)
-        if (cellSize >= 10) {
-          ctx.fillStyle = 'rgba(0,0,0,0.55)'
-          ctx.font = `bold ${fontSize}px monospace`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(String(colorIndex + 1), x + cellSize / 2, y + cellSize / 2)
-        }
-      } else {
-        // Print mode: white cell + number
-        ctx.fillStyle = 'white'
-        ctx.fillRect(x, y, cellSize, cellSize)
-        if (cellSize >= 8) {
-          ctx.fillStyle = '#222222'
-          ctx.font = `bold ${fontSize}px monospace`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(String(colorIndex + 1), x + cellSize / 2, y + cellSize / 2)
-        }
-      }
-    }
-  }
-}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function PbnExportPage() {
@@ -101,9 +43,10 @@ export default function PbnExportPage() {
   useEffect(() => {
     if (!activePattern || !canvasRef.current) return
     const { width, height } = activePattern.meta
-    const cs = Math.max(4, Math.min(14, Math.floor(320 / Math.max(width, height))))
+    // Region renderer works best at slightly larger cell size — no gap needed
+    const cs = Math.max(5, Math.min(16, Math.floor(360 / Math.max(width, height))))
     cellSizeRef.current = cs
-    drawPbnCanvas(canvasRef.current, activePattern, viewMode, cs)
+    drawPbnRegionCanvas(canvasRef.current, activePattern, viewMode, cs)
   }, [activePattern, viewMode])
 
   if (!patternData) return null
