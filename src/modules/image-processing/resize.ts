@@ -20,7 +20,7 @@ import { PixelGrid } from '@/types/pattern'
 export interface ResizeOptions {
   targetWidth:  number
   targetHeight: number
-  imageType?:   'photo' | 'graphic'
+  imageType?:   'photo' | 'graphic' | 'pixel'
   skipCrop?:    boolean   // true = stretch to fit, no center crop (use after user crop)
 }
 

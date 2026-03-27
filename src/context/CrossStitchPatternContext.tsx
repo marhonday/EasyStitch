@@ -7,7 +7,7 @@ export interface CrossStitchSettings {
   width:     number
   height:    number
   maxColors: number
-  imageType: 'photo' | 'graphic'
+  imageType: 'photo' | 'graphic' | 'pixel'
   aidaCount: 14 | 18 | 28
   dithering: boolean
 }

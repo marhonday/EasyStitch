@@ -11,7 +11,7 @@ export interface KnittingSettings {
   height:       number
   maxColors:    number
   style:        KnittingStyle
-  imageType:    'photo' | 'graphic'
+  imageType:    'photo' | 'graphic' | 'pixel'
 }
 
 interface KnittingState {

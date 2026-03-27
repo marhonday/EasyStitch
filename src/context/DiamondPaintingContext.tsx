@@ -8,7 +8,7 @@ export interface DiamondPaintingSettings {
   width:      number
   height:     number
   maxColors:  number
-  imageType:  'photo' | 'graphic'
+  imageType:  'photo' | 'graphic' | 'pixel'
 }
 
 interface DiamondPaintingState {

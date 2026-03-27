@@ -10,7 +10,7 @@ export interface AdvancedSettings {
   height:     number
   maxColors:  number
   stitchStyle: StitchStyle
-  imageType:  'photo' | 'graphic'
+  imageType:  'photo' | 'graphic' | 'pixel'
 }
 
 interface AdvancedState {

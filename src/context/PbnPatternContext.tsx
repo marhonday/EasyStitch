@@ -7,7 +7,7 @@ export interface PbnSettings {
   width:      number
   height:     number
   colorCount: number
-  imageType:  'photo' | 'graphic'
+  imageType:  'photo' | 'graphic' | 'pixel'
 }
 
 interface PbnState {

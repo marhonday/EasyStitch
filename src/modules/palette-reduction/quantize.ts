@@ -686,6 +686,75 @@ function saliencyMedianCut(
 }
 
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENGINE 3: PIXEL ART — existing grid patterns, cross stitch charts, sprites
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Frequency-based palette extraction for pixel art / existing grid patterns.
+ * Instead of k-means or saliency weighting, we simply count how often each
+ * distinct color appears. The most common colors get palette slots first —
+ * this preserves the exact original colors (cream, light blue, navy, etc.)
+ * without any hue drift from clustering or edge-weighting.
+ */
+function pixelArtExtract(grid: PixelGrid, maxColors: number): ColorEntry[] {
+  const { data } = grid
+  const CLUSTER_THRESH = 14  // LAB ΔE — tight enough to keep distinct colors separate
+
+  // Subsample for performance on large grids
+  const total = data.length / 4
+  const step  = Math.max(1, Math.floor(total / 8000))
+
+  type Cluster = {
+    lab: LabColor
+    rSum: number; gSum: number; bSum: number
+    count: number
+  }
+  const clusters: Cluster[] = []
+
+  for (let i = 0; i < data.length; i += 4 * step) {
+    if (data[i + 3] < 128) continue
+    const r = data[i], g = data[i + 1], b = data[i + 2]
+    const lab = rgbToLab(r, g, b)
+
+    let nearest = -1, nearestDist = CLUSTER_THRESH
+    for (let j = 0; j < clusters.length; j++) {
+      const d = labDistance(lab, clusters[j].lab)
+      if (d < nearestDist) { nearestDist = d; nearest = j }
+    }
+
+    if (nearest >= 0) {
+      const c = clusters[nearest]
+      c.count++
+      c.rSum += r; c.gSum += g; c.bSum += b
+      // Incremental LAB mean for distance comparisons
+      c.lab.L += (lab.L - c.lab.L) / c.count
+      c.lab.a += (lab.a - c.lab.a) / c.count
+      c.lab.b += (lab.b - c.lab.b) / c.count
+    } else {
+      clusters.push({ lab: { ...lab }, rSum: r, gSum: g, bSum: b, count: 1 })
+    }
+  }
+
+  // Sort by frequency — most common colors first
+  clusters.sort((a, b) => b.count - a.count)
+
+  // Take top maxColors ensuring they remain perceptually distinct
+  const selected: Cluster[] = []
+  for (const c of clusters) {
+    if (selected.length >= maxColors) break
+    if (selected.every(s => labDistance(c.lab, s.lab) >= 10)) {
+      selected.push(c)
+    }
+  }
+
+  return finalizePalette(selected.map(c => ({
+    r: Math.round(c.rSum / c.count),
+    g: Math.round(c.gSum / c.count),
+    b: Math.round(c.bSum / c.count),
+  })))
+}
+
 // ─── Auto-detect image type ───────────────────────────────────────────────────
 
 /**
@@ -735,6 +804,13 @@ export function quantizeImage(
 ): QuantizeResult {
   if (maxColors < 1 || maxColors > 256) throw new Error(`maxColors must be 1–256, got ${maxColors}`)
   const useTransparencyMask = hasTransparentPixels(grid)
+
+  if (imageType === 'pixel') {
+    // Frequency-based: most common colors win, no flood-fill, exact color preservation
+    const palette  = pixelArtExtract(grid, maxColors)
+    const colorMap = buildColorMap(grid, palette)
+    return { palette, colorMap }
+  }
 
   if (imageType === 'graphic') {
     let palette = kMeansExtract(grid, maxColors)

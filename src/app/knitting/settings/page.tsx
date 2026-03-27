@@ -218,15 +218,18 @@ export default function KnittingSettingsPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
             Image type
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {([['photo', '📷', 'Photo', 'Pets, portraits, scenery'], ['graphic', '🎨', 'Graphic', 'Logos, flat design, clip art']] as const).map(([val, icon, label, hint]) => {
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+            {([
+              ['photo',   '📷', 'Photo',     'Pets, portraits, scenery'],
+              ['graphic', '🎨', 'Graphic',   'Logos, flat design, clip art'],
+              ['pixel',   '🔲', 'Pixel Art', 'Existing grid patterns, charts'],
+            ] as const).map(([val, icon, label, hint]) => {
               const active = settings.imageType === val
               return (
                 <button
                   key={val}
                   onClick={() => {
-                    // Auto-set a sensible colour count when switching image type
-                    const defaultColors = val === 'photo' ? 7 : 5
+                    const defaultColors = val === 'photo' ? 7 : val === 'pixel' ? 8 : 5
                     dispatch({ type: 'UPDATE_SETTINGS', payload: { imageType: val, maxColors: defaultColors } })
                   }}
                   style={{

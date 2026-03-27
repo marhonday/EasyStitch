@@ -136,8 +136,9 @@ export interface PatternData {
  * How the engine should interpret the uploaded image.
  * photo   — any real-world photo: pets, people, flowers, landscapes
  * graphic — logos, clip art, flat illustrations, pre-gridded patterns
+ * pixel   — existing pixel/grid art patterns, cross stitch charts, game sprites
  */
-export type ImageType = 'photo' | 'graphic'
+export type ImageType = 'photo' | 'graphic' | 'pixel'
 
 /**
  * A single border layer around the pattern.

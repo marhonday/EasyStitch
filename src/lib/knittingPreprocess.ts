@@ -42,7 +42,7 @@ function toHex(c: { r: number; g: number; b: number }): string {
 
 export async function preprocessImageForKnitting(
   imageDataUrl: string,
-  imageType:    'photo' | 'graphic' = 'photo',
+  imageType:    'photo' | 'graphic' | 'pixel' = 'photo',
   targetWidth?:  number,
   targetHeight?: number,
 ): Promise<string> {

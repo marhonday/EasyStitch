@@ -91,15 +91,25 @@ export async function generatePattern(
     imageType,
   })
 
-  // ── Stage 1b: Remove grid overlay ─────────────────────────────────────────
-  const gridResult = removeGridOverlay(pixelGrid.data, pixelGrid.width, pixelGrid.height)
-  const cleanGrid  = gridResult.gridRemoved
-    ? { data: gridResult.data, width: pixelGrid.width, height: pixelGrid.height }
-    : pixelGrid
+  // ── Stage 1b: Remove grid overlay (skip for pixel art — keep it as-is) ──────
+  const cleanGrid = imageType === 'pixel'
+    ? pixelGrid
+    : (() => {
+        const gridResult = removeGridOverlay(pixelGrid.data, pixelGrid.width, pixelGrid.height)
+        return gridResult.gridRemoved
+          ? { data: gridResult.data, width: pixelGrid.width, height: pixelGrid.height }
+          : pixelGrid
+      })()
 
   // ── Stage 2: Quantize ──────────────────────────────────────────────────────
   let palette, colorMap
-  if (imageType === 'graphic') {
+  if (imageType === 'pixel') {
+    // Pixel art: frequency-based extraction directly on the grid — no full-res pass,
+    // no saliency weighting, no flood-fill. Preserves exact original colors.
+    const result = quantizeImage(cleanGrid, maxColors, 'pixel', backgroundColor)
+    palette  = result.palette
+    colorMap = result.colorMap
+  } else if (imageType === 'graphic') {
     const result = await extractPaletteFromFullSize(imageDataUrl, cleanGrid, maxColors, backgroundColor)
     palette  = result.palette
     colorMap = result.colorMap
