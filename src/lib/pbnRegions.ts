@@ -57,17 +57,47 @@ export function findRegions(pattern: PatternData): PbnRegion[] {
         }
       }
 
-      // Centroid → find cell inside region closest to it
-      let sumR = 0, sumC = 0
-      for (const [cr, cc] of cells) { sumR += cr; sumC += cc }
-      const centR = sumR / cells.length
-      const centC = sumC / cells.length
+      // Distance transform — find the most interior cell (furthest from any boundary)
+      // BFS outward from region boundary, then pick max-distance cell for label
+      const cellSet = new Set(cells.map(([cr, cc]) => cr * cols + cc))
+      const distMap = new Map<number, number>()
+      const dtQueue: [number, number][] = []
 
-      let bestCell = cells[0]
-      let bestDist = Infinity
+      // Seed: cells that touch a different-colour neighbour
       for (const [cr, cc] of cells) {
-        const d = (cr - centR) ** 2 + (cc - centC) ** 2
-        if (d < bestDist) { bestDist = d; bestCell = [cr, cc] }
+        const isEdge =
+          cr === 0 || cr === rows - 1 || cc === 0 || cc === cols - 1 ||
+          grid[cr - 1][cc].colorIndex !== colorIndex ||
+          grid[cr + 1][cc].colorIndex !== colorIndex ||
+          grid[cr][cc - 1].colorIndex !== colorIndex ||
+          grid[cr][cc + 1].colorIndex !== colorIndex
+        if (isEdge) {
+          distMap.set(cr * cols + cc, 1)
+          dtQueue.push([cr, cc])
+        }
+      }
+
+      // BFS inward — propagate distance
+      let dtHead = 0
+      while (dtHead < dtQueue.length) {
+        const [cr, cc] = dtQueue[dtHead++]
+        const d = distMap.get(cr * cols + cc)!
+        for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) {
+          const nr = cr + dr, nc = cc + dc
+          const nk = nr * cols + nc
+          if (cellSet.has(nk) && !distMap.has(nk)) {
+            distMap.set(nk, d + 1)
+            dtQueue.push([nr, nc])
+          }
+        }
+      }
+
+      // Cell with highest distance = most interior = best label position
+      let bestCell = cells[0]
+      let bestDist = 0
+      for (const [cr, cc] of cells) {
+        const d = distMap.get(cr * cols + cc) ?? 0
+        if (d > bestDist) { bestDist = d; bestCell = [cr, cc] }
       }
 
       regions.push({

@@ -7,6 +7,13 @@ import { logEvent } from '@/lib/log'
 
 type Status = 'idle' | 'generating' | 'done' | 'error'
 
+const DIFFICULTY_PRESETS = [
+  { label: 'Beginner',   emoji: '🌱', width: 50,  height: 40,  colorCount: 5,  desc: 'Bold regions, very few colours — perfect for first timers' },
+  { label: 'Easy',       emoji: '😊', width: 60,  height: 45,  colorCount: 7,  desc: 'Simple and satisfying, good for kids or relaxed painting' },
+  { label: 'Medium',     emoji: '🎨', width: 80,  height: 60,  colorCount: 10, desc: 'A good challenge with real detail and colour range' },
+  { label: 'Expert',     emoji: '🔥', width: 100, height: 75,  colorCount: 14, desc: 'Complex regions, fine colour gradients, rewarding result' },
+]
+
 const SIZE_PRESETS = [
   { label: 'Small',  width: 60,  height: 45,  note: '~A5 print' },
   { label: 'Medium', width: 80,  height: 60,  note: '~A4 print' },
@@ -77,6 +84,39 @@ export default function PbnSettingsPage() {
         {/* Photo preview */}
         <div style={{ width: '100%', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(44,34,24,0.08)', maxHeight: 180 }}>
           <img src={rawImage} alt="Your photo" style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }} />
+        </div>
+
+        {/* Difficulty quick-select */}
+        <div style={{ width: '100%', background: 'white', borderRadius: 16, padding: '16px', boxShadow: '0 1px 6px rgba(44,34,24,0.06)' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+            Difficulty
+          </p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 12 }}>
+            Sets canvas size and colour count together — or adjust manually below
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {DIFFICULTY_PRESETS.map(preset => {
+              const active = settings.width === preset.width && settings.height === preset.height && settings.colorCount === preset.colorCount
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() => dispatch({ type: 'SET_SETTINGS', payload: { width: preset.width, height: preset.height, colorCount: preset.colorCount } })}
+                  style={{
+                    padding: '12px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer',
+                    border: active ? '2px solid #C4614A' : '1.5px solid #E4D9C8',
+                    background: active ? '#FFF3EE' : 'white',
+                  }}
+                >
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: active ? '#C4614A' : '#2C2218', marginBottom: 2 }}>
+                    {preset.emoji} {preset.label}
+                  </p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', lineHeight: 1.4 }}>
+                    {preset.width}×{preset.height} · {preset.colorCount} colours
+                  </p>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Canvas size */}
