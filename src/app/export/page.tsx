@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { PatternData } from '@/types/pattern'
 import Header         from '@/components/layout/Header'
 import StepIndicator  from '@/components/ui/StepIndicator'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -24,6 +25,45 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
 }
 
 type Status = 'idle' | 'loading-pdf' | 'loading-png' | 'done-pdf' | 'done-png' | 'error'
+
+/** Remap all cells of one palette index to the nearest remaining colour, then compact. */
+function removeColorFromPattern(pattern: PatternData, removeIdx: number): PatternData {
+  const { grid, palette } = pattern
+  if (palette.length <= 1) return pattern  // can't remove the only colour
+
+  // Find nearest remaining colour by RGB distance
+  const rem = palette[removeIdx]
+  let nearestIdx = 0
+  let nearestDist = Infinity
+  for (let i = 0; i < palette.length; i++) {
+    if (i === removeIdx) continue
+    const e = palette[i]
+    const d = (rem.r - e.r) ** 2 + (rem.g - e.g) ** 2 + (rem.b - e.b) ** 2
+    if (d < nearestDist) { nearestDist = d; nearestIdx = i }
+  }
+
+  // Remap removed cells → nearest, then shift indices > removeIdx down by 1
+  const newPalette = palette.filter((_, i) => i !== removeIdx)
+  const newGrid = grid.map(row =>
+    row.map(cell => {
+      const ci = cell.colorIndex === removeIdx ? nearestIdx : cell.colorIndex
+      const ni = ci > removeIdx ? ci - 1 : ci
+      return { colorIndex: ni, symbol: newPalette[ni].symbol }
+    })
+  )
+
+  // Recount stitches
+  const counts = new Array(newPalette.length).fill(0)
+  for (const row of newGrid) for (const cell of row) counts[cell.colorIndex]++
+  const finalPalette = newPalette.map((e, i) => ({ ...e, stitchCount: counts[i] }))
+
+  return {
+    ...pattern,
+    grid: newGrid,
+    palette: finalPalette,
+    meta: { ...pattern.meta, colorCount: finalPalette.filter(e => (e.stitchCount ?? 0) > 0).length },
+  }
+}
 
 export default function ExportPage() {
   const router  = useRouter()
@@ -63,7 +103,18 @@ export default function ExportPage() {
   const pngCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const { patternData } = state
-  const exportPattern = patternData ? applyPersonalizationToPattern(patternData, state.personalization) : null
+
+  // Working copy of the base pattern — user can remove colours without re-generating
+  const [workingPattern, setWorkingPattern] = useState<PatternData | null>(null)
+  useEffect(() => { setWorkingPattern(patternData ?? null) }, [patternData])
+
+  const removeColor = useCallback((idx: number) => {
+    setWorkingPattern(prev => prev ? removeColorFromPattern(prev, idx) : prev)
+  }, [])
+
+  const exportPattern = workingPattern
+    ? applyPersonalizationToPattern(workingPattern, state.personalization)
+    : patternData ? applyPersonalizationToPattern(patternData, state.personalization) : null
 
   useEffect(() => {
     if (!exportPattern || !pngCanvasRef.current) return
@@ -326,6 +377,60 @@ export default function ExportPage() {
                 Using {exportPattern.meta.colorCount} of {exportPattern.meta.requestedColors} colours (simplified for a cleaner pattern)
               </p>
             )}
+          </div>
+        )}
+
+        {/* ── Colour palette editor ─────────────────────────────────────── */}
+        {workingPattern && workingPattern.palette.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16, marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Colours in your pattern
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                {workingPattern.palette.length} found · tap × to remove
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {workingPattern.palette.map((entry, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: '#FAF6EF', borderRadius: 999,
+                    padding: '5px 10px 5px 6px', border: '1px solid #EDE4D8',
+                  }}
+                >
+                  <span style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: entry.hex,
+                    border: '1.5px solid rgba(0,0,0,0.1)',
+                    flexShrink: 0, display: 'inline-block',
+                  }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', fontWeight: 500 }}>
+                    {entry.stitchCount?.toLocaleString() ?? '?'}
+                  </span>
+                  {workingPattern.palette.length > 1 && (
+                    <button
+                      onClick={() => removeColor(i)}
+                      title={`Remove this colour`}
+                      style={{
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: 'rgba(44,34,24,0.08)', border: 'none',
+                        fontFamily: 'monospace', fontSize: 10, color: '#9A8878',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        lineHeight: 1, padding: 0, flexShrink: 0,
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 10 }}>
+              Removing a colour merges those cells into the nearest remaining colour.
+            </p>
           </div>
         )}
 
