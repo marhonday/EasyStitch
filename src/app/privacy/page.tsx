@@ -7,7 +7,7 @@ const LAST_UPDATED = 'March 2025'
 const sections = [
   {
     title: '1. Who we are',
-    body: `CraftWabi ("we", "us", "our") is an online tool that converts your photos and images into stitch-by-stitch craft patterns. We are operated as a small independent product. You can reach us at support@craftwabi.com with any privacy-related questions.`,
+    body: `EasyStitch ("we", "us", "our") is an online tool that converts your photos and images into stitch-by-stitch craft patterns. We are operated as a small independent product. You can reach us at support@easystitch.app with any privacy-related questions.`,
   },
   {
     title: '2. What we collect — and what we don\'t',
@@ -19,7 +19,7 @@ const sections = [
   },
   {
     title: '4. Stripe payments',
-    body: `Payment is handled by Stripe, Inc. When you click "Unlock My Pattern", you are redirected to a Stripe-hosted checkout page. Stripe's privacy policy governs how your payment information is collected and stored. CraftWabi never has access to your card details.\n\nStripe may set its own cookies during the checkout flow. You can read Stripe's privacy policy at stripe.com/privacy.`,
+    body: `Payment is handled by Stripe, Inc. When you click "Unlock My Pattern", you are redirected to a Stripe-hosted checkout page. Stripe's privacy policy governs how your payment information is collected and stored. EasyStitch never has access to your card details.\n\nStripe may set its own cookies during the checkout flow. You can read Stripe's privacy policy at stripe.com/privacy.`,
   },
   {
     title: '5. Analytics and logging',
@@ -27,7 +27,7 @@ const sections = [
   },
   {
     title: '6. Data sharing',
-    body: `We do not sell, rent, or share your personal data with any third parties for marketing or advertising purposes. The only third party that receives any data related to your use of CraftWabi is Stripe, solely for the purpose of processing payment.`,
+    body: `We do not sell, rent, or share your personal data with any third parties for marketing or advertising purposes. The only third party that receives any data related to your use of EasyStitch is Stripe, solely for the purpose of processing payment.`,
   },
   {
     title: '7. Data retention',
@@ -35,19 +35,19 @@ const sections = [
   },
   {
     title: '8. Your rights',
-    body: `You have the right to:\n• Know what data we hold about you\n• Request deletion of any data we hold\n• Withdraw consent at any time\n\nBecause we hold almost no identifiable data, most requests can be fulfilled simply by clearing your browser's localStorage. For anything related to your Stripe payment record, email us at support@craftwabi.com and we will respond within 5 business days.`,
+    body: `You have the right to:\n• Know what data we hold about you\n• Request deletion of any data we hold\n• Withdraw consent at any time\n\nBecause we hold almost no identifiable data, most requests can be fulfilled simply by clearing your browser's localStorage. For anything related to your Stripe payment record, email us at support@easystitch.app and we will respond within 5 business days.`,
   },
   {
     title: '9. Children\'s privacy',
-    body: `CraftWabi is not directed at children under 13. We do not knowingly collect any information from children. If you believe a child has submitted payment information through our site, please contact us immediately at support@craftwabi.com.`,
+    body: `EasyStitch is not directed at children under 13. We do not knowingly collect any information from children. If you believe a child has submitted payment information through our site, please contact us immediately at support@easystitch.app.`,
   },
   {
     title: '10. Changes to this policy',
-    body: `We may update this policy as the product evolves. If we make material changes, we will update the "Last updated" date at the top of this page. Continued use of CraftWabi after changes are posted constitutes acceptance of the updated policy.`,
+    body: `We may update this policy as the product evolves. If we make material changes, we will update the "Last updated" date at the top of this page. Continued use of EasyStitch after changes are posted constitutes acceptance of the updated policy.`,
   },
   {
     title: '11. Contact',
-    body: `For any privacy questions or requests, email us at support@craftwabi.com. We read every message.`,
+    body: `For any privacy questions or requests, email us at support@easystitch.app. We read every message.`,
   },
 ]
 
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
             onClick={() => router.push('/')}
             style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}
           >
-            ← Back to CraftWabi
+            ← Back to EasyStitch
           </button>
         </div>
 

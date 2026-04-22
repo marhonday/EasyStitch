@@ -89,9 +89,9 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
   return (
     <Document
       title={title}
-      author="CraftWabi"
+      author="EasyStitch"
       subject="Crochet Graph Pattern"
-      creator="craftwabi.com"
+      creator="easystitch.app"
     >
       {bands.map((band, pageIdx) => {
         const isFirst = pageIdx === 0
@@ -103,7 +103,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
             {/* First page header */}
             {isFirst && (
               <View style={styles.headerBar}>
-                <Text style={styles.headerLogo}>CraftWabi</Text>
+                <Text style={styles.headerLogo}>EasyStitch</Text>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.headerTitle}>{title}</Text>
                   <Text style={styles.headerMeta}>{subtitle}</Text>

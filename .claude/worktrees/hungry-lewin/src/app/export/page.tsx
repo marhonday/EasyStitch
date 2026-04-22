@@ -1,0 +1,384 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
+import Header         from '@/components/layout/Header'
+import StepIndicator  from '@/components/ui/StepIndicator'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { usePattern } from '@/context/PatternContext'
+import { STITCH_STYLE_META, FREE_MODE } from '@/lib/constants'
+import { encodePatternToUrl } from '@/lib/patternUrl'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
+import { useProjectStorage }  from '@/hooks/useProjectStorage'
+import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
+
+function SummaryTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ background: '#FAF6EF', borderRadius: 10, padding: '10px 12px' }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>{value}</div>
+    </div>
+  )
+}
+
+type Status = 'idle' | 'loading-pdf' | 'loading-png' | 'done-pdf' | 'done-png' | 'error'
+
+export default function ExportPage() {
+  const router  = useRouter()
+  const { state, dispatch } = usePattern()
+  const { createProject }   = useProjectStorage()
+  const [status,      setStatus]      = useState<Status>('idle')
+  const [error,       setError]       = useState<string | null>(null)
+  const [projectName, setProjectName] = useState('My Crochet Pattern')
+  const [savedId,     setSavedId]     = useState<string | null>(null)
+  const [emailInput,  setEmailInput]  = useState('')
+  const [linkCopied,  setLinkCopied]  = useState(false)
+  const [emailSent,   setEmailSent]   = useState(false)
+
+  function getShareUrl() {
+    if (!exportPattern) return ''
+    return encodePatternToUrl(exportPattern)
+  }
+
+  function handleSendPatternLink() {
+    const url     = getShareUrl()
+    const subject = encodeURIComponent(`Your EasyStitch Pattern — ${projectName}`)
+    const body    = encodeURIComponent(
+      `Hi!\n\nHere's your EasyStitch crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— EasyStitch`
+    )
+    window.open(`mailto:${emailInput}?subject=${subject}&body=${body}`)
+    setEmailSent(true)
+  }
+
+  function handleCopyLink() {
+    const url = getShareUrl()
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2500)
+    })
+  }
+  const pngCanvasRef = useRef<HTMLCanvasElement>(null)
+
+  const { patternData } = state
+  const exportPattern = patternData ? applyPersonalizationToPattern(patternData, state.personalization) : null
+
+  useEffect(() => {
+    if (!exportPattern || !pngCanvasRef.current) return
+    drawPatternToCanvas(pngCanvasRef.current, exportPattern, { cellSize: 20, gap: 1, showSymbols: true })
+  }, [exportPattern])
+
+  function handleSaveProject() {
+    // Save the base pattern (no personalization text rows) so the grid
+    // in My Patterns shows the clean design without stripe artifacts.
+    if (!patternData) return
+    const project = createProject(patternData, projectName)
+    setSavedId(project.id)
+  }
+
+  function openPaywall() {
+    alert('Unlock your full pattern to download.')
+  }
+
+  async function handleDownloadPdf() {
+    if (!FREE_MODE) { openPaywall(); return }
+    if (!exportPattern) return
+    setStatus('loading-pdf')
+    setError(null)
+    try {
+      const { downloadPdf } = await import('@/modules/pdf-export/buildPDF')
+      await downloadPdf(exportPattern, projectName.replace(/\s+/g, '-').toLowerCase(), projectName)
+      setStatus('done-pdf')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export failed. Please try again.')
+      setStatus('error')
+    }
+  }
+
+  function handleDownloadPng() {
+    if (!FREE_MODE) { openPaywall(); return }
+    if (!exportPattern || !pngCanvasRef.current) return
+    setStatus('loading-png')
+    try {
+      const dataUrl = pngCanvasRef.current.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${projectName.replace(/\s+/g, '-').toLowerCase()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setStatus('done-png')
+    } catch {
+      setError('Could not save image.')
+      setStatus('error')
+    }
+  }
+
+  if (status === 'loading-pdf' || status === 'loading-png') {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
+        <Header /><StepIndicator />
+        <LoadingSpinner message={status === 'loading-pdf' ? 'Building your PDF…' : 'Saving image…'} />
+      </main>
+    )
+  }
+
+  if (status === 'done-pdf' || status === 'done-png') {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
+        <Header /><StepIndicator />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 24px 180px', textAlign: 'center' }}>
+          <div style={{ width: 80, height: 80, borderRadius: 24, background: 'rgba(74,144,80,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, marginBottom: 20 }}>🎉</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
+            {status === 'done-pdf' ? 'PDF downloaded!' : 'Image saved!'}
+          </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.7, maxWidth: 280, marginBottom: 24 }}>
+            {status === 'done-pdf'
+              ? 'Check your downloads folder to start stitching.'
+              : 'Check your downloads or camera roll.'}
+          </p>
+
+          {/* Saved project link */}
+          {savedId && (
+            <button
+              onClick={() => router.push(`/project/${savedId}`)}
+              style={{ width: '100%', maxWidth: 320, padding: '14px', background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.25)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#4A9050', cursor: 'pointer', marginBottom: 12 }}
+            >
+              📋 Open My Patterns →
+            </button>
+          )}
+
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', marginBottom: 20 }}>Happy stitching! 🧶</p>
+
+          {/* Email pattern link */}
+          <div style={{ width: '100%', maxWidth: 320, background: 'white', borderRadius: 18, boxShadow: '0 2px 12px rgba(44,34,24,0.07)', padding: '14px 16px', marginBottom: 14 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
+              📬 Email yourself the pattern
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginBottom: 12 }}>
+              Get a link that reopens your pattern viewer anytime — no account needed.
+            </p>
+
+            {!emailSent ? (
+              <>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  placeholder="your@email.com"
+                  style={{
+                    width: '100%', padding: '11px 12px', boxSizing: 'border-box',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218',
+                    background: '#FAF6EF', border: '1.5px solid #E4D9C8',
+                    borderRadius: 10, outline: 'none', marginBottom: 8,
+                  }}
+                />
+                <button
+                  onClick={handleSendPatternLink}
+                  disabled={!emailInput.includes('@')}
+                  style={{
+                    width: '100%', padding: '11px',
+                    background: emailInput.includes('@') ? '#C4614A' : '#E4D9C8',
+                    color: emailInput.includes('@') ? 'white' : '#B8AAA0',
+                    border: 'none', borderRadius: 10,
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+                    cursor: emailInput.includes('@') ? 'pointer' : 'not-allowed',
+                    marginBottom: 8,
+                  }}
+                >
+                  Send pattern link →
+                </button>
+                <button
+                  onClick={handleCopyLink}
+                  style={{
+                    width: '100%', padding: '9px',
+                    background: 'transparent', border: '1.5px solid #E4D9C8',
+                    borderRadius: 10, fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 12, color: linkCopied ? '#4A9050' : '#6B5744',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {linkCopied ? '✓ Link copied!' : '🔗 Copy link instead'}
+                </button>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#4A9050', fontWeight: 600, marginBottom: 4 }}>
+                  ✓ Email opened!
+                </p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+                  Hit send in your email app to save the link.
+                </p>
+                <button
+                  onClick={handleCopyLink}
+                  style={{
+                    marginTop: 8, background: 'none', border: 'none',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                    color: linkCopied ? '#4A9050' : '#B8AAA0', cursor: 'pointer',
+                  }}
+                >
+                  {linkCopied ? '✓ Copied!' : 'Or copy the link'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Share your creation nudge */}
+          <div style={{
+            width: '100%', maxWidth: 320,
+            background: 'white', borderRadius: 18,
+            boxShadow: '0 2px 12px rgba(44,34,24,0.07)',
+            padding: '14px 16px', textAlign: 'left',
+          }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
+              📸 Show us your creation!
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginBottom: 12 }}>
+              When you finish your blanket, share a photo and we&apos;ll feature it in the gallery.
+            </p>
+            <button
+              onClick={() => router.push('/gallery')}
+              style={{
+                width: '100%', padding: '11px',
+                background: 'rgba(196,97,74,0.08)', color: '#C4614A',
+                border: '1.5px solid rgba(196,97,74,0.2)',
+                borderRadius: 12, fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Share my finished project →
+            </button>
+          </div>
+        </div>
+
+        <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '14px 20px max(20px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 85%, transparent)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={() => { dispatch({ type: 'RESET' }); router.push('/') }} style={{ width: '100%', padding: '16px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(196,97,74,0.28)' }}>
+            Make Another Pattern
+          </button>
+          <button onClick={() => router.push('/project')} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
+            My Patterns
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  const styleLabel = exportPattern ? (STITCH_STYLE_META[exportPattern.meta.stitchStyle]?.label ?? exportPattern.meta.stitchStyle) : '—'
+
+  return (
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
+      <Header /><StepIndicator />
+      <canvas ref={pngCanvasRef} style={{ display: 'none' }} aria-hidden />
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 20px 100px' }}>
+
+        <div style={{ width: '100%', maxWidth: 400, marginBottom: 20 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 4 }}>
+            Download your pattern
+          </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878' }}>
+            Name it, download it, and save it to your collection.
+          </p>
+        </div>
+
+        {/* Project name */}
+        <div style={{ width: '100%', maxWidth: 400, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#6B5744' }}>
+              Pattern name
+            </p>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+              ✓ Pattern preserved — you can navigate freely
+            </span>
+          </div>
+          <input
+            value={projectName}
+            onChange={e => setProjectName(e.target.value)}
+            placeholder="My Crochet Pattern"
+            style={{
+              width: '100%', padding: '13px 14px',
+              fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#2C2218',
+              background: 'white', border: '1.5px solid #E4D9C8',
+              borderRadius: 12, outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        {/* Pattern summary */}
+        {exportPattern && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16, marginBottom: 16 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Pattern summary</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <SummaryTile label="Grid"     value={`${exportPattern.meta.width}×${exportPattern.meta.height}`} />
+              <SummaryTile label="Colours"  value={String(exportPattern.meta.colorCount)} />
+              <SummaryTile label="Stitches" value={exportPattern.meta.totalStitches.toLocaleString()} />
+              <SummaryTile label="Style"    value={styleLabel} />
+            </div>
+          </div>
+        )}
+
+        {/* Export options */}
+        <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* PDF — primary */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 26 }}>📄</span>
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Full Pattern PDF</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Row-by-row instructions · colour key · printable</p>
+              </div>
+            </div>
+            <button onClick={handleDownloadPdf} disabled={!exportPattern} style={{ width: '100%', padding: '13px', background: exportPattern ? '#C4614A' : '#E4D9C8', color: exportPattern ? 'white' : '#B8AAA0', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: exportPattern ? 'pointer' : 'not-allowed', boxShadow: exportPattern ? '0 4px 16px rgba(196,97,74,0.22)' : 'none' }}>
+              ⬇ Download Full PDF
+            </button>
+          </div>
+
+          {/* PNG — secondary */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 26 }}>🖼️</span>
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>Pattern Image</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>Save to camera roll — zoom in to stitch from your phone</p>
+              </div>
+            </div>
+            <button onClick={handleDownloadPng} disabled={!exportPattern} style={{ width: '100%', padding: '12px', background: 'white', color: '#6B5744', border: `1.5px solid ${exportPattern ? '#E4D9C8' : '#F0EAE0'}`, borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: exportPattern ? 'pointer' : 'not-allowed' }}>
+              ⬇ Download Image
+            </button>
+          </div>
+        </div>
+
+        {/* Save to project tracker */}
+        <div style={{ width: '100%', maxWidth: 400, marginTop: 12 }}>
+          {savedId ? (
+            <button
+              onClick={() => router.push(`/project/${savedId}`)}
+              style={{ width: '100%', padding: '13px', background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.3)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#4A9050', cursor: 'pointer' }}
+            >
+              ✓ Saved! Open My Patterns →
+            </button>
+          ) : (
+            <button
+              onClick={handleSaveProject}
+              disabled={!exportPattern}
+              style={{ width: '100%', padding: '13px', background: 'white', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#6B5744', cursor: exportPattern ? 'pointer' : 'not-allowed' }}
+            >
+              📋 Save to my Patterns
+            </button>
+          )}
+        </div>
+
+        {status === 'error' && error && (
+          <div style={{ marginTop: 14, padding: '12px 16px', background: 'rgba(196,97,74,0.08)', borderRadius: 12, maxWidth: 400 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
+          </div>
+        )}
+      </div>
+
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '10px 20px max(16px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 80%, transparent)', zIndex: 50, textAlign: 'center' }}>
+        <button onClick={() => router.push('/preview')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline' }}>
+          ← Back to preview
+        </button>
+      </div>
+    </main>
+  )
+}

@@ -30,11 +30,11 @@ const FAQS = [
   },
   {
     q: 'Will my pattern be lost if I navigate away?',
-    a: "No — CraftWabi automatically saves your current pattern in your browser session. You can switch to My Patterns, FAQ, or anywhere else and come right back — your pattern will still be there. It is only cleared when you tap \"Make Another Pattern\" or close the browser tab.",
+    a: "No — EasyStitch automatically saves your current pattern in your browser session. You can switch to My Patterns, FAQ, or anywhere else and come right back — your pattern will still be there. It is only cleared when you tap \"Make Another Pattern\" or close the browser tab.",
   },
   {
     q: 'Are more styles coming?',
-    a: "Yes! We're working on additional stitch styles and export options. If there's a feature you'd love to see, let us know — CraftWabi is built around real crocheters' needs and your feedback shapes what we build next.",
+    a: "Yes! We're working on additional stitch styles and export options. If there's a feature you'd love to see, let us know — EasyStitch is built around real crocheters' needs and your feedback shapes what we build next.",
   },
   {
     q: 'Are my photos stored or shared?',
@@ -42,7 +42,7 @@ const FAQS = [
   },
   {
     q: 'How do I contact you?',
-    a: "Email us at support@craftwabi.com — we read every message.",
+    a: "Email us at Support@easystitch.org — we read every message.",
   },
 ]
 
@@ -112,8 +112,8 @@ export default function FaqPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, color: '#C4614A', marginBottom: 4 }}>Still have a question?</p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.7 }}>
             Reach out at{' '}
-            <a href="mailto:support@craftwabi.com" style={{ color: '#C4614A', fontWeight: 600, textDecoration: 'none' }}>
-              support@craftwabi.com
+            <a href="mailto:Support@easystitch.org" style={{ color: '#C4614A', fontWeight: 600, textDecoration: 'none' }}>
+              Support@easystitch.org
             </a>
             {' '}— we read every message.
           </p>
@@ -121,10 +121,10 @@ export default function FaqPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={() => router.push('/donate')} style={{ width: '100%', padding: '14px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 16px rgba(196,97,74,0.25)' }}>
-            ☕ Support CraftWabi
+            ☕ Support EasyStitch
           </button>
           <button onClick={() => router.push('/about')} style={{ width: '100%', padding: '13px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-            About CraftWabi
+            About EasyStitch
           </button>
         </div>
       </div>

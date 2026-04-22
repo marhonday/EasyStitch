@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
-    ]
+      "Bash(npm run:*)",
+      "Bash(npx tsc *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(xargs sed *)",
+      "Bash(sed -i 's/support@craftwabi\\\\.com/Support@easystitch.org/g' src/app/about/page.tsx src/app/faq/page.tsx src/app/gallery/page.tsx)",
+      "Bash(sed -i 's/support@craftwabi\\\\.com/support@easystitch.app/g' src/app/terms/page.tsx src/app/privacy/page.tsx)",
+      "Bash(sed -i 's/href=\"mailto:support@easystitch\\\\.org\"/href=\"mailto:Support@easystitch.org\"/g' src/app/about/page.tsx)",
+      "Bash(sed -i 's/craftwabi\\\\.com/easystitch.app/g' src/modules/pdf-export/PdfDocument.tsx)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

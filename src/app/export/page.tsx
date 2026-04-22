@@ -51,9 +51,9 @@ export default function ExportPage() {
 
   function handleSendPatternLink() {
     const url     = getShareUrl()
-    const subject = encodeURIComponent(`Your CraftWabi Pattern — ${projectName}`)
+    const subject = encodeURIComponent(`Your EasyStitch Pattern — ${projectName}`)
     const body    = encodeURIComponent(
-      `Hi!\n\nHere's your CraftWabi crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— CraftWabi`
+      `Hi!\n\nHere's your EasyStitch crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— EasyStitch`
     )
     window.open(`mailto:${emailInput}?subject=${subject}&body=${body}`)
     setEmailSent(true)
