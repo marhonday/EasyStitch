@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import ZoomableCanvas from '@/components/preview/ZoomableCanvas'
 import { getTracked, updateProgress, TrackedPattern } from '@/lib/patternTracker'
+import DiscountClubCard from '@/components/ui/DiscountClubCard'
 import { generateInstructions, RowInstruction } from '@/modules/instructions/generateInstructions'
 import { PatternData, StitchStyle } from '@/types/pattern'
 
@@ -399,6 +400,17 @@ export default function TrackerPage() {
             ))}
           </div>
         </div>
+
+        {/* ── Discount Club — shown on completion ─────────────────────────── */}
+        {isComplete && (
+          <div style={{ width: '100%', maxWidth: 400, marginTop: 16 }}>
+            <DiscountClubCard
+              saveLink={typeof window !== 'undefined' ? window.location.href : ''}
+              linkLabel="progress"
+            />
+          </div>
+        )}
+
       </div>
 
       {/* ── Sticky action bar ─────────────────────────────────────────────── */}

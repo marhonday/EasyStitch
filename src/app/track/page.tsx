@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { getAllTracked, deleteTracked, TrackedPattern } from '@/lib/patternTracker'
+import DiscountClubCard from '@/components/ui/DiscountClubCard'
 
 function progressPct(p: TrackedPattern): number {
   return p.meta.height === 0 ? 0 : Math.round((p.progress.completedRows.length / p.meta.height) * 100)
@@ -191,6 +192,15 @@ export default function TrackListPage() {
             )
           })}
         </div>
+
+        {/* Discount Club */}
+        <div style={{ width: '100%', maxWidth: 400, marginTop: 24 }}>
+          <DiscountClubCard
+            saveLink={typeof window !== 'undefined' ? window.location.href : ''}
+            linkLabel="progress"
+          />
+        </div>
+
       </div>
 
       {/* Back to home */}
