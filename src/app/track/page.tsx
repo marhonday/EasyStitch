@@ -34,6 +34,7 @@ export default function TrackListPage() {
       setConfirmDelete(null)
     } else {
       setConfirmDelete(id)
+      setTimeout(() => setConfirmDelete(prev => prev === id ? null : prev), 4000)
     }
   }
 

@@ -305,6 +305,12 @@ function UnlockInner() {
         <p style={{ textAlign: 'center', marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#B8AAA0', lineHeight: 1.5 }}>
           Secure payment via Stripe · instant download · no account needed
         </p>
+        <button
+          onClick={() => router.push('/preview')}
+          style={{ display: 'block', width: '100%', marginTop: 6, background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline' }}
+        >
+          ← Review my pattern first
+        </button>
 
         <style>{`@keyframes es-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
       </div>
