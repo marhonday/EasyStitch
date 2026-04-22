@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -279,7 +279,7 @@ export default function PbnExportPage() {
             </a>
           ))}
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', marginTop: 10 }}>
-            Links may be affiliate links — supports EasyStitch at no extra cost to you
+            Links may be affiliate links — supports CraftWabi at no extra cost to you
           </p>
         </div>
 

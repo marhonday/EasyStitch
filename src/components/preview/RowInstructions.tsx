@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { PatternData, StitchStyle, ColorEntry } from '@/types/pattern'
@@ -455,14 +455,14 @@ export default function RowInstructions({
   function buildMailtoLink() {
     const sorted    = [...completedRows].sort((a, b) => a - b)
     const rowList   = sorted.length ? sorted.join(', ') : 'none yet'
-    const label     = patternLabel ?? 'EasyStitch pattern'
-    const subject   = encodeURIComponent(`EasyStitch progress — ${label}`)
+    const label     = patternLabel ?? 'CraftWabi pattern'
+    const subject   = encodeURIComponent(`CraftWabi progress — ${label}`)
     const body      = encodeURIComponent(
-      `Saving my EasyStitch progress so I can pick up where I left off.\n\n` +
+      `Saving my CraftWabi progress so I can pick up where I left off.\n\n` +
       `Pattern: ${label}\n` +
       `Progress: Row ${currentRowNumber} of ${totalCount} (${pct}% done)\n` +
       `Completed rows: ${rowList}\n\n` +
-      `Progress is also saved automatically in my browser — just reopen EasyStitch on this device to continue.\n\n` +
+      `Progress is also saved automatically in my browser — just reopen CraftWabi on this device to continue.\n\n` +
       `Saved: ${new Date().toLocaleString()}`
     )
     return `mailto:?subject=${subject}&body=${body}`

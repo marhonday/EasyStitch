@@ -1,4 +1,4 @@
-/**
+﻿/**
  * POST /api/coupon
  * Body: { email: string, tier: '25' | '50' }
  *
@@ -18,13 +18,13 @@ import Stripe from 'stripe'
 
 // Stable Stripe coupon IDs — created once, reused for every promo code
 const COUPON_ID: Record<string, string> = {
-  '25': 'easystitch_tracker_25pct',
-  '50': 'easystitch_buyer_50pct',
+  '25': 'CraftWabi_tracker_25pct',
+  '50': 'CraftWabi_buyer_50pct',
 }
 
 const COUPON_DEF: Record<string, { percent_off: number; name: string }> = {
-  '25': { percent_off: 25, name: 'EasyStitch — 25% off (progress tracker reward)' },
-  '50': { percent_off: 50, name: 'EasyStitch — 50% off (loyalty reward)' },
+  '25': { percent_off: 25, name: 'CraftWabi — 25% off (progress tracker reward)' },
+  '50': { percent_off: 50, name: 'CraftWabi — 50% off (loyalty reward)' },
 }
 
 /** Ensure the base coupon exists in Stripe, creating it if needed. */
@@ -80,15 +80,14 @@ export async function POST(req: NextRequest) {
     // Build a readable, unique code:  ES25-XXXXX  or  ES50-XXXXX
     const code = `ES${tier}-${randomSuffix()}`
 
-    const promoCode = await stripe.promotionCodes.create({
-      coupon:         couponId,
+    // Stripe SDK v21 types require `promotion` but REST API uses `coupon` —
+    // cast through unknown to satisfy the type checker while keeping correct behaviour.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const promoCode = await (stripe.promotionCodes.create as (p: any) => Promise<any>)({
+      coupon:          couponId,
       code,
-      max_redemptions: 1,            // strictly single-use
-      metadata: {
-        email,
-        tier,
-        source: 'discount_club_signup',
-      },
+      max_redemptions: 1,
+      metadata:        { email, tier, source: 'discount_club_signup' },
     })
 
     return NextResponse.json({ code: promoCode.code })

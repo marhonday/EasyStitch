@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -64,7 +64,7 @@ function SuccessInner() {
             Something went wrong
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', marginBottom: 20 }}>
-            Your payment may have gone through — please contact support@easystitch.app and we&apos;ll sort it out.
+            Your payment may have gone through — please contact support@craftwabi.com and we&apos;ll sort it out.
           </p>
           <button
             onClick={() => nav.replace(returnUrl)}

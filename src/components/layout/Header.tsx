@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -71,7 +71,7 @@ export default function Header({ title }: HeaderProps) {
 
         {/* Logo */}
         <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: 'rgba(44,34,24,0.75)', fontWeight: 600 }}>
-          {title ?? 'EasyStitch'}
+          {title ?? 'CraftWabi'}
         </span>
 
         {/* Menu button */}
@@ -110,7 +110,7 @@ export default function Header({ title }: HeaderProps) {
             {/* Close row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#2C2218' }}>
-                EasyStitch 🧶
+                CraftWabi 🧶
               </span>
               <button
                 onClick={() => setMenuOpen(false)}
@@ -140,7 +140,8 @@ export default function Header({ title }: HeaderProps) {
 
             {/* Menu items */}
             {[
-              { emoji: '🏠', label: 'Home',          path: '/'        },
+              { emoji: '🏠', label: 'Home',           path: '/'        },
+              { emoji: '🛍️', label: 'Shop Patterns', path: '/shop'    },
               { emoji: '📋', label: 'My Patterns',   path: '/track'   },
               { emoji: '🖼️', label: 'Gallery',        path: '/gallery' },
               { emoji: '❓', label: 'FAQ',            path: '/faq'     },

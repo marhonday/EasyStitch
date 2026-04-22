@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
 export async function POST(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const tier      = (body.tier as string | undefined) === 'graphic' ? 'graphic' : 'photo'
 
   const unitAmount  = 300   // $3 flat for all pattern downloads
-  const productName = 'EasyStitch — Pattern Download'
+  const productName = 'CraftWabi — Pattern Download'
   const productDesc = 'Custom stitch pattern generated from your image. Full PDF with chart, colour key, and row-by-row instructions.'
 
   // Build absolute success / cancel URLs
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name:        productName,
             description: productDesc,
-            images:      ['https://easystitch.app/icon-512.png'],
+            images:      ['https://craftwabi.com/icon-512.png'],
           },
         },
         quantity: 1,

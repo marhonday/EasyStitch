@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -131,7 +131,7 @@ export default function TrackListPage() {
                         {p.name}
                       </p>
                       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
-                        {p.meta.width}×{p.meta.height} · {p.meta.stitchStyle} · {p.meta.source === 'generated' ? 'EasyStitch' : 'uploaded'}
+                        {p.meta.width}×{p.meta.height} · {p.meta.stitchStyle} · {p.meta.source === 'generated' ? 'CraftWabi' : 'uploaded'}
                       </p>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>

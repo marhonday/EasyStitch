@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 
@@ -7,27 +7,27 @@ const LAST_UPDATED = 'April 2025'
 const sections = [
   {
     title: '1. Acceptance of terms',
-    body: `By using EasyStitch ("the Service") you agree to these Terms of Service. If you do not agree, please do not use the Service. We may update these terms at any time — continued use after an update constitutes acceptance.`,
+    body: `By using CraftWabi ("the Service") you agree to these Terms of Service. If you do not agree, please do not use the Service. We may update these terms at any time — continued use after an update constitutes acceptance.`,
   },
   {
-    title: '2. What EasyStitch is',
-    body: `EasyStitch is a digital pattern generation and project tracking tool for fibre arts — crochet, knitting, cross-stitch, diamond painting, and paint by number. It is not a sewing tool, physical kit, or sewing pattern service.\n\nThe Service converts images you provide into colour-by-colour stitch graph patterns for personal, non-commercial use, and provides a row-by-row project tracker to help you follow your pattern. All image processing and pattern generation happens entirely in your browser — your images are never uploaded to our servers.`,
+    title: '2. What CraftWabi is',
+    body: `CraftWabi is a digital pattern generation and project tracking tool for fibre arts — crochet, knitting, cross-stitch, diamond painting, and paint by number. It is not a sewing tool, physical kit, or sewing pattern service.\n\nThe Service converts images you provide into colour-by-colour stitch graph patterns for personal, non-commercial use, and provides a row-by-row project tracker to help you follow your pattern. All image processing and pattern generation happens entirely in your browser — your images are never uploaded to our servers.`,
   },
   {
     title: '3. What you\'re buying',
-    body: `When you purchase a pattern download you are paying for:\n• A PDF file containing the pattern generated from your specific image and settings\n• A PNG image of the pattern chart\n• Access to those files for download during the active unlock window (6 hours for a single-pattern purchase)\n\nThe pattern is generated automatically from your image and the settings you choose. You preview the pattern in the app before purchasing. What you see in the preview is what you receive — no manual adjustment or redesign is included.\n\nAll sales are final. Because the pattern is generated from your specific image and delivered digitally, we do not offer refunds once the files have been downloaded. If you encounter a technical error that prevents download after payment, contact us at support@easystitch.app and we will make it right.`,
+    body: `When you purchase a pattern download you are paying for:\n• A PDF file containing the pattern generated from your specific image and settings\n• A PNG image of the pattern chart\n• Access to those files for download during the active unlock window (6 hours for a single-pattern purchase)\n\nThe pattern is generated automatically from your image and the settings you choose. You preview the pattern in the app before purchasing. What you see in the preview is what you receive — no manual adjustment or redesign is included.\n\nAll sales are final. Because the pattern is generated from your specific image and delivered digitally, we do not offer refunds once the files have been downloaded. If you encounter a technical error that prevents download after payment, contact us at support@CraftWabi.app and we will make it right.`,
   },
   {
     title: '4. Pattern quality and image responsibility',
-    body: `Pattern quality depends on the image you provide and the settings you choose. EasyStitch provides a live preview before purchase so you can see exactly what your pattern will look like.\n\nWe strongly recommend:\n• Reviewing your pattern preview carefully before purchasing\n• Using the highest-quality, clearest image available\n• Experimenting with colour count and style settings before buying\n\nWe cannot regenerate, modify, or edit your pattern after purchase. If you would like a different result, adjust your settings and generate a new pattern before purchasing again.\n\nBy uploading an image you confirm that you have the right to use it (you took the photo, created the graphic, or have appropriate permission from the rights holder). You are solely responsible for ensuring you hold the necessary rights to any image you provide. EasyStitch is not liable for any copyright infringement or intellectual property claim arising from images you supply.`,
+    body: `Pattern quality depends on the image you provide and the settings you choose. CraftWabi provides a live preview before purchase so you can see exactly what your pattern will look like.\n\nWe strongly recommend:\n• Reviewing your pattern preview carefully before purchasing\n• Using the highest-quality, clearest image available\n• Experimenting with colour count and style settings before buying\n\nWe cannot regenerate, modify, or edit your pattern after purchase. If you would like a different result, adjust your settings and generate a new pattern before purchasing again.\n\nBy uploading an image you confirm that you have the right to use it (you took the photo, created the graphic, or have appropriate permission from the rights holder). You are solely responsible for ensuring you hold the necessary rights to any image you provide. CraftWabi is not liable for any copyright infringement or intellectual property claim arising from images you supply.`,
   },
   {
     title: '5. Your content — ownership and our non-claim',
-    body: `Images you upload are processed entirely within your browser and are never transmitted to or stored on our servers. EasyStitch does not claim any ownership of, license to, or rights over any image you upload or any pattern generated from it.\n\nPatterns generated from your images belong to you. You retain full ownership of your source images at all times. EasyStitch's role is solely to process your image locally and produce a craft pattern at your direction — we are a tool, not a co-creator or rights holder.\n\nWe do not use your images for training, advertising, or any other purpose. Your images exist only in your browser session and are discarded when you close or reset the app.`,
+    body: `Images you upload are processed entirely within your browser and are never transmitted to or stored on our servers. CraftWabi does not claim any ownership of, license to, or rights over any image you upload or any pattern generated from it.\n\nPatterns generated from your images belong to you. You retain full ownership of your source images at all times. CraftWabi's role is solely to process your image locally and produce a craft pattern at your direction — we are a tool, not a co-creator or rights holder.\n\nWe do not use your images for training, advertising, or any other purpose. Your images exist only in your browser session and are discarded when you close or reset the app.`,
   },
   {
     title: '6. Intellectual property',
-    body: `EasyStitch and its underlying software, algorithms, and visual design are the property of EasyStitch and are protected by applicable intellectual property law.\n\nPatterns you generate belong to you for personal use. You may use your generated pattern to make physical craft items, share your finished work, or give patterns as gifts. You may not resell, redistribute, or commercially exploit EasyStitch-generated patterns without our written permission.`,
+    body: `CraftWabi and its underlying software, algorithms, and visual design are the property of CraftWabi and are protected by applicable intellectual property law.\n\nPatterns you generate belong to you for personal use. You may use your generated pattern to make physical craft items, share your finished work, or give patterns as gifts. You may not resell, redistribute, or commercially exploit CraftWabi-generated patterns without our written permission.`,
   },
   {
     title: '7. Prohibited uses',
@@ -35,11 +35,11 @@ const sections = [
   },
   {
     title: '8. Disclaimer of warranties',
-    body: `EasyStitch is provided "as is" without warranties of any kind. We do not guarantee that the Service will be uninterrupted, error-free, or that any particular pattern will meet your expectations. You use the Service at your own risk.`,
+    body: `CraftWabi is provided "as is" without warranties of any kind. We do not guarantee that the Service will be uninterrupted, error-free, or that any particular pattern will meet your expectations. You use the Service at your own risk.`,
   },
   {
     title: '9. Limitation of liability',
-    body: `To the fullest extent permitted by law, EasyStitch shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability for any claim relating to a purchase shall not exceed the amount you paid for that specific transaction.`,
+    body: `To the fullest extent permitted by law, CraftWabi shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability for any claim relating to a purchase shall not exceed the amount you paid for that specific transaction.`,
   },
   {
     title: '10. Governing law',
@@ -47,7 +47,7 @@ const sections = [
   },
   {
     title: '11. Contact',
-    body: `For any questions about these terms, email us at support@easystitch.app.`,
+    body: `For any questions about these terms, email us at support@CraftWabi.app.`,
   },
 ]
 
@@ -80,7 +80,7 @@ export default function TermsPage() {
             Last updated: {LAST_UPDATED}
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.75 }}>
-            Please read these terms before using EasyStitch or purchasing a pattern. The key points: <strong style={{ color: '#2C2218' }}>you own the patterns you generate</strong>, the preview you see before purchasing is exactly what you get, and all sales are final once a pattern has been downloaded.
+            Please read these terms before using CraftWabi or purchasing a pattern. The key points: <strong style={{ color: '#2C2218' }}>you own the patterns you generate</strong>, the preview you see before purchasing is exactly what you get, and all sales are final once a pattern has been downloaded.
           </p>
         </div>
 
@@ -117,7 +117,7 @@ export default function TermsPage() {
             onClick={() => router.push('/')}
             style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}
           >
-            ← Back to EasyStitch
+            ← Back to CraftWabi
           </button>
         </div>
 

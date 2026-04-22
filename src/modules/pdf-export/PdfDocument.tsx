@@ -1,4 +1,4 @@
-/**
+﻿/**
  * pdf-export/PdfDocument.tsx
  *
  * Root @react-pdf/renderer Document — assembles pages, slices grid into row
@@ -89,9 +89,9 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
   return (
     <Document
       title={title}
-      author="EasyStitch"
+      author="CraftWabi"
       subject="Crochet Graph Pattern"
-      creator="easystitch.app"
+      creator="CraftWabi.app"
     >
       {bands.map((band, pageIdx) => {
         const isFirst = pageIdx === 0
@@ -103,7 +103,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
             {/* First page header */}
             {isFirst && (
               <View style={styles.headerBar}>
-                <Text style={styles.headerLogo}>EasyStitch</Text>
+                <Text style={styles.headerLogo}>CraftWabi</Text>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.headerTitle}>{title}</Text>
                   <Text style={styles.headerMeta}>{subtitle}</Text>
@@ -158,7 +158,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>easystitch.app</Text>
+              <Text style={styles.footerText}>CraftWabi.app</Text>
               <Text style={styles.footerText}>Page {pageIdx + 1} of {totalPages}</Text>
               <Text style={styles.footerText}>
                 {new Date(meta.generatedAt).toLocaleDateString()}

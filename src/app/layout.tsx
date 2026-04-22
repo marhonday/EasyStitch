@@ -1,10 +1,11 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import './globals.css'
 import FaithFooter from '@/components/layout/FaithFooter'
+import QuickNav from '@/components/layout/QuickNav'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
-  title:       'EasyStitch — Free Photo to Crochet Pattern Generator & Row Tracker',
+  title:       'CraftWabi — Free Photo to Crochet Pattern Generator & Row Tracker',
   description: 'Turn any photo into a crochet, cross-stitch, or knitting pattern for free — C2C, graphgan, tapestry, filet, and more. Free online row counter and progress tracker. No account, no download.',
   manifest:    '/manifest.json',
 }
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <div className="app-shell">
           <PatternProviderWrapper>
+            <QuickNav />
             {children}
             <FaithFooter />
           </PatternProviderWrapper>

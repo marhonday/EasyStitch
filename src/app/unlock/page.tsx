@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -95,7 +95,7 @@ function UnlockInner() {
             Your pattern is ready.
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.65 }}>
-            EasyStitch has built a stitch-by-stitch pattern from your image — unique to you, ready to follow row by row.
+            CraftWabi has built a stitch-by-stitch pattern from your image — unique to you, ready to follow row by row.
           </p>
         </div>
 
@@ -238,7 +238,7 @@ function UnlockInner() {
                 What you see is what you get
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.6 }}>
-                The pattern you previewed in the app is exactly what you&apos;ll download — EasyStitch generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
+                The pattern you previewed in the app is exactly what you&apos;ll download — CraftWabi generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginTop: 6 }}>
                 We can&apos;t modify, re-generate, or edit your pattern after purchase — the output is unique to your upload and there is no manual adjustment step. If you&apos;d like a different result, adjust your settings and generate again before buying.
@@ -250,7 +250,7 @@ function UnlockInner() {
         {/* Support note */}
         <p style={{ width: '100%', maxWidth: 400, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0', textAlign: 'center', lineHeight: 1.5 }}>
           Questions? Reach us at{' '}
-          <a href="mailto:support@easystitch.app" style={{ color: '#9A8878', textDecoration: 'underline' }}>support@easystitch.app</a>
+          <a href="mailto:support@CraftWabi.app" style={{ color: '#9A8878', textDecoration: 'underline' }}>support@CraftWabi.app</a>
         </p>
 
       </section>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -348,7 +348,7 @@ export default function DiamondPaintingExportPage() {
             💎 About physical kits
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.7, marginBottom: 8 }}>
-            This chart shows exactly what your finished diamond painting would look like. We&apos;re actively working on partnering with a supplier so you can order a full kit — printed canvas, diamonds, and tools — directly through EasyStitch.
+            This chart shows exactly what your finished diamond painting would look like. We&apos;re actively working on partnering with a supplier so you can order a full kit — printed canvas, diamonds, and tools — directly through CraftWabi.
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.7, marginBottom: 8 }}>
             For now, most custom kit companies convert from your original photo themselves and don&apos;t accept external pattern files — so this chart is best used as a preview and reference while you source your own diamonds using the shopping list above.

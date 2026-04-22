@@ -18,6 +18,7 @@ import { logEvent } from '@/lib/log'
 import LifestylePreview from '@/components/LifestylePreview'
 import { patternFromPatternData, saveTracked } from '@/lib/patternTracker'
 import DiscountClubCard from '@/components/ui/DiscountClubCard'
+import { createTemplate, addVariant, getAllTemplates, slugify } from '@/lib/shopStore'
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
@@ -41,6 +42,25 @@ export default function ExportPage() {
   const [savedId,     setSavedId]     = useState<string | null>(null)
   const [includeInstructions, setIncludeInstructions] = useState(true)
   const [trackerSavedId,      setTrackerSavedId]      = useState<string | null>(null)
+
+  // Admin: Save to Shop (visible at ?admin=1)
+  const [isAdmin,        setIsAdmin]        = useState(false)
+  const [showShopPanel,  setShowShopPanel]  = useState(false)
+  const [shopTitle,      setShopTitle]      = useState('')
+  const [shopDesc,       setShopDesc]       = useState('')
+  const [shopTags,       setShopTags]       = useState('')
+  const [shopCategory,   setShopCategory]   = useState('other')
+  const [shopPrice,      setShopPrice]      = useState('3.00')
+  const [shopAllow,      setShopAllow]      = useState(true)
+  const [shopSizeLabel,  setShopSizeLabel]  = useState('')
+  const [shopAddToId,    setShopAddToId]    = useState<string>('__new__')
+  const [shopSaved,      setShopSaved]      = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAdmin(new URLSearchParams(window.location.search).get('admin') === '1')
+    }
+  }, [])
 
   function getShareUrl() {
     if (!exportPattern) return ''
@@ -420,6 +440,102 @@ export default function ExportPage() {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#C4614A' }}>{error}</p>
           </div>
         )}
+
+        {/* ── Admin: Save to Shop ───────────────────────────────────────── */}
+        {isAdmin && exportPattern && (
+          <div style={{ width: '100%', maxWidth: 400, marginTop: 20 }}>
+            {shopSaved ? (
+              <div style={{ background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.25)', borderRadius: 14, padding: '14px 16px', textAlign: 'center' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#4A9050' }}>✓ Saved to Shop!</p>
+                <button onClick={() => router.push('/shop')} style={{ marginTop: 8, background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', cursor: 'pointer', textDecoration: 'underline' }}>View shop →</button>
+              </div>
+            ) : !showShopPanel ? (
+              <button
+                onClick={() => { setShopTitle(projectName); setShowShopPanel(true) }}
+                style={{ width: '100%', padding: '12px', background: '#2C2218', color: 'white', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                🛍 Save to Shop (admin)
+              </button>
+            ) : (
+              <div style={{ background: 'white', borderRadius: 20, border: '2px solid #2C2218', padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218' }}>🛍 Save to Shop</p>
+
+                {/* Add to existing or create new */}
+                <select
+                  value={shopAddToId}
+                  onChange={e => setShopAddToId(e.target.value)}
+                  style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+                >
+                  <option value="__new__">➕ Create new template</option>
+                  {getAllTemplates().map(t => (
+                    <option key={t.id} value={t.id}>{t.title} ({t.variants.length} size{t.variants.length !== 1 ? 's' : ''})</option>
+                  ))}
+                </select>
+
+                {shopAddToId === '__new__' && (
+                  <>
+                    <input value={shopTitle} onChange={e => setShopTitle(e.target.value)} placeholder="Template title (e.g. Football C2C Blanket)" style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
+                    <textarea value={shopDesc} onChange={e => setShopDesc(e.target.value)} placeholder="Short description for the shop page" rows={2} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, resize: 'none' }} />
+                    <input value={shopTags} onChange={e => setShopTags(e.target.value)} placeholder="Tags (comma separated): football, boy, sports" style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }} />
+                    <select value={shopCategory} onChange={e => setShopCategory(e.target.value)} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+                      {['sports','animals','holidays','names','baby','nature','other'].map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+                    </select>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={shopAllow} onChange={e => setShopAllow(e.target.checked)} />
+                      Allow name/date personalization
+                    </label>
+                  </>
+                )}
+
+                {/* Size label + price — always shown */}
+                <input value={shopSizeLabel} onChange={e => setShopSizeLabel(e.target.value)} placeholder={`Size label (e.g. Throw ${exportPattern.meta.width}×${exportPattern.meta.height})`} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>$ Price:</span>
+                  <input type="number" min="0.50" step="0.50" value={shopPrice} onChange={e => setShopPrice(e.target.value)} style={{ width: 80, border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                    {exportPattern.meta.width}×{exportPattern.meta.height} · {exportPattern.meta.stitchStyle}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      if (!exportPattern) return
+                      const thumbnail = pngCanvasRef.current?.toDataURL('image/jpeg', 0.5) ?? ''
+                      const variant = {
+                        label:       shopSizeLabel || `${exportPattern.meta.width}×${exportPattern.meta.height}`,
+                        width:       exportPattern.meta.width,
+                        height:      exportPattern.meta.height,
+                        stitchStyle: exportPattern.meta.stitchStyle,
+                        price:       Math.round(parseFloat(shopPrice) * 100),
+                        patternData: exportPattern,
+                      }
+                      if (shopAddToId === '__new__') {
+                        createTemplate({
+                          title:                shopTitle || projectName,
+                          description:          shopDesc,
+                          tags:                 shopTags.split(',').map(t => t.trim()).filter(Boolean),
+                          category:             shopCategory,
+                          thumbnail,
+                          allowPersonalization: shopAllow,
+                          variant,
+                        })
+                      } else {
+                        addVariant(shopAddToId, variant)
+                      }
+                      setShopSaved(true)
+                    }}
+                    style={{ flex: 1, padding: '11px', background: '#2C2218', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Save
+                  </button>
+                  <button onClick={() => setShowShopPanel(false)} style={{ padding: '11px 16px', background: 'none', border: '1.5px solid #E4D9C8', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', cursor: 'pointer' }}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '10px 20px max(16px, env(safe-area-inset-bottom))', background: 'linear-gradient(to top, #FAF6EF 80%, transparent)', zIndex: 50, textAlign: 'center' }}>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -77,9 +77,9 @@ export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxW
 
       // 3. Open mail client pre-filled with save link (if provided)
       if (saveLink) {
-        const subject = encodeURIComponent('Your EasyStitch save link')
+        const subject = encodeURIComponent('Your CraftWabi save link')
         const body    = encodeURIComponent(
-          `Here's your EasyStitch link — tap it to pick up right where you left off:\n\n${saveLink}\n\nHappy stitching! 🧶\n— EasyStitch`
+          `Here's your CraftWabi link — tap it to pick up right where you left off:\n\n${saveLink}\n\nHappy stitching! 🧶\n— CraftWabi`
         )
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
       }

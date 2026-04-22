@@ -1,6 +1,6 @@
-{
-  "name": "EasyStitch",
-  "short_name": "EasyStitch",
+﻿{
+  "name": "CraftWabi",
+  "short_name": "CraftWabi",
   "description": "Turn any photo into a crochet pattern",
   "start_url": "/",
   "display": "standalone",

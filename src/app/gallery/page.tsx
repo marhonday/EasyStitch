@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { useState, useRef } from 'react'
@@ -6,7 +6,7 @@ import { useState, useRef } from 'react'
 /**
  * Community Gallery
  *
- * Shows before → after examples of real patterns made with EasyStitch.
+ * Shows before → after examples of real patterns made with CraftWabi.
  * Kept separate from the main wizard flow — users land here from the
  * About and Donate pages, not from the home screen.
  *
@@ -78,13 +78,13 @@ export default function GalleryPage() {
   }
 
   function handleSubmit() {
-    const subject  = encodeURIComponent('EasyStitch Gallery Submission')
+    const subject  = encodeURIComponent('CraftWabi Gallery Submission')
     const nameLine = creatorName ? `Name: ${creatorName}\n` : ''
     const noteLine = projectNote ? `About my project: ${projectNote}\n` : ''
     const body     = encodeURIComponent(
-      `Hi EasyStitch team!\n\nI'd love to be featured in the gallery.\n\n${nameLine}${noteLine}\nI'm attaching my original photo and a photo of my finished blanket.\n\n— ${creatorName || 'A happy stitcher'}`
+      `Hi CraftWabi team!\n\nI'd love to be featured in the gallery.\n\n${nameLine}${noteLine}\nI'm attaching my original photo and a photo of my finished blanket.\n\n— ${creatorName || 'A happy stitcher'}`
     )
-    window.open(`mailto:Support@easystitch.org?subject=${subject}&body=${body}`)
+    window.open(`mailto:Support@CraftWabi.org?subject=${subject}&body=${body}`)
     setSubmitted(true)
   }
 
@@ -117,7 +117,7 @@ export default function GalleryPage() {
             Community Gallery
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', lineHeight: 1.7, maxWidth: 300, margin: '0 auto' }}>
-            Photos turned into blankets — by your fellow EasyStitch crocheters.
+            Photos turned into blankets — by your fellow CraftWabi crocheters.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function GalleryPage() {
                 Show us your creation!
               </h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#3D2C1E', lineHeight: 1.65 }}>
-                Finished a blanket with EasyStitch? We&apos;d love to feature it here — original photo + finished project.
+                Finished a blanket with CraftWabi? We&apos;d love to feature it here — original photo + finished project.
               </p>
             </div>
 
@@ -249,7 +249,7 @@ export default function GalleryPage() {
                   boxShadow: canSubmit ? '0 4px 16px rgba(196,97,74,0.22)' : 'none',
                 }}
               >
-                📧 Send to EasyStitch
+                📧 Send to CraftWabi
               </button>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textAlign: 'center', marginTop: -6 }}>
                 Opens your email — attach the photos and hit send
@@ -362,7 +362,7 @@ export default function GalleryPage() {
             onClick={() => router.push('/about')}
             style={{ width: '100%', padding: '13px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}
           >
-            About EasyStitch
+            About CraftWabi
           </button>
         </div>
       </div>

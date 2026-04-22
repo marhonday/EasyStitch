@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 
@@ -27,10 +27,10 @@ export default function DonatePage() {
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 60, marginBottom: 12 }}>☕</div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 10 }}>
-            Support EasyStitch
+            Support CraftWabi
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.8, maxWidth: 340, margin: '0 auto' }}>
-            EasyStitch is free to use. If it&apos;s saved you hours of frustration and you&apos;d like to support further development, a small donation goes a long way.
+            CraftWabi is free to use. If it&apos;s saved you hours of frustration and you&apos;d like to support further development, a small donation goes a long way.
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function DonatePage() {
         {/* Donate buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
           <a
-            href="https://ko-fi.com/easystitch"
+            href="https://ko-fi.com/CraftWabi"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -71,7 +71,7 @@ export default function DonatePage() {
           </a>
 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0', textAlign: 'center' }}>
-            ko-fi.com/easystitch · No account needed · Any amount is appreciated · 100% optional
+            ko-fi.com/CraftWabi · No account needed · Any amount is appreciated · 100% optional
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function DonatePage() {
             Thank you 🧶
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', lineHeight: 1.7 }}>
-            Every contribution — big or small — is genuinely appreciated and goes directly into making EasyStitch better for everyone.
+            Every contribution — big or small — is genuinely appreciated and goes directly into making CraftWabi better for everyone.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export default function DonatePage() {
             🖼️ See what others have made
           </button>
           <button onClick={() => router.push('/')} style={{ width: '100%', padding: '13px', background: 'transparent', color: '#9A8878', border: 'none', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}>
-            ← Back to EasyStitch
+            ← Back to CraftWabi
           </button>
         </div>
       </div>

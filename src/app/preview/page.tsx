@@ -509,7 +509,7 @@ export default function PreviewPage() {
                 />
               </div>
 
-              {/* Live preview */}
+              {/* Live preview + size disclosure */}
               {(state.personalization.titleText.trim() || state.personalization.dateText.trim()) && (
                 <div style={{ background: '#FAF6EF', borderRadius: 10, padding: '10px 12px' }}>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
@@ -519,6 +519,21 @@ export default function PreviewPage() {
                     ref={personPreviewRef}
                     style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6, imageRendering: 'pixelated' }}
                   />
+                  {/* Size change disclosure */}
+                  {patternData && personalizedPattern && personalizedPattern.meta.height > patternData.meta.height && (
+                    <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                        {patternData.meta.width}×{patternData.meta.height}
+                      </span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>→</span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#C4614A' }}>
+                        {personalizedPattern.meta.width}×{personalizedPattern.meta.height}
+                      </span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', background: 'rgba(196,97,74,0.08)', borderRadius: 6, padding: '1px 6px' }}>
+                        +{personalizedPattern.meta.height - patternData.meta.height} rows for name panel
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
