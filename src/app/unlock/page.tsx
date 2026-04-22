@@ -2,8 +2,10 @@
 
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Header from '@/components/layout/Header'
+import { usePattern } from '@/context/PatternContext'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 
 // Sample data for the preview grid
 const SAMPLE_PALETTE = [
@@ -38,9 +40,19 @@ function UnlockInner() {
   const params    = useSearchParams()
   const returnUrl = params.get('return') ?? '/export'
   const tier      = params.get('type') === 'graphic' ? 'graphic' : 'photo'
-  const price     = tier === 'graphic' ? '$3' : '$5'
+  const price     = '$3'
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
+
+  const { state }      = usePattern()
+  const patternData    = state.patternData ?? null
+  const patternCanvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (!patternData || !patternCanvasRef.current) return
+    const cellSize = Math.max(2, Math.floor(340 / patternData.meta.width))
+    drawPatternToCanvas(patternCanvasRef.current, patternData, { cellSize, gap: 1, showSymbols: false })
+  }, [patternData])
 
   async function handleUnlock() {
     setBusy(true)
@@ -83,7 +95,7 @@ function UnlockInner() {
             Your pattern is ready.
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.65 }}>
-            EasyStitch has built a stitch-by-stitch pattern from your image — unique to you, ready to follow row by row.
+            CraftWabi has built a stitch-by-stitch pattern from your image — unique to you, ready to follow row by row.
           </p>
         </div>
 
@@ -126,64 +138,95 @@ function UnlockInner() {
           <div style={{ background: '#FAF6EF', borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.55 }}>
-              <strong style={{ color: '#2C2218' }}>Why $2?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing — this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
+              <strong style={{ color: '#2C2218' }}>Why $3?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing — this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
             </p>
           </div>
         </div>
 
-        {/* ── Sample pattern preview ─────────────────────────────────────── */}
+        {/* ── Pattern preview ────────────────────────────────────────────── */}
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 20px rgba(44,34,24,0.08)', overflow: 'hidden', marginBottom: 16 }}>
-          <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid #F2EAD8' }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              Sample — Your Full Pattern Includes
+          <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid #F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: patternData ? '#C4614A' : '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              {patternData ? 'Your pattern — ready to download' : 'Sample — Your Full Pattern Includes'}
             </p>
+            {patternData && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                {patternData.meta.width}×{patternData.meta.height} · {patternData.meta.colorCount} colours
+              </p>
+            )}
           </div>
-          <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 14, alignItems: 'start' }}>
-            {/* Mini grid */}
-            <div style={{ position: 'relative' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, width: 108 }}>
-                {SAMPLE_GRID.map((row, ri) =>
-                  row.map((hex, ci) => (
-                    <div
-                      key={`${ri}-${ci}`}
-                      style={{ width: 11, height: 11, borderRadius: 2, background: hex, opacity: ri > CURRENT_GRID_ROW ? 0.45 : 1 }}
-                    />
-                  ))
-                )}
+
+          {patternData ? (
+            /* ── Real pattern canvas ── */
+            <div style={{ padding: '14px 16px' }}>
+              <div style={{ width: '100%', overflowX: 'auto', borderRadius: 10, background: '#FAF6EF', padding: 8 }}>
+                <canvas
+                  ref={patternCanvasRef}
+                  style={{ display: 'block', maxWidth: '100%', borderRadius: 6 }}
+                />
               </div>
-              <div style={{ position: 'absolute', top: CURRENT_GRID_ROW * 13, left: 0, width: 108, height: 13, background: 'rgba(196,97,74,0.18)', borderRadius: 2, pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', top: CURRENT_GRID_ROW * 13, left: 0, width: 3, height: 13, background: 'rgba(196,97,74,0.7)', borderRadius: '2px 0 0 2px', pointerEvents: 'none' }} />
-            </div>
-            {/* Row list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {SAMPLE_ROWS.map(row => {
-                const isCurrent = row.num === 4
-                const isDone    = !!row.done
-                return (
-                  <div key={row.num} style={{ padding: '5px 8px', borderRadius: 8, borderLeft: `3px solid ${isCurrent ? '#C4614A' : isDone ? '#4A9050' : 'transparent'}`, background: isCurrent ? 'rgba(196,97,74,0.07)' : isDone ? 'rgba(74,144,80,0.04)' : 'transparent', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0, background: isDone ? '#4A9050' : 'transparent', border: isDone ? 'none' : `1.5px solid ${isCurrent ? '#C4614A' : '#E4D9C8'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'white', fontWeight: 700 }}>
-                      {isDone ? '✓' : ''}
+              {/* Actual colour key */}
+              <div style={{ marginTop: 12 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Colour key</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {patternData.palette.map((p, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <div style={{ width: 14, height: 14, borderRadius: 4, background: p.hex, border: '1px solid rgba(44,34,24,0.1)', flexShrink: 0 }} />
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#6B5744' }}>{p.symbol}</span>
                     </div>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
-                      R{row.num} ({row.sts} sts): {row.runs}
-                    </span>
-                    {isCurrent && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C4614A', fontWeight: 600, marginLeft: 'auto' }}>← now</span>}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-          <div style={{ padding: '10px 16px 14px', borderTop: '1px solid #F2EAD8' }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Colour key</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {SAMPLE_PALETTE.map(p => (
-                <div key={p.hex} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{ width: 14, height: 14, borderRadius: 4, background: p.hex, border: '1px solid rgba(44,34,24,0.1)', flexShrink: 0 }} />
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#6B5744' }}>{p.symbol} {p.label}</span>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* ── Fallback sample ── */
+            <>
+              <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 14, alignItems: 'start' }}>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, width: 108 }}>
+                    {SAMPLE_GRID.map((row, ri) =>
+                      row.map((hex, ci) => (
+                        <div
+                          key={`${ri}-${ci}`}
+                          style={{ width: 11, height: 11, borderRadius: 2, background: hex, opacity: ri > CURRENT_GRID_ROW ? 0.45 : 1 }}
+                        />
+                      ))
+                    )}
+                  </div>
+                  <div style={{ position: 'absolute', top: CURRENT_GRID_ROW * 13, left: 0, width: 108, height: 13, background: 'rgba(196,97,74,0.18)', borderRadius: 2, pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', top: CURRENT_GRID_ROW * 13, left: 0, width: 3, height: 13, background: 'rgba(196,97,74,0.7)', borderRadius: '2px 0 0 2px', pointerEvents: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {SAMPLE_ROWS.map(row => {
+                    const isCurrent = row.num === 4
+                    const isDone    = !!row.done
+                    return (
+                      <div key={row.num} style={{ padding: '5px 8px', borderRadius: 8, borderLeft: `3px solid ${isCurrent ? '#C4614A' : isDone ? '#4A9050' : 'transparent'}`, background: isCurrent ? 'rgba(196,97,74,0.07)' : isDone ? 'rgba(74,144,80,0.04)' : 'transparent', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0, background: isDone ? '#4A9050' : 'transparent', border: isDone ? 'none' : `1.5px solid ${isCurrent ? '#C4614A' : '#E4D9C8'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'white', fontWeight: 700 }}>
+                          {isDone ? '✓' : ''}
+                        </div>
+                        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
+                          R{row.num} ({row.sts} sts): {row.runs}
+                        </span>
+                        {isCurrent && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C4614A', fontWeight: 600, marginLeft: 'auto' }}>← now</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{ padding: '10px 16px 14px', borderTop: '1px solid #F2EAD8' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Colour key</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {SAMPLE_PALETTE.map(p => (
+                    <div key={p.hex} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <div style={{ width: 14, height: 14, borderRadius: 4, background: p.hex, border: '1px solid rgba(44,34,24,0.1)', flexShrink: 0 }} />
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#6B5744' }}>{p.symbol} {p.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── WYSIWYG disclaimer ────────────────────────────────────────── */}
@@ -195,7 +238,7 @@ function UnlockInner() {
                 What you see is what you get
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.6 }}>
-                The pattern you previewed in the app is exactly what you&apos;ll download — EasyStitch generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
+                The pattern you previewed in the app is exactly what you&apos;ll download — CraftWabi generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginTop: 6 }}>
                 We can&apos;t modify, re-generate, or edit your pattern after purchase — the output is unique to your upload and there is no manual adjustment step. If you&apos;d like a different result, adjust your settings and generate again before buying.
@@ -223,7 +266,7 @@ function UnlockInner() {
 
         {/* Price display */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#2C2218' }}>$2</span>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#2C2218' }}>$3</span>
           <div style={{ textAlign: 'left' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#C4614A', lineHeight: 1 }}>LAUNCH PRICE</p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', lineHeight: 1.3, marginTop: 2 }}>per pattern · price increasing soon</p>
@@ -251,7 +294,7 @@ function UnlockInner() {
               Redirecting to payment…
             </>
           ) : (
-            '🔓 Unlock My Pattern — $2'
+            '🔓 Unlock My Pattern — $3'
           )}
         </button>
 

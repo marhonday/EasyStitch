@@ -13,13 +13,9 @@ export async function POST(req: NextRequest) {
   const returnUrl = (body.returnUrl as string | undefined) ?? '/export'
   const tier      = (body.tier as string | undefined) === 'graphic' ? 'graphic' : 'photo'
 
-  const unitAmount = tier === 'graphic' ? 300 : 500   // $3 graphic · $5 photo
-  const productName = tier === 'graphic'
-    ? 'EasyStitch — Graphic Pattern Download'
-    : 'EasyStitch — Photo Pattern Download'
-  const productDesc = tier === 'graphic'
-    ? 'Custom stitch pattern from your logo or graphic. Full PDF with chart, colour key, and row-by-row instructions.'
-    : 'Custom stitch pattern generated from your photo. Full PDF with chart, colour key, and row-by-row instructions.'
+  const unitAmount  = 300   // $3 flat for all pattern downloads
+  const productName = 'CraftWabi — Pattern Download'
+  const productDesc = 'Custom stitch pattern generated from your image. Full PDF with chart, colour key, and row-by-row instructions.'
 
   // Build absolute success / cancel URLs
   const origin     = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'

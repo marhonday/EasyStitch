@@ -9,6 +9,7 @@ import { logEvent } from '@/lib/log'
 import { isUnlocked } from '@/lib/unlock'
 import { drawPbnRegionCanvas } from '@/lib/pbnRegions'
 import { matchToFolkArt } from '@/modules/paint/folkArtMatcher'
+import LifestylePreview from '@/components/LifestylePreview'
 
 type ViewMode = 'preview' | 'print'
 type Status   = 'idle' | 'loading-png' | 'done-png' | 'error'
@@ -221,6 +222,9 @@ export default function PbnExportPage() {
           </div>
         </div>
 
+        {/* Lifestyle preview */}
+        <LifestylePreview patternCanvas={canvasRef} style={{ maxWidth: 400 }} />
+
         {/* Pattern name */}
         <div style={{ width: '100%', maxWidth: 400 }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginBottom: 6 }}>Pattern name (used in filename)</p>
@@ -275,7 +279,7 @@ export default function PbnExportPage() {
             </a>
           ))}
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', marginTop: 10 }}>
-            Links may be affiliate links — supports EasyStitch at no extra cost to you
+            Links may be affiliate links — supports CraftWabi at no extra cost to you
           </p>
         </div>
 

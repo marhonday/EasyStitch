@@ -169,7 +169,7 @@ export function useProjectStorage() {
         try {
           const parsed = JSON.parse(e.target?.result as string)
           if (!parsed.pattern || !parsed.pattern.grid || !parsed.pattern.palette) {
-            reject(new Error('File doesn\'t look like an EasyStitch project'))
+            reject(new Error('File doesn\'t look like an CraftWabi project'))
             return
           }
           const height = parsed.pattern.meta?.height ?? parsed.pattern.grid?.length ?? 0
@@ -188,7 +188,7 @@ export function useProjectStorage() {
           setProjects(loadIndex())
           resolve(project)
         } catch {
-          reject(new Error('Could not read file — make sure it\'s a valid EasyStitch file'))
+          reject(new Error('Could not read file — make sure it\'s a valid CraftWabi file'))
         }
       }
       reader.onerror = () => reject(new Error('Could not read file'))

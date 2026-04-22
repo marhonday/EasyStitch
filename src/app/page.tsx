@@ -172,6 +172,47 @@ export default function LandingPage() {
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', marginTop: 12 }}>
           Upload your photo · pick your style · download your pattern
         </p>
+
+        {/* ── Track a pattern ─────────────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400, marginTop: 24 }}>
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700,
+            color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em',
+            marginBottom: 14, textAlign: 'left',
+          }}>
+            Already have a pattern?
+          </p>
+          <Link href="/track" style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{
+              background: 'white', borderRadius: 16,
+              border: '1.5px solid #E4D9C8',
+              padding: '18px 16px',
+              boxShadow: '0 2px 8px rgba(44,34,24,0.05)',
+              display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{ fontSize: 32, flexShrink: 0 }}>📋</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218' }}>
+                    Track my progress
+                  </p>
+                  <span style={{
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
+                    color: '#C4614A', background: 'rgba(196,97,74,0.10)',
+                    borderRadius: 999, padding: '2px 7px',
+                    textTransform: 'uppercase', letterSpacing: '0.04em',
+                  }}>
+                    New
+                  </span>
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.4 }}>
+                  Upload any pattern chart and follow it row by row — with colour guides and progress tracking.
+                </p>
+              </div>
+              <span style={{ fontSize: 18, color: '#C4614A', flexShrink: 0 }}>→</span>
+            </div>
+          </Link>
+        </div>
       </section>
 
       <Divider />

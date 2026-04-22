@@ -15,6 +15,8 @@ import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { useProjectStorage }  from '@/hooks/useProjectStorage'
 import { applyPersonalizationToPattern } from '@/modules/personalization/personalizePattern'
 import { logEvent } from '@/lib/log'
+import LifestylePreview from '@/components/LifestylePreview'
+import { patternFromPatternData, saveTracked } from '@/lib/patternTracker'
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
@@ -40,6 +42,7 @@ export default function ExportPage() {
   const [linkCopied,  setLinkCopied]  = useState(false)
   const [emailSent,         setEmailSent]         = useState(false)
   const [includeInstructions, setIncludeInstructions] = useState(true)
+  const [trackerSavedId,      setTrackerSavedId]      = useState<string | null>(null)
 
   function getShareUrl() {
     if (!exportPattern) return ''
@@ -48,9 +51,9 @@ export default function ExportPage() {
 
   function handleSendPatternLink() {
     const url     = getShareUrl()
-    const subject = encodeURIComponent(`Your EasyStitch Pattern — ${projectName}`)
+    const subject = encodeURIComponent(`Your CraftWabi Pattern — ${projectName}`)
     const body    = encodeURIComponent(
-      `Hi!\n\nHere's your EasyStitch crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— EasyStitch`
+      `Hi!\n\nHere's your CraftWabi crochet pattern:\n\n${url}\n\nTap the link to reopen your pattern viewer — no account needed.\n\nHappy stitching! 🧶\n— CraftWabi`
     )
     window.open(`mailto:${emailInput}?subject=${subject}&body=${body}`)
     setEmailSent(true)
@@ -171,6 +174,29 @@ export default function ExportPage() {
           >
             📋 View Pattern &amp; Instructions →
           </button>
+
+          {/* Track progress */}
+          {!trackerSavedId ? (
+            <button
+              onClick={() => {
+                const base = workingPattern ?? patternData
+                if (!base) return
+                const tp = patternFromPatternData(base, projectName.trim() || 'My Pattern')
+                saveTracked(tp)
+                setTrackerSavedId(tp.id)
+              }}
+              style={{ width: '100%', maxWidth: 320, padding: '13px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 10 }}
+            >
+              📋 Track my progress →
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push(`/track/${trackerSavedId}`)}
+              style={{ width: '100%', maxWidth: 320, padding: '13px', background: 'rgba(74,144,80,0.08)', color: '#4A9050', border: '1.5px solid rgba(74,144,80,0.3)', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 10 }}
+            >
+              ✓ Saved! Open tracker →
+            </button>
+          )}
 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#B8AAA0', marginBottom: 20 }}>Happy stitching! 🧶</p>
 
@@ -397,6 +423,9 @@ export default function ExportPage() {
             </p>
           </div>
         )}
+
+        {/* Lifestyle preview */}
+        <LifestylePreview patternCanvas={pngCanvasRef} style={{ maxWidth: 400 }} />
 
         {/* Export options */}
         <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
