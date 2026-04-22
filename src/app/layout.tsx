@@ -2,6 +2,7 @@
 import './globals.css'
 import FaithFooter from '@/components/layout/FaithFooter'
 import QuickNav from '@/components/layout/QuickNav'
+import RebrandBanner from '@/components/layout/RebrandBanner'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <div className="app-shell">
           <PatternProviderWrapper>
+            <RebrandBanner />
             <QuickNav />
             {children}
             <FaithFooter />
