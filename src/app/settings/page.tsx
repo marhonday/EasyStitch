@@ -136,10 +136,15 @@ function SettingsInner() {
               </p>
             </div>
             <button
-              onClick={() => router.push('/')}
-              style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+              onClick={() => router.push('/upload')}
+              style={{
+                background: 'white', border: '1.5px solid #E4D9C8',
+                borderRadius: 8, padding: '5px 12px',
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+                color: '#C4614A', cursor: 'pointer', flexShrink: 0,
+              }}
             >
-              Change
+              ⇄ Change photo
             </button>
           </div>
         )}

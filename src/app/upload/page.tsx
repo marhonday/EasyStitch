@@ -238,9 +238,14 @@ function UploadInner() {
                     ✨ Cleaned up automatically
                   </p>
                 )}
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0' }}>
-                  Tap to swap photo
-                </p>
+                <span style={{
+                  display: 'inline-block', marginTop: 2,
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+                  color: '#C4614A', background: 'rgba(196,97,74,0.08)',
+                  borderRadius: 6, padding: '3px 8px',
+                }}>
+                  ⇄ Change photo
+                </span>
               </div>
             </div>
           )}

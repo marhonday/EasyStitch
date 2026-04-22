@@ -624,16 +624,28 @@ export default function PreviewPage() {
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', textAlign: 'center', margin: 0 }}>
           Row-by-row steps · Printable PDF · Track your progress
         </p>
-        <button
-          onClick={handleInlineDownloadPng}
-          style={{
-            background: 'none', border: 'none', padding: '2px 8px',
-            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-            color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline',
-          }}
-        >
-          Download Preview (low detail)
-        </button>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <button
+            onClick={() => router.push('/settings')}
+            style={{
+              background: 'none', border: 'none', padding: '2px 8px',
+              fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+              color: '#9A8878', cursor: 'pointer', textDecoration: 'underline',
+            }}
+          >
+            ← Adjust settings
+          </button>
+          <button
+            onClick={handleInlineDownloadPng}
+            style={{
+              background: 'none', border: 'none', padding: '2px 8px',
+              fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+              color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline',
+            }}
+          >
+            Download Preview (low detail)
+          </button>
+        </div>
       </div>
     </main>
   )
