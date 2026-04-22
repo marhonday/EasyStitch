@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 
-const LAST_UPDATED = 'March 2025'
+const LAST_UPDATED = 'April 2025'
 
 const sections = [
   {

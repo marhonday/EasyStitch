@@ -27,11 +27,14 @@ export default function AboutPage() {
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 56, marginBottom: 12 }}>🧶</div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#2C2218', marginBottom: 10 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
             EasyStitch
           </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#C4614A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Digital stitch pattern generator &amp; project tracker
+          </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#9A8878', lineHeight: 1.6 }}>
-            Turn any photo into a stitch-by-stitch crochet pattern — in seconds, right in your browser.
+            A free browser-based tool for crochet, knitting, cross-stitch, and diamond painting crafters — turn any photo into a colour-by-colour graph pattern and track your project row by row.
           </p>
         </div>
 
@@ -48,10 +51,19 @@ export default function AboutPage() {
           </p>
         </div>
 
+        {/* What EasyStitch is — brand identity */}
+        <div style={{ background: 'rgba(196,97,74,0.06)', borderRadius: 16, padding: '14px 18px', marginBottom: 14, border: '1px solid rgba(196,97,74,0.15)' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#C4614A', marginBottom: 6 }}>What EasyStitch is</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744', lineHeight: 1.75 }}>
+            EasyStitch is a <strong style={{ color: '#2C2218' }}>digital pattern generation and project tracking tool</strong> for fibre arts — crochet, knitting, cross-stitch, diamond painting, and paint by number. It is not a sewing tool, not a physical kit, and not a sewing pattern service. It helps crafters convert photos into stitch graphs and follow their project step by step.
+          </p>
+        </div>
+
         {/* Feature cards */}
         {[
-          { emoji: '🔒', title: '100% private', body: 'All image processing happens locally in your browser. Your photos are never uploaded to any server.' },
+          { emoji: '🔒', title: '100% private', body: 'All image processing happens locally in your browser. Your photos are never uploaded to any server — we never see them.' },
           { emoji: '✨', title: 'No account needed', body: 'No sign-up, no subscription. Open the app, upload a photo, and start stitching.' },
+          { emoji: '📋', title: 'Pattern tracker built in', body: 'Upload any existing pattern chart or save a generated one — then follow it row by row with style-correct instructions.' },
           { emoji: '💛', title: 'Built by a crocheter (adjacent)', body: 'EasyStitch is an independent project built for real crafters. It will always be free. Donations help keep it that way.' },
         ].map(card => (
           <div key={card.title} style={{ background: 'white', borderRadius: 20, padding: '16px 20px', marginBottom: 12, boxShadow: '0 2px 12px rgba(44,34,24,0.06)' }}>

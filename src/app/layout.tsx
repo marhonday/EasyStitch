@@ -4,8 +4,8 @@ import FaithFooter from '@/components/layout/FaithFooter'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
-  title:       'EasyStitch — Turn any photo into a crochet pattern',
-  description: 'Upload a photo and get a stitch-by-stitch crochet graph pattern in seconds. Free, no account needed.',
+  title:       'EasyStitch — Digital Stitch Pattern Generator & Project Tracker',
+  description: 'EasyStitch is a free digital tool for crochet, knitting, and cross-stitch crafters. Turn any photo into a stitch-by-stitch graph pattern and track your project row by row — no account needed.',
   manifest:    '/manifest.json',
 }
 
