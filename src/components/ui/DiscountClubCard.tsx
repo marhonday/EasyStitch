@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 // Create a free Formspree form at formspree.io and paste your form ID here.
 // Set the notification email to your address — every sign-up will land in your inbox.
-const FORM_ID = 'YOUR_FORMSPREE_ID'
+const FORM_ID = 'mykbzdae'
 
 interface Props {
   saveLink?: string        // URL to pre-fill the mailto — pattern link or tracker URL
