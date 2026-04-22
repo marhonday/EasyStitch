@@ -5,6 +5,18 @@ import { useState } from 'react'
 
 const FAQS = [
   {
+    q: 'Is there a free crochet row counter I can use online without downloading anything?',
+    a: "Yes — EasyStitch includes a free crochet row counter and pattern tracker that works entirely in your browser. No app download, no account needed. Upload any pattern chart (graphgan, cross-stitch, knitting colorwork, or one you generated in EasyStitch) and it will walk you through row by row with colour guides and a progress tracker.",
+  },
+  {
+    q: 'Can I track a half-finished project or a pattern I already started?',
+    a: "Yes. When you open the tracker you can jump to any row — you don't have to start from row 1. Just upload your pattern chart and tap the row you're currently on to pick up right where you left off.",
+  },
+  {
+    q: "What's a graphgan and can EasyStitch make one?",
+    a: "A graphgan is a crochet blanket (or other project) made by following a colour graph — each square on the grid represents one stitch or block. EasyStitch converts any photo into a graphgan-ready pattern: upload your photo, pick C2C or Single Crochet, choose your grid size, and download a printable chart.",
+  },
+  {
     q: "What's the difference between C2C and Single Crochet?",
     a: "Corner-to-Corner (C2C) builds your blanket diagonally — you start at one corner and work toward the opposite, adding and decreasing squares as you go. It creates a slightly textured diagonal look and is very popular for graphghans. Single Crochet works in straight horizontal rows, giving you a tighter, denser fabric that captures fine detail really well.",
   },

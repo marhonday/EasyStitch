@@ -124,26 +124,26 @@ export default function LandingPage() {
           fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
           marginBottom: 20,
         }}>
-          🧶 Free to start · no account needed
+          🧶 Free · no account · no download
         </div>
 
         <h1 style={{
           fontFamily: "'Playfair Display', serif",
           fontSize: 34, fontWeight: 700,
           color: '#2C2218', lineHeight: 1.2,
-          marginBottom: 12, maxWidth: 320,
+          marginBottom: 12, maxWidth: 340,
         }}>
           Turn any photo into<br />
-          <span style={{ color: '#C4614A' }}>a stitch pattern.</span>
+          <span style={{ color: '#C4614A' }}>a crochet or stitch pattern.</span>
         </h1>
 
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 15, color: '#3D2C1E',
-          lineHeight: 1.65, maxWidth: 290,
+          lineHeight: 1.65, maxWidth: 310,
           marginBottom: 32,
         }}>
-          Upload a pet, portrait, or favourite memory — pick your style and get a colour-by-colour pattern instantly.
+          Convert photos to C2C graphgans, cross-stitch charts, knitting colorwork, and more — free, in your browser, instantly.
         </p>
 
         {/* ── Style cards ─────────────────────────────────────────────── */}
@@ -153,7 +153,7 @@ export default function LandingPage() {
             color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em',
             marginBottom: 14, textAlign: 'left',
           }}>
-            What are you making?
+            Make your own pattern
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -173,40 +173,30 @@ export default function LandingPage() {
           Upload your photo · pick your style · download your pattern
         </p>
 
-        {/* ── Track a pattern ─────────────────────────────────────────── */}
-        <div style={{ width: '100%', maxWidth: 400, marginTop: 24 }}>
+        {/* ── Bring your own pattern ──────────────────────────────────── */}
+        <div style={{ width: '100%', maxWidth: 400, marginTop: 28 }}>
           <p style={{
             fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700,
             color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em',
             marginBottom: 14, textAlign: 'left',
           }}>
-            Already have a pattern?
+            Bring your own pattern
           </p>
           <Link href="/track" style={{ textDecoration: 'none', display: 'block' }}>
             <div style={{
               background: 'white', borderRadius: 16,
-              border: '1.5px solid #E4D9C8',
+              border: '1.5px solid #C4614A',
               padding: '18px 16px',
-              boxShadow: '0 2px 8px rgba(44,34,24,0.05)',
+              boxShadow: '0 2px 12px rgba(196,97,74,0.12)',
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{ fontSize: 32, flexShrink: 0 }}>📋</div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218' }}>
-                    Track my progress
-                  </p>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-                    color: '#C4614A', background: 'rgba(196,97,74,0.10)',
-                    borderRadius: 999, padding: '2px 7px',
-                    textTransform: 'uppercase', letterSpacing: '0.04em',
-                  }}>
-                    New
-                  </span>
-                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
+                  Free crochet row counter &amp; tracker
+                </p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.4 }}>
-                  Upload any pattern chart and follow it row by row — with colour guides and progress tracking.
+                  Upload any pattern chart — graphgan, cross-stitch, or knitting — and follow it row by row with colour guides and progress tracking.
                 </p>
               </div>
               <span style={{ fontSize: 18, color: '#C4614A', flexShrink: 0 }}>→</span>
@@ -351,34 +341,11 @@ export default function LandingPage() {
 
       <Divider />
 
-      {/* ── Coming soon ───────────────────────────────────────────────────── */}
+      {/* ── SEO footer text ───────────────────────────────────────────────── */}
       <section style={{ width: '100%', maxWidth: 440, padding: '32px 20px 48px' }}>
-        <SectionLabel>Coming soon</SectionLabel>
-
-        <div style={{
-          background: 'white', borderRadius: 16,
-          border: '1.5px dashed #D4C9B8', padding: '18px 16px',
-          display: 'flex', alignItems: 'center', gap: 14,
-          opacity: 0.75,
-        }}>
-          <span style={{ fontSize: 36 }}>💎</span>
-          <div>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 3 }}>
-              Diamond Painting
-            </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.4 }}>
-              Bead counts, color codes, and printable placement charts — same photo-to-pattern magic.
-            </p>
-          </div>
-          <span style={{
-            flexShrink: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-            color: '#B8AAA0', background: '#EDE8E0',
-            borderRadius: 999, padding: '3px 9px',
-            textTransform: 'uppercase', letterSpacing: '0.04em',
-          }}>
-            Soon
-          </span>
-        </div>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C8BFB0', lineHeight: 1.8, textAlign: 'center' }}>
+          Free online crochet row counter · convert photo to C2C pattern · graphgan maker · cross-stitch chart generator · knitting colorwork · diamond painting layout · paint by number · no account needed
+        </p>
       </section>
 
     </main>
