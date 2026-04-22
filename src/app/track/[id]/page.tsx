@@ -110,13 +110,16 @@ export default function TrackerPage() {
   const router = useRouter()
   const id     = typeof params.id === 'string' ? params.id : ''
 
-  const [pattern,       setPattern]       = useState<TrackedPattern | null>(null)
-  const [completedRows, setCompletedRows] = useState<Set<number>>(new Set())
-  const [currentStep,   setCurrentStep]   = useState(0)
-  const [showList,      setShowList]      = useState(false)
+  const [pattern,          setPattern]          = useState<TrackedPattern | null>(null)
+  const [completedRows,    setCompletedRows]    = useState<Set<number>>(new Set())
+  const [currentStep,      setCurrentStep]      = useState(0)
+  const [showList,         setShowList]         = useState(false)
+  const [lastCompleted,    setLastCompleted]    = useState<number | null>(null)
+  const [showCelebration,  setShowCelebration]  = useState(false)
 
-  const canvasRef    = useRef<HTMLCanvasElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const canvasRef        = useRef<HTMLCanvasElement>(null)
+  const containerRef     = useRef<HTMLDivElement>(null)
+  const prevCompleteRef  = useRef(false)
 
   useEffect(() => {
     const p = getTracked(id)
@@ -162,10 +165,22 @@ export default function TrackerPage() {
     updateProgress(pattern.id, Array.from(completed).sort((a, b) => a - b), cur)
   }, [pattern])
 
+  // Detect the moment a pattern flips to 100% complete and show celebration
+  useEffect(() => {
+    if (!pattern) return
+    const nowComplete = completedRows.size >= totalSteps && totalSteps > 0
+    if (nowComplete && !prevCompleteRef.current) {
+      setLastCompleted(currentStep)
+      setShowCelebration(true)
+    }
+    prevCompleteRef.current = nowComplete
+  }, [completedRows, totalSteps, pattern, currentStep])
+
   function markDoneAndNext() {
     if (!pattern) return
     const next = new Set(completedRows)
     next.add(currentStep)
+    setLastCompleted(currentStep)
     let nextStep = currentStep + 1
     while (nextStep < totalSteps && next.has(nextStep)) nextStep++
     if (nextStep >= totalSteps) nextStep = currentStep
@@ -401,17 +416,74 @@ export default function TrackerPage() {
           </div>
         </div>
 
-        {/* ── Discount Club — shown on completion ─────────────────────────── */}
+        {/* ── Discount Club — shown on completion (25% reward) ────────────── */}
         {isComplete && (
           <div style={{ width: '100%', maxWidth: 400, marginTop: 16 }}>
             <DiscountClubCard
               saveLink={typeof window !== 'undefined' ? window.location.href : ''}
               linkLabel="progress"
+              couponTier="25"
             />
           </div>
         )}
 
       </div>
+
+      {/* ── Pattern-complete celebration overlay ─────────────────────────── */}
+      {showCelebration && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowCelebration(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(44,34,24,0.55)', backdropFilter: 'blur(2px)' }}
+          />
+          {/* Card */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            width: '100%', maxWidth: 430, zIndex: 201,
+            background: '#FAF6EF', borderRadius: '24px 24px 0 0',
+            padding: '24px 20px max(28px, env(safe-area-inset-bottom))',
+            boxShadow: '0 -8px 40px rgba(44,34,24,0.22)',
+          }}>
+            {/* Drag handle */}
+            <div style={{ width: 36, height: 4, background: '#E4D9C8', borderRadius: 999, margin: '0 auto 20px' }} />
+
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 52, marginBottom: 10 }}>🎉</div>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#2C2218', marginBottom: 6 }}>
+                Pattern complete!
+              </h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.6 }}>
+                Every {pattern.meta.stitchStyle === 'c2c' ? 'diagonal' : 'row'} done.
+                {lastCompleted !== null && ` ${pattern.meta.stitchStyle === 'c2c' ? 'Diagonal' : 'Row'} ${lastCompleted + 1} was the last one.`}
+              </p>
+            </div>
+
+            {/* 25% off coupon card */}
+            <div style={{ marginBottom: 16 }}>
+              <DiscountClubCard
+                saveLink={typeof window !== 'undefined' ? window.location.href : ''}
+                linkLabel="progress"
+                couponTier="25"
+                maxWidth={430}
+              />
+            </div>
+
+            <button
+              onClick={() => setShowCelebration(false)}
+              style={{
+                width: '100%', padding: '13px',
+                background: 'white', color: '#6B5744',
+                border: '1.5px solid #EDE4D8', borderRadius: 12,
+                fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ── Sticky action bar ─────────────────────────────────────────────── */}
       <div style={{

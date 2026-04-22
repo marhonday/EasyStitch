@@ -194,11 +194,12 @@ export default function TrackListPage() {
           })}
         </div>
 
-        {/* Discount Club */}
+        {/* Discount Club — 25% off for tracker users */}
         <div style={{ width: '100%', maxWidth: 400, marginTop: 24 }}>
           <DiscountClubCard
             saveLink={typeof window !== 'undefined' ? window.location.href : ''}
             linkLabel="progress"
+            couponTier="25"
           />
         </div>
 

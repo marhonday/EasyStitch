@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { setUnlockRecord } from '@/lib/unlock'
+import DiscountClubCard from '@/components/ui/DiscountClubCard'
 
 function SuccessInner() {
   const searchParams = useSearchParams()
@@ -47,9 +48,13 @@ function SuccessInner() {
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             You&apos;re unlocked!
           </h1>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744' }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', marginBottom: 24 }}>
             Taking you to your pattern now…
           </p>
+          {/* 50% loyalty reward for buyers */}
+          <div style={{ width: '100%', maxWidth: 360 }}>
+            <DiscountClubCard couponTier="50" />
+          </div>
         </>
       )}
       {status === 'error' && (

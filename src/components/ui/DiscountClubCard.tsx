@@ -6,27 +6,76 @@ import { useState } from 'react'
 // Set the notification email to your address — every sign-up will land in your inbox.
 const FORM_ID = 'mykbzdae'
 
+/**
+ * couponTier controls the discount incentive shown and generated:
+ *   undefined — standard card (no coupon, just email save + discount-club pitch)
+ *   '25'      — progress-tracker page: 25% off next pattern
+ *   '50'      — post-purchase page: 50% off next pattern (loyalty reward)
+ */
+export type CouponTier = '25' | '50'
+
 interface Props {
-  saveLink?: string        // URL to pre-fill the mailto — pattern link or tracker URL
-  linkLabel?: 'pattern' | 'progress'
-  maxWidth?: number
+  saveLink?:   string
+  linkLabel?:  'pattern' | 'progress'
+  maxWidth?:   number
+  couponTier?: CouponTier
 }
 
-export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxWidth = 320 }: Props) {
-  const [email,  setEmail]  = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+const TIER_COPY: Record<CouponTier, { headline: string; sub: string; perk: string; btn: string }> = {
+  '25': {
+    headline: 'Get 25% off your next pattern',
+    sub:      'You\'re tracking a real project — here\'s a reward for it.',
+    perk:     '🎟️ 25% off coupon — emailed instantly when you join',
+    btn:      '🎟️ Join free & get 25% off →',
+  },
+  '50': {
+    headline: 'Welcome back — 50% off your next pattern',
+    sub:      'Thank you for purchasing. Here\'s a loyalty code for your next one.',
+    perk:     '🎟️ 50% off coupon — your loyalty reward, one-time use',
+    btn:      '🎟️ Claim my 50% off →',
+  },
+}
+
+export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxWidth = 320, couponTier }: Props) {
+  const [email,      setEmail]      = useState('')
+  const [status,     setStatus]     = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+  const [couponCode, setCouponCode] = useState<string | null>(null)
   const valid = /\S+@\S+\.\S+/.test(email)
+
+  const tierCopy = couponTier ? TIER_COPY[couponTier] : null
+  const linkWord = linkLabel === 'progress' ? 'progress link' : 'pattern link'
 
   async function handleJoin() {
     if (!valid || status === 'sending') return
     setStatus('sending')
     try {
+      // 1. Capture email via Formspree
       await fetch(`https://formspree.io/f/${FORM_ID}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, type: 'discount_club', save_link: saveLink ?? '' }),
+        body:    JSON.stringify({
+          email,
+          type:      couponTier ? `discount_club_${couponTier}pct` : 'discount_club',
+          save_link: saveLink ?? '',
+        }),
       })
-      // Open mail client pre-filled with their save link so it lands in their inbox
+
+      // 2. If a coupon tier is set, fetch a single-use Stripe promo code server-side
+      if (couponTier) {
+        try {
+          const res  = await fetch('/api/coupon', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email, tier: couponTier }),
+          })
+          const data = await res.json()
+          if (data.code) setCouponCode(data.code)
+        } catch {
+          // Coupon generation failed — still complete the signup
+        }
+      }
+
+      // 3. Open mail client pre-filled with save link (if provided)
       if (saveLink) {
         const subject = encodeURIComponent('Your EasyStitch save link')
         const body    = encodeURIComponent(
@@ -34,21 +83,52 @@ export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxW
         )
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
       }
+
       setStatus('done')
     } catch {
       setStatus('error')
     }
   }
 
-  const linkWord = linkLabel === 'progress' ? 'progress link' : 'pattern link'
-
+  /* ── Success state ──────────────────────────────────────────────────────── */
   if (status === 'done') {
     return (
       <div style={{ width: '100%', maxWidth, background: 'white', borderRadius: 18, boxShadow: '0 2px 12px rgba(44,34,24,0.07)', padding: '16px 18px', textAlign: 'center' }}>
-        <div style={{ fontSize: 28, marginBottom: 8 }}>💌</div>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 4 }}>
-          Welcome to the Discount Club!
+        <div style={{ fontSize: 30, marginBottom: 8 }}>{couponTier ? '🎟️' : '💌'}</div>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 6 }}>
+          {couponTier ? 'You\'re in the club!' : 'Welcome to the Discount Club!'}
         </p>
+
+        {/* Coupon code block */}
+        {couponTier && (
+          <div style={{
+            background: 'rgba(196,97,74,0.07)', border: '1.5px dashed rgba(196,97,74,0.4)',
+            borderRadius: 12, padding: '12px 14px', marginBottom: 10,
+          }}>
+            {couponCode ? (
+              <>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                  Your {couponTier}% off code
+                </p>
+                <p style={{
+                  fontFamily: "'DM Mono', 'Courier New', monospace",
+                  fontSize: 20, fontWeight: 700, color: '#C4614A',
+                  letterSpacing: '0.12em', marginBottom: 6,
+                }}>
+                  {couponCode}
+                </p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', lineHeight: 1.5 }}>
+                  Single-use · enter at checkout · no expiry
+                </p>
+              </>
+            ) : (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', lineHeight: 1.5 }}>
+                Your {couponTier}% off code is on its way — check your inbox shortly.
+              </p>
+            )}
+          </div>
+        )}
+
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6 }}>
           {saveLink
             ? `Your email app should have opened — hit send to save your ${linkWord} to your inbox. We'll send you seasonal discounts too.`
@@ -58,24 +138,30 @@ export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxW
     )
   }
 
+  /* ── Default card ───────────────────────────────────────────────────────── */
   return (
     <div style={{ width: '100%', maxWidth, background: 'white', borderRadius: 18, boxShadow: '0 2px 12px rgba(44,34,24,0.07)', padding: '16px 18px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-        <span style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>💌</span>
+        <span style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>{couponTier ? '🎟️' : '💌'}</span>
         <div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#2C2218', marginBottom: 2 }}>
-            Discount Club — free
+            {tierCopy ? tierCopy.headline : 'Discount Club — free'}
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C4614A', fontWeight: 600 }}>
-            Save your {linkWord} · seasonal discount codes
+            {tierCopy ? tierCopy.sub : `Save your ${linkWord} · seasonal discount codes`}
           </p>
         </div>
       </div>
 
       {/* Perks */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 12 }}>
+        {tierCopy && (
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#C4614A', fontWeight: 600 }}>
+            {tierCopy.perk}
+          </p>
+        )}
         {saveLink && (
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744' }}>
             ✓ Your {linkWord} emailed to you — resume on any device
@@ -124,7 +210,9 @@ export default function DiscountClubCard({ saveLink, linkLabel = 'pattern', maxW
       >
         {status === 'sending'
           ? 'Joining…'
-          : saveLink ? `Join & email me my ${linkWord} →` : 'Join the Discount Club →'}
+          : tierCopy
+            ? tierCopy.btn
+            : saveLink ? `Join & email me my ${linkWord} →` : 'Join the Discount Club →'}
       </button>
     </div>
   )
