@@ -153,7 +153,7 @@ function fallback(vibrantRecommended: number): ComplexityResult {
     colorDiversity: 0,
     score:          0,
     level:          'simple',
-    recommendation: 'graphic',
+    recommendation: 'photo',
     reason:         '',
     suggestedColors: vibrantRecommended,
   }

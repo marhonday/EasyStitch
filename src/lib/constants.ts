@@ -25,8 +25,8 @@ export const GRID_SIZES: GridSize[] = [
 // ─── Default settings ─────────────────────────────────────────────────────────
 
 export const DEFAULT_SETTINGS = {
-  stitchStyle:     'c2c' as StitchStyle,
-  gridSize:        GRID_SIZES[0],
+  stitchStyle:     'singleCrochet' as StitchStyle,
+  gridSize:        GRID_SIZES[2],
   maxColors:       8,
   imageType:       'photo' as ImageType,
   backgroundColor: '#ffffff',
@@ -39,6 +39,7 @@ export interface StitchStyleMeta {
   label:       string
   description: string
   available:   boolean
+  watchOut?:   string
 }
 
 export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
@@ -46,26 +47,29 @@ export const STITCH_STYLE_META: Record<StitchStyle, StitchStyleMeta> = {
     label:       'Corner to Corner',
     description: 'Diagonal stitch blocks',
     available:   true,
+    watchOut:    'Portraits — diagonal bias distorts faces',
   },
   singleCrochet: {
     label:       'Single Crochet',
-    description: 'Tight, detailed grid',
+    description: 'Tight, detailed grid — great for most photos',
     available:   true,
   },
   graphghan: {
     label:       'Graphghan',
     description: 'Filled square cells',
-    available:   false,   // internal alias for singleCrochet engine
+    available:   false,
   },
   tapestry: {
     label:       'Tapestry',
     description: 'Carry yarn across rows',
     available:   true,
+    watchOut:    'Many isolated colour pops per row',
   },
   mosaic: {
     label:       'Mosaic',
     description: 'Two-colour slip stitch',
     available:   true,
+    watchOut:    'Real photos — needs bold shapes, 2 colours max',
   },
   knittingStranded: {
     label:       'Stranded / Fair Isle',

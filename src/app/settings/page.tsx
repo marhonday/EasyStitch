@@ -13,7 +13,7 @@ import { StitchStyle, GridSize, ImageType } from '@/types/pattern'
 const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: string }[] = [
   { id: 'photo',   emoji: '📷', label: 'Photo',     hint: 'Real photo — pet, portrait, flowers, landscape' },
   { id: 'graphic', emoji: '🎨', label: 'Graphic',   hint: 'Logo, clip art, cartoon, flat design' },
-  { id: 'pixel',   emoji: '🔲', label: 'Pixel Art', hint: 'Existing grid pattern or chart' },
+  { id: 'pixel',   emoji: '🔲', label: 'Pixel Art', hint: 'Existing grid or chart — not for real photos' },
 ]
 
 const STITCH_ICONS: Partial<Record<StitchStyle, string>> = {
@@ -297,6 +297,14 @@ function SettingsInner() {
                   }}>
                     {meta.description}
                   </span>
+                  {meta.watchOut && (
+                    <span style={{
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 10,
+                      color: '#b45309', lineHeight: 1.3,
+                    }}>
+                      ⚠ {meta.watchOut}
+                    </span>
+                  )}
                 </button>
               )
             })}
