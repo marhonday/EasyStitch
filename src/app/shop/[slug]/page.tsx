@@ -120,7 +120,7 @@ export default function ShopProductPage() {
   useEffect(() => {
     if (!previewPattern || !canvasRef.current) return
     const cellSize = Math.max(2, Math.floor(280 / previewPattern.meta.width))
-    drawPatternToCanvas(canvasRef.current, previewPattern, { cellSize, gap: 1, showSymbols: false })
+    drawPatternToCanvas(canvasRef.current, previewPattern, { cellSize, gap: 0, showSymbols: false })
   }, [previewPattern])
 
   const charLimit = useMemo(() =>

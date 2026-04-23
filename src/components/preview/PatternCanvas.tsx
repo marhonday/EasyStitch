@@ -120,7 +120,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
     tfRef.current = INITIAL_TRANSFORM
     applyTransform()
@@ -132,7 +132,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellOverrides, paletteOverrides, highlightRow])
@@ -149,7 +149,7 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor })
+    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   }, [pattern, cellSize, cellOverrides, paletteOverrides, highlightRow])
 
@@ -320,7 +320,7 @@ export default function PatternCanvas({
         style={{
           overflow:         'hidden',
           borderRadius:     16,
-          background:       '#FFFFFF',
+          background:       '#FAF6EF',
           touchAction:      zoomMode ? 'none' : 'pan-y',
           cursor:           mouseDragRef.current ? 'grabbing' : 'grab',
           userSelect:       'none',
@@ -383,8 +383,8 @@ export default function PatternCanvas({
         }}>
           Scroll to zoom · Drag to pan · Tap cell to edit colour
           <br />
-          <span style={{ fontSize: 10, color: 'rgba(107,87,68,0.35)' }}>
-            Grid lines shown for editing — your finished piece will look solid
+          <span style={{ fontSize: 11, color: 'rgba(107,87,68,0.65)', fontWeight: 600 }}>
+            Grid lines are for editing only — your finished piece has no gaps
           </span>
         </div>
       )}
