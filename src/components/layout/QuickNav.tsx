@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 /**
  * QuickNav — floating left-edge drawer for the two most common quick actions.
@@ -16,12 +16,20 @@ import { useState } from 'react'
 export default function QuickNav() {
   const pathname = usePathname()
   const router   = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open,     setOpen]     = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Hide on home page, desktop, and all focused task/flow pages
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Hide on home, desktop, and all focused task/flow pages
   const HIDDEN_ON = ['/', '/upload', '/preview', '/export', '/knitting', '/filet',
     '/crossstitch', '/diamondpainting', '/pbn', '/unlock', '/unlock/success']
-  if (HIDDEN_ON.includes(pathname) || pathname.startsWith('/upload')) return null
+  if (!isMobile || HIDDEN_ON.includes(pathname) || pathname.startsWith('/upload')) return null
 
   const ITEMS = [
     { emoji: '🛍️', label: 'Browse Patterns',  sub: 'Ready-made designs', path: '/shop'         },
@@ -35,10 +43,6 @@ export default function QuickNav() {
 
   return (
     <>
-      {/* Hidden on desktop — hamburger menu covers all the same links */}
-      <style>{`@media(min-width:640px){.quicknav-root{display:none!important}}`}</style>
-
-      <div className="quicknav-root" style={{ display: 'contents' }}>
 
       {/* Backdrop — closes menu when tapping outside */}
       {open && (
@@ -149,7 +153,6 @@ export default function QuickNav() {
         <span style={{ fontSize: 14, lineHeight: 1 }}>{open ? '✕' : '⚡'}</span>
       </button>
 
-      </div>
     </>
   )
 }
