@@ -717,10 +717,12 @@ export default function PreviewPage() {
                 <button
                   onClick={() => {
                     if (!patternData) return
-                    // Generate small thumbnail
+                    // Bake any colour swaps the admin made into the saved pattern
+                    const savedPattern = { ...patternData, palette: activePalette }
+                    // Generate small thumbnail using the colour-corrected version
                     let thumbnail = ''
                     if (thumbCanvasRef.current) {
-                      drawPatternToCanvas(thumbCanvasRef.current, patternData, { cellSize: 4, gap: 0, showSymbols: false })
+                      drawPatternToCanvas(thumbCanvasRef.current, savedPattern, { cellSize: 4, gap: 0, showSymbols: false })
                       thumbnail = thumbCanvasRef.current.toDataURL('image/jpeg', 0.5)
                     }
                     const variant = {
@@ -729,7 +731,7 @@ export default function PreviewPage() {
                       height:      patternData.meta.height,
                       stitchStyle: patternData.meta.stitchStyle,
                       price:       Math.round(parseFloat(shopPrice) * 100),
-                      patternData,
+                      patternData: savedPattern,
                     }
                     if (shopAddToId === '__new__') {
                       createTemplate({
