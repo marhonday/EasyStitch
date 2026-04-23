@@ -103,6 +103,17 @@ export default function HomePage() {
           accent="#7C5CBF"
         />
 
+        {/* Paint by Number */}
+        <PathCard
+          href="/pbn"
+          emoji="🎨"
+          title="Paint by Number — $1"
+          description="Turn any photo into a printable paint-by-number page. Numbered regions, clean outlines, instant download."
+          badge="$1"
+          badgeColor="#E8820C"
+          accent="#E8820C"
+        />
+
       </section>
 
       {/* ── Quick links row ───────────────────────────────────────────────── */}
