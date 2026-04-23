@@ -667,12 +667,16 @@ export default function PreviewPage() {
                   <button onClick={() => { setShowShopModal(false); router.push('/shop') }} style={{ padding: '9px 18px', background: '#4A9050', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View shop →</button>
                   <button
                     onClick={async () => {
-                      const json = await exportLibraryJson()
-                      const blob = new Blob([json], { type: 'application/json' })
-                      const url  = URL.createObjectURL(blob)
-                      const a    = document.createElement('a'); a.href = url; a.download = 'shopTemplates.json'
-                      document.body.appendChild(a); a.click(); document.body.removeChild(a)
-                      setTimeout(() => URL.revokeObjectURL(url), 1000)
+                      const { full, index } = await exportLibraryJson()
+                      function dl(content: string, name: string) {
+                        const blob = new Blob([content], { type: 'application/json' })
+                        const url  = URL.createObjectURL(blob)
+                        const a    = document.createElement('a'); a.href = url; a.download = name
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a)
+                        setTimeout(() => URL.revokeObjectURL(url), 1000)
+                      }
+                      dl(full,  'shopTemplates.json')
+                      dl(index, 'shopIndex.json')
                     }}
                     style={{ padding: '9px 18px', background: '#2C2218', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                   >

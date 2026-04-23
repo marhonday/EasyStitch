@@ -483,14 +483,18 @@ export default function ExportPage() {
                   <button onClick={() => router.push('/shop')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', cursor: 'pointer', textDecoration: 'underline' }}>View shop →</button>
                   <button
                     onClick={async () => {
-                      const json = await exportLibraryJson()
-                      const blob = new Blob([json], { type: 'application/json' })
-                      const url  = URL.createObjectURL(blob)
-                      const a    = document.createElement('a')
-                      a.href = url; a.download = 'shopTemplates.json'
-                      document.body.appendChild(a); a.click()
-                      document.body.removeChild(a)
-                      setTimeout(() => URL.revokeObjectURL(url), 1000)
+                      const { full, index } = await exportLibraryJson()
+                      function dl(content: string, name: string) {
+                        const blob = new Blob([content], { type: 'application/json' })
+                        const url  = URL.createObjectURL(blob)
+                        const a    = document.createElement('a')
+                        a.href = url; a.download = name
+                        document.body.appendChild(a); a.click()
+                        document.body.removeChild(a)
+                        setTimeout(() => URL.revokeObjectURL(url), 1000)
+                      }
+                      dl(full,  'shopTemplates.json')
+                      dl(index, 'shopIndex.json')
                     }}
                     style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#2C2218', cursor: 'pointer', textDecoration: 'underline' }}
                   >

@@ -32,6 +32,31 @@ export interface ShopVariant {
   patternData: PatternData
 }
 
+/** Lightweight variant — no patternData. Used on shop listing page. */
+export interface ShopIndexVariant {
+  id:          string
+  label:       string
+  width:       number
+  height:      number
+  stitchStyle: string
+  price:       number
+}
+
+/** Lightweight template — no patternData in variants. Used on shop listing page. */
+export interface ShopIndexTemplate {
+  id:                   string
+  slug:                 string
+  title:                string
+  description:          string
+  tags:                 string[]
+  category:             string
+  thumbnail:            string
+  variants:             ShopIndexVariant[]
+  allowPersonalization: boolean
+  published:            boolean
+  createdAt:            number
+}
+
 export interface ShopTemplate {
   id:                   string
   slug:                 string
@@ -48,7 +73,8 @@ export interface ShopTemplate {
 
 // ── Seed fetch (public/shopTemplates.json — NOT bundled) ──────────────────────
 
-let _seedCache: ShopTemplate[] | null = null
+let _seedCache:  ShopTemplate[]      | null = null
+let _indexCache: ShopIndexTemplate[] | null = null
 
 async function fetchSeed(): Promise<ShopTemplate[]> {
   if (_seedCache !== null) return _seedCache
@@ -59,6 +85,17 @@ async function fetchSeed(): Promise<ShopTemplate[]> {
     _seedCache = await res.json()
     return _seedCache!
   } catch { _seedCache = []; return [] }
+}
+
+async function fetchSeedIndex(): Promise<ShopIndexTemplate[]> {
+  if (_indexCache !== null) return _indexCache
+  if (typeof window === 'undefined') return []
+  try {
+    const res = await fetch('/shopIndex.json', { cache: 'force-cache' })
+    if (!res.ok) { _indexCache = []; return [] }
+    _indexCache = await res.json()
+    return _indexCache!
+  } catch { _indexCache = []; return [] }
 }
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -100,6 +137,26 @@ export async function fetchPublishedTemplates(): Promise<ShopTemplate[]> {
   return (await fetchAll()).filter(t => t.published)
 }
 
+/**
+ * Lightweight fetch for the shop listing page — no patternData.
+ * Merges shopIndex.json (seed) with any locally-staged templates (localStorage).
+ */
+export async function fetchPublishedIndex(): Promise<ShopIndexTemplate[]> {
+  const [seedIdx, local] = await Promise.all([
+    fetchSeedIndex(),
+    Promise.resolve(loadLocal()),
+  ])
+  // Local templates override seed by id; strip patternData from local ones
+  const localIdx: ShopIndexTemplate[] = local.map(t => ({
+    ...t,
+    variants: t.variants.map(({ id, label, width, height, stitchStyle, price }) =>
+      ({ id, label, width, height, stitchStyle, price })
+    ),
+  }))
+  const localIds = new Set(localIdx.map(t => t.id))
+  return [...seedIdx.filter(t => !localIds.has(t.id)), ...localIdx].filter(t => t.published)
+}
+
 export async function fetchTemplateBySlug(slug: string): Promise<ShopTemplate | null> {
   return (await fetchAll()).find(t => t.slug === slug) ?? null
 }
@@ -118,12 +175,20 @@ export function getAllTemplates(): ShopTemplate[] {
 // ── Export helper ─────────────────────────────────────────────────────────────
 
 /**
- * Downloads ALL templates (seed + local) as shopTemplates.json.
- * Replace public/shopTemplates.json with this file and push to deploy.
+ * Returns { full, index } JSON strings.
+ * Replace public/shopTemplates.json + public/shopIndex.json and push to deploy.
  */
-export async function exportLibraryJson(): Promise<string> {
+export async function exportLibraryJson(): Promise<{ full: string; index: string }> {
   const all = await fetchAll()
-  return JSON.stringify(all, null, 2)
+  const idx = all.map(t => ({
+    id: t.id, slug: t.slug, title: t.title, description: t.description,
+    tags: t.tags, category: t.category, thumbnail: t.thumbnail,
+    allowPersonalization: t.allowPersonalization, published: t.published, createdAt: t.createdAt,
+    variants: t.variants.map(({ id, label, width, height, stitchStyle, price }) =>
+      ({ id, label, width, height, stitchStyle, price })
+    ),
+  }))
+  return { full: JSON.stringify(all, null, 2), index: JSON.stringify(idx, null, 2) }
 }
 
 // ── Write operations (localStorage) ──────────────────────────────────────────
