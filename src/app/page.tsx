@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 export default function HomePage() {
   const router = useRouter()
@@ -94,69 +93,15 @@ export default function HomePage() {
 
         {/* Track Progress */}
         <PathCard
-          href="/track"
+          href="/track/upload"
           emoji="📋"
-          title="Track Your Progress"
-          description="Upload any pattern — graphgan, cross-stitch, or knitting — and follow it row by row with colour guides."
-          badge="Free counter"
+          title="Free Row Counter &amp; Tracker"
+          description="Upload any pattern chart and follow it row by row with live colour guides. Free, no account needed."
+          badge="Free"
           badgeColor="#7C5CBF"
           accent="#7C5CBF"
         />
 
-      </section>
-
-      {/* ── Free row counter card ─────────────────────────────────────────── */}
-      <section style={{ width: '100%', maxWidth: 440, padding: '20px 20px 0' }}>
-        <div style={{ height: 1, background: '#EDE4D8', marginBottom: 20 }} />
-
-        <p style={{
-          fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700,
-          color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.08em',
-          marginBottom: 12,
-        }}>
-          Start a project right now — free
-        </p>
-
-        <Link href="/track/upload" style={{ textDecoration: 'none', display: 'block' }}>
-          <div style={{
-            background: 'white', borderRadius: 18,
-            border: '1.5px solid #C4614A',
-            padding: '18px 16px',
-            boxShadow: '0 3px 16px rgba(196,97,74,0.13)',
-            display: 'flex', alignItems: 'center', gap: 16,
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 5px 22px rgba(196,97,74,0.20)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 3px 16px rgba(196,97,74,0.13)')}
-          >
-            <div style={{
-              width: 54, height: 54, borderRadius: 14, flexShrink: 0,
-              background: 'rgba(196,97,74,0.10)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 26,
-            }}>
-              📋
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: '#2C2218' }}>
-                  Free Crochet Row Counter
-                </p>
-                <span style={{
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-                  color: '#7C5CBF', background: 'rgba(124,92,191,0.10)',
-                  borderRadius: 999, padding: '2px 8px',
-                  textTransform: 'uppercase', letterSpacing: '0.04em',
-                }}>
-                  Free
-                </span>
-              </div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.45 }}>
-                Upload any pattern chart and track every row with live colour guidance — no account needed.
-              </p>
-            </div>
-            <span style={{ fontSize: 18, color: '#C4614A', flexShrink: 0 }}>→</span>
-          </div>
-        </Link>
       </section>
 
       {/* ── Quick links row ───────────────────────────────────────────────── */}

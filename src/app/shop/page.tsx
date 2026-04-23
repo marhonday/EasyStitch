@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,6 +16,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
   names:    '✏️',
   nature:   '🌿',
   other:    '⭐',
+}
+
+const STYLE_EMOJI: Record<string, string> = {
+  'All Styles':        '✨',
+  'Single Crochet':    '▦',
+  'C2C':               '◪',
+  'Tapestry Crochet':  '⬛',
+  'Mosaic Crochet':    '◈',
+  'Cross Stitch':      '✚',
+  'Knitting':          '🧵',
+  'Filet Crochet':     '🕸️',
 }
 
 function priceRange(t: ShopTemplate): string {
@@ -79,7 +90,7 @@ function TemplateCard({ template, onClick }: { template: ShopTemplate; onClick: 
             {range}
           </span>
           <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#C4614A', background: 'rgba(196,97,74,0.08)', borderRadius: 8, padding: '3px 8px' }}>
-            Buy →
+            View →
           </span>
         </div>
       </div>
@@ -91,17 +102,26 @@ export default function ShopPage() {
   const router    = useRouter()
   const [templates, setTemplates] = useState<ShopTemplate[]>([])
   const [category,  setCategory]  = useState('all')
+  const [style,     setStyle]     = useState('All Styles')
 
   useEffect(() => { setTemplates(getPublishedTemplates()) }, [])
 
-  const filtered = category === 'all'
-    ? templates
-    : templates.filter(t => t.category === category)
-
-  // Only show categories that have at least one template
+  // Categories that have at least one template
   const activeCategories = CATEGORIES.filter(c =>
     c === 'all' || templates.some(t => t.category === c)
   )
+
+  // Styles available across all templates
+  const activeStyles = ['All Styles', ...Array.from(
+    new Set(templates.flatMap(t => t.variants.map(v => v.stitchStyle)))
+  ).sort()]
+
+  // Apply both filters
+  const filtered = templates.filter(t => {
+    const catMatch   = category === 'all' || t.category === category
+    const styleMatch = style === 'All Styles' || t.variants.some(v => v.stitchStyle === style)
+    return catMatch && styleMatch
+  })
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
@@ -110,7 +130,7 @@ export default function ShopPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 20px 80px' }}>
 
         {/* Hero */}
-        <div style={{ width: '100%', maxWidth: 460, textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ width: '100%', maxWidth: 460, textAlign: 'center', marginBottom: 20 }}>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             Ready-Made Patterns
           </h1>
@@ -121,27 +141,73 @@ export default function ShopPage() {
 
         {/* Category filter */}
         {activeCategories.length > 1 && (
-          <div style={{ width: '100%', maxWidth: 460, overflowX: 'auto', marginBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
-              {activeCategories.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setCategory(c)}
-                  style={{
-                    flexShrink: 0,
-                    padding: '7px 14px',
-                    background: category === c ? '#C4614A' : 'white',
-                    color:      category === c ? 'white' : '#6B5744',
-                    border:     `1.5px solid ${category === c ? '#C4614A' : '#E4D9C8'}`,
-                    borderRadius: 999,
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: category === c ? 700 : 400,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {CATEGORY_EMOJI[c]} {c.charAt(0).toUpperCase() + c.slice(1)}
-                </button>
-              ))}
+          <div style={{ width: '100%', maxWidth: 460, marginBottom: 8 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+              Category
+            </p>
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
+                {activeCategories.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setCategory(c)}
+                    style={{
+                      flexShrink: 0,
+                      padding: '7px 14px',
+                      background: category === c ? '#C4614A' : 'white',
+                      color:      category === c ? 'white' : '#6B5744',
+                      border:     `1.5px solid ${category === c ? '#C4614A' : '#E4D9C8'}`,
+                      borderRadius: 999,
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: category === c ? 700 : 400,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {CATEGORY_EMOJI[c]} {c.charAt(0).toUpperCase() + c.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Style filter — only shown when more than one style exists */}
+        {activeStyles.length > 2 && (
+          <div style={{ width: '100%', maxWidth: 460, marginBottom: 16 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+              Stitch Style
+            </p>
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
+                {activeStyles.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStyle(s)}
+                    style={{
+                      flexShrink: 0,
+                      padding: '7px 14px',
+                      background: style === s ? '#2C2218' : 'white',
+                      color:      style === s ? 'white' : '#6B5744',
+                      border:     `1.5px solid ${style === s ? '#2C2218' : '#E4D9C8'}`,
+                      borderRadius: 999,
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: style === s ? 700 : 400,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {STYLE_EMOJI[s] ?? '🧶'} {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results count */}
+        {templates.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 460, marginBottom: 12 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+              {filtered.length} pattern{filtered.length !== 1 ? 's' : ''}
+              {category !== 'all' || style !== 'All Styles' ? ' matching your filters' : ''}
+            </p>
           </div>
         )}
 
@@ -156,8 +222,25 @@ export default function ShopPage() {
               />
             ))}
           </div>
+        ) : templates.length > 0 ? (
+          /* No results for current filters */
+          <div style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 32, gap: 10 }}>
+            <div style={{ fontSize: 40 }}>🔍</div>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#2C2218' }}>
+              No patterns match
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#9A8878', textAlign: 'center', maxWidth: 260 }}>
+              Try a different category or style filter.
+            </p>
+            <button
+              onClick={() => { setCategory('all'); setStyle('All Styles') }}
+              style={{ marginTop: 4, padding: '10px 20px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Clear filters
+            </button>
+          </div>
         ) : (
-          /* Empty state */
+          /* Empty state — no templates at all */
           <div style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40, gap: 12 }}>
             <div style={{ fontSize: 52 }}>🧶</div>
             <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#2C2218' }}>
@@ -167,10 +250,10 @@ export default function ShopPage() {
               We&apos;re adding new ready-made designs each week — football blankets, dog breeds, holidays, and more.
             </p>
             <button
-              onClick={() => router.push('/upload')}
+              onClick={() => router.push('/create')}
               style={{ marginTop: 8, padding: '13px 24px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 16px rgba(196,97,74,0.25)' }}
             >
-              Make your own pattern →
+              Convert your own photo →
             </button>
           </div>
         )}
@@ -185,10 +268,10 @@ export default function ShopPage() {
               Upload any photo and CraftWabi will turn it into a stitch-by-stitch pattern in seconds.
             </p>
             <button
-              onClick={() => router.push('/upload')}
+              onClick={() => router.push('/create')}
               style={{ padding: '11px 24px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
-              + Make a custom pattern
+              + Convert your own photo
             </button>
           </div>
         )}
