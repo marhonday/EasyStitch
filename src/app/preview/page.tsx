@@ -17,6 +17,7 @@ import { usePattern }     from '@/context/PatternContext'
 import { isUnlocked } from '@/lib/unlock'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import { ColorEntry }     from '@/types/pattern'
+import { createTemplate, addVariant, getAllTemplates, exportLibraryJson } from '@/lib/shopStore'
 import {
   applyPersonalizationToPattern,
   getPersonalizationCharLimit,
@@ -152,6 +153,27 @@ export default function PreviewPage() {
   function handleColorChange(paletteIndex: number, newHex: string) {
     setColorOverrides(prev => ({ ...prev, [paletteIndex]: newHex }))
   }
+
+  // ── Admin: Save to Shop ───────────────────────────────────────────────
+  const [isAdmin,        setIsAdmin]        = useState(false)
+  const [showShopModal,  setShowShopModal]  = useState(false)
+  const [shopTitle,      setShopTitle]      = useState('')
+  const [shopCategory,   setShopCategory]   = useState('sports')
+  const [shopDesc,       setShopDesc]       = useState('')
+  const [shopTags,       setShopTags]       = useState('')
+  const [shopAddToId,    setShopAddToId]    = useState('__new__')
+  const [shopSizeLabel,  setShopSizeLabel]  = useState('')
+  const [shopPrice,      setShopPrice]      = useState('2.00')
+  const [shopSaved,      setShopSaved]      = useState(false)
+  const thumbCanvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fromUrl = new URLSearchParams(window.location.search).get('admin') === '1'
+      if (fromUrl) sessionStorage.setItem('cw_admin', '1')
+      setIsAdmin(fromUrl || sessionStorage.getItem('cw_admin') === '1')
+    }
+  }, [])
 
   // Grid line colour for the preview canvas
   const [gridLineColor, setGridLineColor] = useState<string>('#FFFFFF')
@@ -301,6 +323,23 @@ export default function PreviewPage() {
             highlightRow={highlightGridRow}
             gapColor={gridLineColor}
           />
+
+          {/* Grid-line disclaimer */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 7,
+            background: 'rgba(196,97,74,0.07)',
+            border: '1px solid rgba(196,97,74,0.18)',
+            borderRadius: 10, padding: '8px 12px',
+            marginTop: 6,
+          }}>
+            <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>💡</span>
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12, color: '#7A4A38', lineHeight: 1.5,
+            }}>
+              <strong>The grid lines are counting guides only</strong> — your finished piece will have no gaps or spaces between stitches. If the background is white or cream, those areas are simply unstitched fabric.
+            </p>
+          </div>
 
           {/* Cell color picker popover */}
           {cellPopover && (
@@ -598,6 +637,132 @@ export default function PreviewPage() {
 
       </section>
 
+      {/* Hidden thumbnail canvas for admin Save to Shop */}
+      <canvas ref={thumbCanvasRef} style={{ display: 'none' }} aria-hidden />
+
+      {/* ── Admin: Save to Shop modal ──────────────────────────────────── */}
+      {isAdmin && showShopModal && patternData && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(44,34,24,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}
+          onClick={e => { if (e.target === e.currentTarget) setShowShopModal(false) }}
+        >
+          <div style={{
+            width: '100%', maxWidth: 430,
+            background: 'white', borderRadius: '20px 20px 0 0',
+            padding: '20px 18px max(24px, env(safe-area-inset-bottom))',
+            display: 'flex', flexDirection: 'column', gap: 10,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 16, color: '#2C2218' }}>🛍 Save to Shop</p>
+              <button onClick={() => setShowShopModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#9A8878', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+
+            {shopSaved ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: '#4A9050', marginBottom: 8 }}>✓ Saved to shop!</p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button onClick={() => { setShowShopModal(false); router.push('/shop') }} style={{ padding: '9px 18px', background: '#4A9050', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View shop →</button>
+                  <button
+                    onClick={() => {
+                      const json = exportLibraryJson()
+                      const blob = new Blob([json], { type: 'application/json' })
+                      const url  = URL.createObjectURL(blob)
+                      const a    = document.createElement('a'); a.href = url; a.download = 'shopTemplates.json'
+                      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+                      setTimeout(() => URL.revokeObjectURL(url), 1000)
+                    }}
+                    style={{ padding: '9px 18px', background: '#2C2218', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    📥 Export Library JSON
+                  </button>
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', marginTop: 10, lineHeight: 1.5 }}>
+                  Replace <code>src/data/shopTemplates.json</code> with the downloaded file, then push to deploy.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Add to existing or new */}
+                <select value={shopAddToId} onChange={e => setShopAddToId(e.target.value)} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218' }}>
+                  <option value="__new__">➕ Create new template</option>
+                  {getAllTemplates().map(t => (
+                    <option key={t.id} value={t.id}>{t.title} ({t.variants.length} variant{t.variants.length !== 1 ? 's' : ''})</option>
+                  ))}
+                </select>
+
+                {shopAddToId === '__new__' && (
+                  <>
+                    <input value={shopTitle} onChange={e => setShopTitle(e.target.value)} placeholder="Pattern title  e.g. Football C2C Blanket" style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '10px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218' }} />
+                    <textarea value={shopDesc} onChange={e => setShopDesc(e.target.value)} placeholder="Short description (optional)" rows={2} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, resize: 'none' }} />
+                    <input value={shopTags} onChange={e => setShopTags(e.target.value)} placeholder="Tags: football, sports, boy" style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }} />
+                    <select value={shopCategory} onChange={e => setShopCategory(e.target.value)} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+                      {['sports','animals','holidays','names','baby','nature','other'].map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+                    </select>
+                  </>
+                )}
+
+                <input value={shopSizeLabel} onChange={e => setShopSizeLabel(e.target.value)} placeholder={`Size label  e.g. Throw ${patternData.meta.width}×${patternData.meta.height}`} style={{ border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '9px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }} />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B5744' }}>$ Price:</span>
+                  <input type="number" min="0.50" step="0.50" value={shopPrice} onChange={e => setShopPrice(e.target.value)} style={{ width: 80, border: '1.5px solid #E4D9C8', borderRadius: 10, padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
+                    {patternData.meta.width}×{patternData.meta.height} · {patternData.meta.stitchStyle}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (!patternData) return
+                    // Generate small thumbnail
+                    let thumbnail = ''
+                    if (thumbCanvasRef.current) {
+                      drawPatternToCanvas(thumbCanvasRef.current, patternData, { cellSize: 4, gap: 0, showSymbols: false })
+                      thumbnail = thumbCanvasRef.current.toDataURL('image/jpeg', 0.5)
+                    }
+                    const variant = {
+                      label:       shopSizeLabel || `${patternData.meta.width}×${patternData.meta.height}`,
+                      width:       patternData.meta.width,
+                      height:      patternData.meta.height,
+                      stitchStyle: patternData.meta.stitchStyle,
+                      price:       Math.round(parseFloat(shopPrice) * 100),
+                      patternData,
+                    }
+                    if (shopAddToId === '__new__') {
+                      createTemplate({
+                        title:                shopTitle || 'Untitled Pattern',
+                        description:          shopDesc,
+                        tags:                 shopTags.split(',').map(t => t.trim()).filter(Boolean),
+                        category:             shopCategory,
+                        thumbnail,
+                        allowPersonalization: true,
+                        variant,
+                      })
+                    } else {
+                      addVariant(shopAddToId, variant)
+                    }
+                    setShopSaved(true)
+                  }}
+                  disabled={shopAddToId === '__new__' && !shopTitle.trim()}
+                  style={{
+                    width: '100%', padding: '13px',
+                    background: (shopAddToId !== '__new__' || shopTitle.trim()) ? '#2C2218' : '#C8BFB0',
+                    color: 'white', border: 'none', borderRadius: 12,
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
+                    cursor: (shopAddToId !== '__new__' || shopTitle.trim()) ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  Save to Shop Library
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Fixed bottom bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: '50%',
@@ -623,6 +788,20 @@ export default function PreviewPage() {
         >
           + Add a Name or Date
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => { setShopSaved(false); setShopTitle(''); setShowShopModal(true) }}
+            style={{
+              width: '100%', padding: '12px 24px',
+              background: '#2C2218', color: 'white',
+              border: 'none', borderRadius: 14,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            🛍 Save to Shop (admin)
+          </button>
+        )}
         <button
           onClick={() => router.push(isUnlocked() ? '/export' : '/unlock?return=/export')}
           style={{

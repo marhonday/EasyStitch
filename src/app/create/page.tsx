@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '@/components/layout/Header'
 
 // ── Gallery items ──────────────────────────────────────────────────────────────
@@ -462,6 +462,13 @@ function FeedbackForm() {
   const [email,   setEmail]   = useState('')
   const [message, setMessage] = useState('')
   const [status,  setStatus]  = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  // Persist admin flag in sessionStorage so it survives upload→preview→export
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin') === '1') {
+      sessionStorage.setItem('cw_admin', '1')
+    }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

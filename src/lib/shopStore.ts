@@ -13,6 +13,7 @@
  */
 
 import { PatternData } from '@/types/pattern'
+import seedData from '@/data/shopTemplates.json'
 
 const KEY = 'easystitch_shop_v1'
 
@@ -44,7 +45,10 @@ export interface ShopTemplate {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function load(): ShopTemplate[] {
+/** Items baked into the build — visible to every visitor. */
+const SEED: ShopTemplate[] = seedData as ShopTemplate[]
+
+function loadLocal(): ShopTemplate[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(KEY)
@@ -52,9 +56,34 @@ function load(): ShopTemplate[] {
   } catch { return [] }
 }
 
+/**
+ * Returns seed templates + any locally-staged ones (localStorage).
+ * If a local item shares an ID with a seed item, the local version wins
+ * (so admin edits override the shipped version until next deploy).
+ */
+function load(): ShopTemplate[] {
+  const local   = loadLocal()
+  const localIds = new Set(local.map(t => t.id))
+  return [...SEED.filter(t => !localIds.has(t.id)), ...local]
+}
+
 function save(templates: ShopTemplate[]): void {
   if (typeof window === 'undefined') return
-  localStorage.setItem(KEY, JSON.stringify(templates))
+  // Only persist items that aren't unmodified seed templates,
+  // to keep localStorage lean after export-and-commit cycles.
+  const seedIds = new Set(SEED.map(t => t.id))
+  const toStore = templates.filter(t => !seedIds.has(t.id))
+  localStorage.setItem(KEY, JSON.stringify(toStore))
+}
+
+/**
+ * Returns ALL current templates (seed + local) as a JSON string
+ * suitable for replacing src/data/shopTemplates.json and committing.
+ * Thumbnails are stripped to keep the file small; re-generated on load.
+ */
+export function exportLibraryJson(): string {
+  const all = load()
+  return JSON.stringify(all, null, 2)
 }
 
 function uid(): string {

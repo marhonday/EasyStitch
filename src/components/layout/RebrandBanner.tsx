@@ -14,42 +14,47 @@ export default function RebrandBanner() {
     <div style={{
       width: '100%',
       background: '#C4614A',
-      padding: '10px 16px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      position: 'relative',
     }}>
-      <p style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 13,
-        fontWeight: 600,
-        color: 'white',
-        textAlign: 'center',
-        lineHeight: 1.4,
+      {/* Inner row — capped at app width so desktop doesn't look blown out */}
+      <div style={{
+        maxWidth: 480,
+        margin: '0 auto',
+        padding: '10px 40px 10px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
       }}>
-        🧶 EasyStitch is now <strong>CraftWabi</strong> — same tool, new name. Bookmarks and old links still work.
-      </p>
-      <button
-        onClick={() => setDismissed(true)}
-        aria-label="Dismiss"
-        style={{
-          position: 'absolute',
-          right: 12,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'none',
-          border: 'none',
-          color: 'rgba(255,255,255,0.75)',
-          fontSize: 18,
-          cursor: 'pointer',
-          lineHeight: 1,
-          padding: '4px 6px',
-        }}
-      >
-        ×
-      </button>
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'white',
+          textAlign: 'center',
+          lineHeight: 1.4,
+        }}>
+          🧶 EasyStitch is now <strong>CraftWabi</strong> — same tool, new name. Bookmarks and old links still work.
+        </p>
+        <button
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.75)',
+            fontSize: 18,
+            cursor: 'pointer',
+            lineHeight: 1,
+            padding: '4px 8px',
+          }}
+        >
+          ×
+        </button>
+      </div>
     </div>
   )
 }

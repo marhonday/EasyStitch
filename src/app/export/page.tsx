@@ -18,7 +18,7 @@ import { logEvent } from '@/lib/log'
 import LifestylePreview from '@/components/LifestylePreview'
 import { patternFromPatternData, saveTracked } from '@/lib/patternTracker'
 import DiscountClubCard from '@/components/ui/DiscountClubCard'
-import { createTemplate, addVariant, getAllTemplates, slugify } from '@/lib/shopStore'
+import { createTemplate, addVariant, getAllTemplates, slugify, exportLibraryJson } from '@/lib/shopStore'
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
@@ -58,7 +58,10 @@ export default function ExportPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsAdmin(new URLSearchParams(window.location.search).get('admin') === '1')
+      // Persist admin flag across the whole session (survives upload→preview→export navigation)
+      const fromUrl = new URLSearchParams(window.location.search).get('admin') === '1'
+      if (fromUrl) sessionStorage.setItem('cw_admin', '1')
+      setIsAdmin(fromUrl || sessionStorage.getItem('cw_admin') === '1')
     }
   }, [])
 
@@ -67,7 +70,8 @@ export default function ExportPage() {
     return encodePatternToUrl(exportPattern)
   }
 
-  const pngCanvasRef = useRef<HTMLCanvasElement>(null)
+  const pngCanvasRef     = useRef<HTMLCanvasElement>(null)
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const { patternData } = state
 
@@ -86,6 +90,12 @@ export default function ExportPage() {
   useEffect(() => {
     if (!exportPattern || !pngCanvasRef.current) return
     drawPatternToCanvas(pngCanvasRef.current, exportPattern, { cellSize: 20, gap: 1, showSymbols: true })
+  }, [exportPattern])
+
+  // Small visible preview so users can confirm name/date is included
+  useEffect(() => {
+    if (!exportPattern || !previewCanvasRef.current) return
+    drawPatternToCanvas(previewCanvasRef.current, exportPattern, { cellSize: 5, gap: 0, showSymbols: false })
   }, [exportPattern])
 
   function handleSaveProject() {
@@ -246,7 +256,8 @@ export default function ExportPage() {
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#FAF6EF' }}>
       <Header /><StepIndicator />
-      <canvas ref={pngCanvasRef} style={{ display: 'none' }} aria-hidden />
+      <canvas ref={pngCanvasRef}     style={{ display: 'none' }} aria-hidden />
+      <canvas ref={previewCanvasRef} style={{ display: 'none' }} aria-hidden />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 20px 100px' }}>
 
@@ -281,6 +292,27 @@ export default function ExportPage() {
             }}
           />
         </div>
+
+        {/* ── Pattern visual preview (confirms name/date included) ─────── */}
+        {exportPattern && (
+          <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 16px rgba(44,34,24,0.07)', padding: 16, marginBottom: 16, overflow: 'hidden' }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              Your pattern preview
+              {state.personalization?.enabled && (state.personalization.titleText || state.personalization.dateText) && (
+                <span style={{ marginLeft: 8, color: '#4A9050', fontWeight: 700 }}>✓ Name/date included</span>
+              )}
+            </p>
+            <div style={{ width: '100%', overflowX: 'auto', borderRadius: 10, background: '#FAF6EF', textAlign: 'center', padding: '6px 0' }}>
+              <canvas
+                ref={previewCanvasRef}
+                style={{ imageRendering: 'pixelated', maxWidth: '100%', display: 'block', margin: '0 auto' }}
+              />
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#B8AAA0', marginTop: 8, textAlign: 'center' }}>
+              Scroll right if the pattern is wide · grid lines are counting guides only
+            </p>
+          </div>
+        )}
 
         {/* Pattern summary */}
         {exportPattern && (
@@ -447,7 +479,24 @@ export default function ExportPage() {
             {shopSaved ? (
               <div style={{ background: 'rgba(74,144,80,0.08)', border: '1.5px solid rgba(74,144,80,0.25)', borderRadius: 14, padding: '14px 16px', textAlign: 'center' }}>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#4A9050' }}>✓ Saved to Shop!</p>
-                <button onClick={() => router.push('/shop')} style={{ marginTop: 8, background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', cursor: 'pointer', textDecoration: 'underline' }}>View shop →</button>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+                  <button onClick={() => router.push('/shop')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', cursor: 'pointer', textDecoration: 'underline' }}>View shop →</button>
+                  <button
+                    onClick={() => {
+                      const json = exportLibraryJson()
+                      const blob = new Blob([json], { type: 'application/json' })
+                      const url  = URL.createObjectURL(blob)
+                      const a    = document.createElement('a')
+                      a.href = url; a.download = 'shopTemplates.json'
+                      document.body.appendChild(a); a.click()
+                      document.body.removeChild(a)
+                      setTimeout(() => URL.revokeObjectURL(url), 1000)
+                    }}
+                    style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#2C2218', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    📥 Export Library JSON (to commit)
+                  </button>
+                </div>
               </div>
             ) : !showShopPanel ? (
               <button
