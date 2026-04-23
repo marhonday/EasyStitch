@@ -40,7 +40,7 @@ function UnlockInner() {
   const params    = useSearchParams()
   const returnUrl = params.get('return') ?? '/export'
   const tier      = params.get('type') === 'graphic' ? 'graphic' : 'photo'
-  const price     = '$3'
+  const price     = '$2'
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
 
@@ -138,7 +138,7 @@ function UnlockInner() {
           <div style={{ background: '#FAF6EF', borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.55 }}>
-              <strong style={{ color: '#2C2218' }}>Why $3?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing — this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
+              <strong style={{ color: '#2C2218' }}>Why $2?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing — this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
             </p>
           </div>
         </div>

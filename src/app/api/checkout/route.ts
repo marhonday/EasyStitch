@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const returnUrl = (body.returnUrl as string | undefined) ?? '/export'
   const tier      = (body.tier as string | undefined) === 'graphic' ? 'graphic' : 'photo'
 
-  const unitAmount  = 300   // $3 flat for all pattern downloads
+  const unitAmount  = 200   // $2 flat for all pattern downloads
   const productName = 'CraftWabi — Pattern Download'
   const productDesc = 'Custom stitch pattern generated from your image. Full PDF with chart, colour key, and row-by-row instructions.'
 

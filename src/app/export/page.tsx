@@ -50,7 +50,7 @@ export default function ExportPage() {
   const [shopDesc,       setShopDesc]       = useState('')
   const [shopTags,       setShopTags]       = useState('')
   const [shopCategory,   setShopCategory]   = useState('other')
-  const [shopPrice,      setShopPrice]      = useState('3.00')
+  const [shopPrice,      setShopPrice]      = useState('2.00')
   const [shopAllow,      setShopAllow]      = useState(true)
   const [shopSizeLabel,  setShopSizeLabel]  = useState('')
   const [shopAddToId,    setShopAddToId]    = useState<string>('__new__')
