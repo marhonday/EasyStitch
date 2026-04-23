@@ -18,8 +18,10 @@ export default function QuickNav() {
   const router   = useRouter()
   const [open, setOpen] = useState(false)
 
-  // Don't render the tab on the root landing page — it adds no value there
-  if (pathname === '/') return null
+  // Hide on home page, desktop, and all focused task/flow pages
+  const HIDDEN_ON = ['/', '/upload', '/preview', '/export', '/knitting', '/filet',
+    '/crossstitch', '/diamondpainting', '/pbn', '/unlock', '/unlock/success']
+  if (HIDDEN_ON.includes(pathname) || pathname.startsWith('/upload')) return null
 
   const ITEMS = [
     { emoji: '🛍️', label: 'Browse Patterns',  sub: 'Ready-made designs', path: '/shop'         },
@@ -33,6 +35,11 @@ export default function QuickNav() {
 
   return (
     <>
+      {/* Hidden on desktop — hamburger menu covers all the same links */}
+      <style>{`@media(min-width:640px){.quicknav-root{display:none!important}}`}</style>
+
+      <div className="quicknav-root" style={{ display: 'contents' }}>
+
       {/* Backdrop — closes menu when tapping outside */}
       {open && (
         <div
@@ -114,7 +121,7 @@ export default function QuickNav() {
         style={{
           position: 'fixed',
           top: '50%',
-          left: open ? 210 : 0,          // slides right when panel is open
+          left: open ? 210 : 0,
           transform: 'translateY(-50%)',
           zIndex: 200,
           transition: 'left 0.22s cubic-bezier(0.4,0,0.2,1)',
@@ -127,7 +134,6 @@ export default function QuickNav() {
           boxShadow: '2px 0 12px rgba(196,97,74,0.25)',
         }}
       >
-        {/* Vertical label */}
         <span style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 9, fontWeight: 700,
@@ -142,6 +148,8 @@ export default function QuickNav() {
         </span>
         <span style={{ fontSize: 14, lineHeight: 1 }}>{open ? '✕' : '⚡'}</span>
       </button>
+
+      </div>
     </>
   )
 }
