@@ -102,7 +102,7 @@ export default function ExportPage() {
   }
 
   async function handleDownloadPdf() {
-    if (!isUnlocked()) { openPaywall(); return }
+    if (!isUnlocked() && !isAdmin) { openPaywall(); return }
     if (!exportPattern) return
     logEvent('EXPORT_TRIGGERED', 'pdf')   // [EXPORT_TRIGGERED]
     setStatus('loading-pdf')
@@ -119,7 +119,7 @@ export default function ExportPage() {
   }
 
   function handleDownloadPng() {
-    if (!isUnlocked()) { openPaywall(); return }
+    if (!isUnlocked() && !isAdmin) { openPaywall(); return }
     if (!exportPattern || !pngCanvasRef.current) return
     logEvent('EXPORT_TRIGGERED', 'png')   // [EXPORT_TRIGGERED]
     setStatus('loading-png')
