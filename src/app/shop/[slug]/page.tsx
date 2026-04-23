@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
-import { getTemplateBySlug, ShopTemplate, ShopVariant } from '@/lib/shopStore'
+import { fetchTemplateBySlug, ShopTemplate, ShopVariant } from '@/lib/shopStore'
 import { usePattern } from '@/context/PatternContext'
 import { applyPersonalizationToPattern, getPersonalizationCharLimit, recommendedFont } from '@/modules/personalization/personalizePattern'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
@@ -84,11 +84,12 @@ export default function ShopProductPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    const t = getTemplateBySlug(slug)
-    if (!t) { router.replace('/shop'); return }
-    setTemplate(t)
-    const sorted = [...t.variants].sort((a, b) => a.price - b.price)
-    setSelectedVariant(sorted[0] ?? null)
+    fetchTemplateBySlug(slug).then(t => {
+      if (!t) { router.replace('/shop'); return }
+      setTemplate(t)
+      const sorted = [...t.variants].sort((a, b) => a.price - b.price)
+      setSelectedVariant(sorted[0] ?? null)
+    })
   }, [slug, router])
 
   // Reset colour overrides when variant changes

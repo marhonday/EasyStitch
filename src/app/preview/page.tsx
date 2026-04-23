@@ -666,8 +666,8 @@ export default function PreviewPage() {
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button onClick={() => { setShowShopModal(false); router.push('/shop') }} style={{ padding: '9px 18px', background: '#4A9050', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View shop →</button>
                   <button
-                    onClick={() => {
-                      const json = exportLibraryJson()
+                    onClick={async () => {
+                      const json = await exportLibraryJson()
                       const blob = new Blob([json], { type: 'application/json' })
                       const url  = URL.createObjectURL(blob)
                       const a    = document.createElement('a'); a.href = url; a.download = 'shopTemplates.json'

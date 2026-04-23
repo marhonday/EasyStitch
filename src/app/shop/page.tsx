@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
-import { getPublishedTemplates, ShopTemplate } from '@/lib/shopStore'
+import { fetchPublishedTemplates, ShopTemplate } from '@/lib/shopStore'
 
 const CATEGORIES = ['all', 'sports', 'animals', 'holidays', 'baby', 'names', 'nature', 'other']
 
@@ -104,7 +104,7 @@ export default function ShopPage() {
   const [category,  setCategory]  = useState('all')
   const [style,     setStyle]     = useState('All Styles')
 
-  useEffect(() => { setTemplates(getPublishedTemplates()) }, [])
+  useEffect(() => { fetchPublishedTemplates().then(setTemplates) }, [])
 
   // Categories that have at least one template
   const activeCategories = CATEGORIES.filter(c =>

@@ -482,8 +482,8 @@ export default function ExportPage() {
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 8 }}>
                   <button onClick={() => router.push('/shop')} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#4A9050', cursor: 'pointer', textDecoration: 'underline' }}>View shop →</button>
                   <button
-                    onClick={() => {
-                      const json = exportLibraryJson()
+                    onClick={async () => {
+                      const json = await exportLibraryJson()
                       const blob = new Blob([json], { type: 'application/json' })
                       const url  = URL.createObjectURL(blob)
                       const a    = document.createElement('a')
