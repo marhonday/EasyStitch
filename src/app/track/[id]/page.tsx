@@ -43,9 +43,10 @@ function drawTrackerGrid(
   pattern: TrackedPattern,
   currentStep: number,
   completedSet: Set<number>,
+  containerWidth: number,
 ) {
   const { colorMap, palette, meta } = pattern
-  const cellSize = Math.max(4, Math.min(20, Math.floor(320 / meta.width)))
+  const cellSize = Math.min(24, Math.max(4, Math.floor(containerWidth / meta.width)))
   const stride   = cellSize + 1
 
   canvas.width  = meta.width  * stride
@@ -158,7 +159,6 @@ export default function TrackerPage() {
 
   // ── Desktop state ────────────────────────────────────────────────────────────
   const [isDesktop,     setIsDesktop]     = useState(false)
-  const [hoveredStep,   setHoveredStep]   = useState<number | null>(null)
   const [stripExpanded, setStripExpanded] = useState(false)
 
   // ── Email prompt state ───────────────────────────────────────────────────────
@@ -167,11 +167,12 @@ export default function TrackerPage() {
   const [emailStatus,     setEmailStatus]     = useState<'idle' | 'sending' | 'sent'>('idle')
 
   // ── Refs ─────────────────────────────────────────────────────────────────────
-  const canvasRef       = useRef<HTMLCanvasElement>(null)
-  const containerRef    = useRef<HTMLDivElement>(null)   // mobile grid container
-  const rightPanelRef   = useRef<HTMLDivElement>(null)   // desktop right panel
-  const rowItemRefs     = useRef<(HTMLDivElement | null)[]>([])
-  const prevCompleteRef = useRef(false)
+  const canvasRef        = useRef<HTMLCanvasElement>(null)
+  const containerRef     = useRef<HTMLDivElement>(null)   // mobile grid container
+  const gridContainerRef = useRef<HTMLDivElement>(null)   // desktop left-panel grid area
+  const rightPanelRef    = useRef<HTMLDivElement>(null)   // desktop right panel
+  const rowItemRefs      = useRef<(HTMLDivElement | null)[]>([])
+  const prevCompleteRef  = useRef(false)
 
   // ── Responsive breakpoint ────────────────────────────────────────────────────
   useEffect(() => {
@@ -209,38 +210,38 @@ export default function TrackerPage() {
 
   const totalSteps = instructions.length || (pattern?.meta.height ?? 0)
 
-  // ── Canvas highlight row ─────────────────────────────────────────────────────
-  const canvasHighlightRow = useMemo(() => {
-    if (!pattern) return 0
-    if (pattern.meta.stitchStyle !== 'c2c') return currentStep
-    return Math.round((currentStep / totalSteps) * (pattern.meta.height - 1))
-  }, [pattern, currentStep, totalSteps])
-
-  // Desktop: hovered row in right panel drives canvas highlight
-  const displayHighlightRow = useMemo(() => {
-    if (hoveredStep !== null && isDesktop) {
-      if (pattern?.meta.stitchStyle === 'c2c') {
-        return Math.round((hoveredStep / totalSteps) * ((pattern?.meta.height ?? 1) - 1))
-      }
-      return hoveredStep
-    }
-    return canvasHighlightRow
-  }, [hoveredStep, isDesktop, canvasHighlightRow, pattern, totalSteps])
-
   // ── Draw canvas ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!pattern || !canvasRef.current) return
-    drawTrackerGrid(canvasRef.current, pattern, displayHighlightRow, completedRows)
-  }, [pattern, displayHighlightRow, completedRows])
+    const container = isDesktop ? gridContainerRef.current : containerRef.current
+    const w = container?.getBoundingClientRect().width ?? 320
+    drawTrackerGrid(canvasRef.current, pattern, currentStep, completedRows, w)
+  }, [pattern, currentStep, completedRows, isDesktop])
+
+  // Re-draw when the container resizes (e.g. panel resize, orientation change)
+  useEffect(() => {
+    if (!pattern || !canvasRef.current) return
+    const container = isDesktop ? gridContainerRef.current : containerRef.current
+    if (!container) return
+    const ro = new ResizeObserver(() => {
+      if (!canvasRef.current) return
+      const w = container.getBoundingClientRect().width
+      if (w > 0) drawTrackerGrid(canvasRef.current, pattern, currentStep, completedRows, w)
+    })
+    ro.observe(container)
+    return () => ro.disconnect()
+  }, [pattern, currentStep, completedRows, isDesktop])
 
   // ── Mobile: auto-scroll canvas to current row ────────────────────────────────
   useEffect(() => {
     if (isDesktop || !pattern || !containerRef.current) return
-    const cellSize = Math.max(4, Math.min(20, Math.floor(320 / pattern.meta.width)))
+    const el  = containerRef.current
+    const w   = el.getBoundingClientRect().width || 320
+    const cellSize = Math.min(24, Math.max(4, Math.floor(w / pattern.meta.width)))
     const stride   = cellSize + 1
-    const el = containerRef.current
-    el.scrollTop = Math.max(0, canvasHighlightRow * stride - el.clientHeight / 2)
-  }, [pattern, canvasHighlightRow, isDesktop])
+    const scrollRow = Math.min(currentStep, pattern.meta.height - 1)
+    el.scrollTop = Math.max(0, scrollRow * stride - el.clientHeight / 2)
+  }, [pattern, currentStep, isDesktop])
 
   // ── Desktop: auto-scroll right panel to current row ──────────────────────────
   useEffect(() => {
@@ -248,24 +249,6 @@ export default function TrackerPage() {
     const el = rowItemRefs.current[currentStep]
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [currentStep, isDesktop])
-
-  // ── Desktop: IntersectionObserver — right panel scroll drives grid highlight ─
-  useEffect(() => {
-    if (!isDesktop || instructions.length === 0) return
-    const observer = new IntersectionObserver(entries => {
-      let mostVisible: { idx: number; ratio: number } | null = null
-      entries.forEach(entry => {
-        const idx = rowItemRefs.current.indexOf(entry.target as HTMLDivElement)
-        if (idx >= 0 && entry.intersectionRatio > (mostVisible?.ratio ?? 0)) {
-          mostVisible = { idx, ratio: entry.intersectionRatio }
-        }
-      })
-      if (mostVisible) setHoveredStep((mostVisible as { idx: number }).idx)
-    }, { threshold: [0, 0.5, 1], root: rightPanelRef.current })
-
-    rowItemRefs.current.forEach(el => el && observer.observe(el))
-    return () => observer.disconnect()
-  }, [isDesktop, instructions.length])
 
   // ── Persist progress ─────────────────────────────────────────────────────────
   const persistProgress = useCallback((completed: Set<number>, cur: number) => {
@@ -531,7 +514,7 @@ export default function TrackerPage() {
             </div>
 
             {/* Grid — fills remaining height */}
-            <div style={{ flex: 1, overflow: 'hidden', padding: '0 24px' }}>
+            <div ref={gridContainerRef} style={{ flex: 1, overflow: 'hidden', padding: '0 24px' }}>
               <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} />
             </div>
 
@@ -635,8 +618,6 @@ export default function TrackerPage() {
                     cursor: 'pointer',
                     transition: 'background 0.15s',
                   }}
-                  onMouseEnter={() => setHoveredStep(step)}
-                  onMouseLeave={() => setHoveredStep(null)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
@@ -670,6 +651,11 @@ export default function TrackerPage() {
                 />
               </div>
             )}
+
+            <div style={{ marginTop: 24, paddingTop: 12, borderTop: '1px solid #EDE4D8', textAlign: 'center' }}>
+              <a href="/privacy" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textDecoration: 'none', marginRight: 12 }}>Privacy</a>
+              <a href="/terms"   style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textDecoration: 'none' }}>Terms</a>
+            </div>
           </div>
         </div>
 
