@@ -62,19 +62,50 @@ function drawTrackerGrid(
     }
   }
 
-  // Fade completed rows
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.42)'
-  for (const step of completedSet) {
-    if (step < meta.height) ctx.fillRect(0, step * stride, canvas.width, cellSize)
-  }
+  if (pattern.meta.stitchStyle === 'c2c') {
+    // Fade completed diagonals: every cell where row + col === step
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.42)'
+    for (const step of completedSet) {
+      for (let row = 0; row < meta.height; row++) {
+        const col = step - row
+        if (col >= 0 && col < meta.width) {
+          ctx.fillRect(col * stride, row * stride, cellSize, cellSize)
+        }
+      }
+    }
 
-  // Highlight current row (for non-c2c, maps 1:1 to grid rows)
-  const highlightRow = Math.min(currentStep, meta.height - 1)
-  if (highlightRow >= 0) {
-    ctx.fillStyle = 'rgba(196, 97, 74, 0.22)'
-    ctx.fillRect(0, highlightRow * stride, canvas.width, cellSize)
-    ctx.fillStyle = '#C4614A'
-    ctx.fillRect(0, highlightRow * stride, 4, cellSize)
+    // Highlight current diagonal
+    const maxDiag = meta.width + meta.height - 2
+    const d = Math.min(currentStep, maxDiag)
+    ctx.fillStyle = 'rgba(196, 97, 74, 0.35)'
+    for (let row = 0; row < meta.height; row++) {
+      const col = d - row
+      if (col >= 0 && col < meta.width) {
+        ctx.fillRect(col * stride, row * stride, cellSize, cellSize)
+      }
+    }
+    // Left-edge accent on the topmost cell of the diagonal
+    const accentRow = Math.max(0, d - (meta.width - 1))
+    const accentCol = d - accentRow
+    if (accentCol >= 0 && accentCol < meta.width) {
+      ctx.fillStyle = '#C4614A'
+      ctx.fillRect(accentCol * stride, accentRow * stride, 3, cellSize)
+    }
+  } else {
+    // Single Crochet: fade completed rows
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.42)'
+    for (const step of completedSet) {
+      if (step < meta.height) ctx.fillRect(0, step * stride, canvas.width, cellSize)
+    }
+
+    // Highlight current row
+    const highlightRow = Math.min(currentStep, meta.height - 1)
+    if (highlightRow >= 0) {
+      ctx.fillStyle = 'rgba(196, 97, 74, 0.22)'
+      ctx.fillRect(0, highlightRow * stride, canvas.width, cellSize)
+      ctx.fillStyle = '#C4614A'
+      ctx.fillRect(0, highlightRow * stride, 4, cellSize)
+    }
   }
 }
 
