@@ -9,12 +9,13 @@ export interface TrackedPalette {
 }
 
 export interface TrackedPattern {
-  id:        string
-  name:      string
-  createdAt: number
-  updatedAt: number
-  colorMap:  number[][]
-  palette:   TrackedPalette[]
+  id:          string
+  name:        string
+  createdAt:   number
+  updatedAt:   number
+  colorMap:    number[][]
+  palette:     TrackedPalette[]
+  emailSaved?: boolean
   meta: {
     width:          number
     height:         number
@@ -60,6 +61,15 @@ export function saveTracked(pattern: TrackedPattern): void {
 
 export function deleteTracked(id: string): void {
   saveAll(loadAll().filter(p => p.id !== id))
+}
+
+export function markEmailSaved(id: string): void {
+  const all = loadAll()
+  const p = all.find(p => p.id === id)
+  if (!p) return
+  p.emailSaved = true
+  p.updatedAt  = Date.now()
+  saveAll(all)
 }
 
 export function updateProgress(id: string, completedRows: number[], currentRow: number): void {
