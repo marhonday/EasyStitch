@@ -5,7 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import ZoomableCanvas from '@/components/preview/ZoomableCanvas'
 import {
-  getTracked, updateProgress, markEmailSaved, TrackedPattern,
+  getTracked, updateProgress, markEmailSaved, updateYarnLabel,
+  defaultYarnLabel, TrackedPattern,
 } from '@/lib/patternTracker'
 import DiscountClubCard from '@/components/ui/DiscountClubCard'
 import { generateInstructions, RowInstruction } from '@/modules/instructions/generateInstructions'
@@ -156,10 +157,18 @@ export default function TrackerPage() {
 
   // ── Mobile UI state ─────────────────────────────────────────────────────────
   const [showRowList,   setShowRowList]   = useState(false)
+  const [showYarnKey,   setShowYarnKey]   = useState(false)
 
   // ── Desktop state ────────────────────────────────────────────────────────────
   const [isDesktop,     setIsDesktop]     = useState(false)
   const [stripExpanded, setStripExpanded] = useState(false)
+  const [showAllRows,   setShowAllRows]   = useState(false)
+  const [jumpInput,     setJumpInput]     = useState('')
+
+  // ── Yarn label state ─────────────────────────────────────────────────────────
+  const [yarnLabels,       setYarnLabels]       = useState<Record<number, string>>({})
+  const [editingYarnIndex, setEditingYarnIndex] = useState<number | null>(null)
+  const [editingYarnValue, setEditingYarnValue] = useState('')
 
   // ── Email prompt state ───────────────────────────────────────────────────────
   const [showEmailPrompt, setShowEmailPrompt] = useState(false)
@@ -200,6 +209,7 @@ export default function TrackerPage() {
     setPattern(p)
     setCompletedRows(new Set(p.progress.completedRows))
     setCurrentStep(p.progress.currentRow)
+    setYarnLabels(p.yarnLabels ?? {})
   }, [id, router, searchParams])
 
   // ── Build instructions ───────────────────────────────────────────────────────
@@ -366,11 +376,41 @@ export default function TrackerPage() {
   const stepLabel  = instr?.label ?? `Row ${currentStep + 1}`
   const noun       = isC2C ? 'diagonal' : 'row'
 
-  // Inline compact description of a row for the desktop bottom strip
+  // 5-item window for desktop right panel (current ±2)
+  const wStart     = Math.max(0, currentStep - 2)
+  const wEnd       = Math.min(totalSteps - 1, currentStep + 2)
+  const windowSteps: number[] = []
+  for (let s = wStart; s <= wEnd; s++) windowSteps.push(s)
+
+  // ── Yarn label helpers ───────────────────────────────────────────────────────
+  function yarnName(i: number): string {
+    return yarnLabels[i] || defaultYarnLabel(i)
+  }
+
+  function yarnNameForHex(hex: string): string {
+    const i = pattern!.palette.findIndex(c => c.hex === hex)
+    return i >= 0 ? yarnName(i) : hex
+  }
+
+  function startEditYarn(i: number) {
+    setEditingYarnIndex(i)
+    setEditingYarnValue(yarnName(i))
+  }
+
+  function saveYarnLabel(i: number) {
+    const val = editingYarnValue.trim() || defaultYarnLabel(i)
+    setYarnLabels(prev => ({ ...prev, [i]: val }))
+    updateYarnLabel(pattern!.id, i, val)
+    setEditingYarnIndex(null)
+  }
+
+  // Compact row description using yarn names
   function rowSummary(step: number) {
     const r = instructions[step]
     if (!r) return ''
-    const runs = r.runs.slice(0, 4).map(run => `${run.count} ${run.symbol}`).join(', ')
+    const runs = r.runs.slice(0, 4).map(run =>
+      `${run.count} ${run.symbol} ${yarnNameForHex(run.hex)}`
+    ).join(', ')
     return `${r.label} (${r.totalStitches} sts): ${runs}${r.runs.length > 4 ? '…' : ''}`
   }
 
@@ -430,7 +470,7 @@ export default function TrackerPage() {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#FAF6EF', borderRadius: 999, padding: '4px 10px' }}>
               <div style={{ width: 12, height: 12, borderRadius: 3, background: run.hex, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
-                {run.symbol} × {run.count}
+                {run.symbol} × {run.count} <span style={{ color: '#9A8878' }}>{yarnNameForHex(run.hex)}</span>
               </span>
             </div>
           ))}
@@ -448,23 +488,49 @@ export default function TrackerPage() {
     )
   }
 
-  // ── Colour key ───────────────────────────────────────────────────────────────
-  function ColourKey() {
+  // ── Yarn key (editable colour labels) ────────────────────────────────────────
+  function YarnKey() {
     return (
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #EDE4D8', padding: '12px 14px', marginTop: 12 }}>
+      <div style={{ background: 'white', borderRadius: 12, border: '1.5px solid #EDE4D8', padding: '10px 12px' }}>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-          Colour key
+          🧶 Yarn key — tap name to rename
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {pattern!.palette.map((c, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 14, height: 14, borderRadius: 4, background: c.hex, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
-                {c.symbol}{c.label ? ` · ${c.label}` : ''}
+        {pattern!.palette.map((c, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '5px 0',
+            borderBottom: i < pattern!.palette.length - 1 ? '1px solid #F5EFE6' : 'none',
+          }}>
+            <div style={{ width: 14, height: 14, borderRadius: 4, background: c.hex, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', width: 18, flexShrink: 0 }}>{c.symbol}</span>
+            {editingYarnIndex === i ? (
+              <input
+                autoFocus
+                value={editingYarnValue}
+                onChange={e => setEditingYarnValue(e.target.value)}
+                onBlur={() => saveYarnLabel(i)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveYarnLabel(i) } }}
+                style={{
+                  flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218',
+                  background: '#FAF6EF', border: '1.5px solid #C4614A', borderRadius: 8,
+                  padding: '3px 8px', outline: 'none',
+                }}
+              />
+            ) : (
+              <span
+                onClick={() => startEditYarn(i)}
+                title="Tap to rename"
+                style={{
+                  flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218',
+                  cursor: 'text', padding: '3px 6px', borderRadius: 6,
+                  borderBottom: '1px dashed #E4D9C8',
+                }}
+              >
+                {yarnName(i)}
               </span>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
     )
   }
@@ -593,66 +659,114 @@ export default function TrackerPage() {
             </div>
           </div>
 
-          {/* ── Right panel: scrollable instruction list ───────────────────── */}
+          {/* ── Right panel ───────────────────────────────────────────────── */}
           <div
             ref={rightPanelRef}
-            style={{ overflowY: 'auto', padding: '16px 16px 80px' }}
+            style={{ overflowY: 'auto', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}
           >
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
-              {isC2C ? 'Diagonals' : 'All rows'}
-            </p>
+            {/* Yarn key — always visible at top */}
+            <YarnKey />
 
-            {instructions.map((r, step) => {
-              const isDone    = completedRows.has(step)
-              const isCurrent = step === currentStep
-              return (
-                <div
-                  key={step}
-                  ref={el => { rowItemRefs.current[step] = el }}
-                  onClick={() => jumpToStep(step)}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 10, marginBottom: 4,
-                    background: isCurrent ? 'rgba(196,97,74,0.06)' : 'transparent',
-                    borderLeft: `3px solid ${isCurrent ? '#C4614A' : isDone ? '#4A9050' : 'transparent'}`,
-                    cursor: 'pointer',
-                    transition: 'background 0.15s',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
-                      {r.label}
-                      {isCurrent && <span style={{ marginLeft: 6, fontSize: 9, color: '#C4614A', fontWeight: 700 }}>← now</span>}
-                    </p>
-                    <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-                      {r.runs.slice(0, 5).map((run, i) => (
-                        <div key={i} style={{ width: 10, height: 10, borderRadius: 3, background: run.hex, border: '1px solid rgba(0,0,0,0.08)' }} title={`${run.count}`} />
-                      ))}
-                      {r.runs.length > 5 && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C8BFB0' }}>+{r.runs.length - 5}</span>}
+            {/* Jump to diagonal/row input */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                type="number"
+                min={1}
+                max={totalSteps}
+                value={jumpInput}
+                onChange={e => setJumpInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const n = parseInt(jumpInput, 10)
+                    if (!isNaN(n) && n >= 1 && n <= totalSteps) {
+                      jumpToStep(n - 1)
+                      setJumpInput('')
+                    }
+                  }
+                }}
+                placeholder={`Jump to ${noun} #…`}
+                style={{
+                  flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218',
+                  background: 'white', border: '1.5px solid #EDE4D8', borderRadius: 10,
+                  padding: '8px 12px', outline: 'none',
+                }}
+              />
+              <button
+                onClick={() => {
+                  const n = parseInt(jumpInput, 10)
+                  if (!isNaN(n) && n >= 1 && n <= totalSteps) { jumpToStep(n - 1); setJumpInput('') }
+                }}
+                style={{ padding: '8px 14px', background: '#C4614A', color: 'white', border: 'none', borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Go
+              </button>
+            </div>
+
+            {/* 5-item window OR full list */}
+            <div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+                {isC2C ? 'Diagonals' : 'Rows'}
+              </p>
+
+              {(showAllRows ? instructions.map((_, i) => i) : windowSteps).map(step => {
+                const r       = instructions[step]
+                if (!r) return null
+                const isDone    = completedRows.has(step)
+                const isCurrent = step === currentStep
+                return (
+                  <div
+                    key={step}
+                    ref={el => { rowItemRefs.current[step] = el }}
+                    onClick={() => jumpToStep(step)}
+                    style={{
+                      padding: '10px 12px', borderRadius: 10, marginBottom: 4,
+                      background: isCurrent ? 'rgba(196,97,74,0.06)' : 'transparent',
+                      borderLeft: `3px solid ${isCurrent ? '#C4614A' : isDone ? '#4A9050' : 'transparent'}`,
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
+                        {r.label}
+                        {isCurrent && <span style={{ marginLeft: 6, fontSize: 9, color: '#C4614A', fontWeight: 700 }}>← now</span>}
+                      </p>
+                      <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                        {r.runs.slice(0, 5).map((run, i) => (
+                          <div key={i} style={{ width: 10, height: 10, borderRadius: 3, background: run.hex, border: '1px solid rgba(0,0,0,0.08)' }} title={`${run.count} ${yarnNameForHex(run.hex)}`} />
+                        ))}
+                        {r.runs.length > 5 && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C8BFB0' }}>+{r.runs.length - 5}</span>}
+                      </div>
                     </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#6B5744' }}>
+                      {r.runs.map(run => `${run.count} ${run.symbol} ${yarnNameForHex(run.hex)}`).join(', ')}
+                    </p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#C8BFB0', marginTop: 2 }}>
+                      {r.totalStitches} {isC2C ? 'blocks' : 'sts'}
+                      {r.carriedColors?.length ? ` · carry ${r.carriedColors.length}` : ''}
+                      {r.phase ? ` · ${r.phase === 'growing' ? '↗' : r.phase === 'decreasing' ? '↘' : '→'}` : ''}
+                    </p>
                   </div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>
-                    {r.totalStitches} {isC2C ? 'blocks' : 'sts'}
-                    {r.carriedColors?.length ? ` · carry ${r.carriedColors.length}` : ''}
-                    {r.phase ? ` · ${r.phase === 'growing' ? '↗' : r.phase === 'decreasing' ? '↘' : '→'}` : ''}
-                  </p>
-                </div>
-              )
-            })}
+                )
+              })}
 
-            <ColourKey />
+              {/* See all toggle */}
+              <button
+                onClick={() => setShowAllRows(v => !v)}
+                style={{ width: '100%', marginTop: 4, padding: '8px', background: 'none', border: '1px dashed #E4D9C8', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', cursor: 'pointer' }}
+              >
+                {showAllRows ? `↑ Show less` : `↕ See all ${noun}s (${totalSteps})`}
+              </button>
+            </div>
 
             {isComplete && (
-              <div style={{ marginTop: 16 }}>
-                <DiscountClubCard
-                  saveLink={typeof window !== 'undefined' ? window.location.href : ''}
-                  linkLabel="progress"
-                  couponTier="25"
-                />
-              </div>
+              <DiscountClubCard
+                saveLink={typeof window !== 'undefined' ? window.location.href : ''}
+                linkLabel="progress"
+                couponTier="25"
+              />
             )}
 
-            <div style={{ marginTop: 24, paddingTop: 12, borderTop: '1px solid #EDE4D8', textAlign: 'center' }}>
+            <div style={{ paddingTop: 12, borderTop: '1px solid #EDE4D8', textAlign: 'center' }}>
               <a href="/privacy" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textDecoration: 'none', marginRight: 12 }}>Privacy</a>
               <a href="/terms"   style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', textDecoration: 'none' }}>Terms</a>
             </div>
@@ -766,9 +880,26 @@ export default function TrackerPage() {
           )}
         </div>
 
-        {/* Colour key */}
-        <div style={{ width: '100%', maxWidth: 440 }}>
-          <ColourKey />
+        {/* Yarn key — collapsible */}
+        <div style={{ width: '100%', maxWidth: 440, marginTop: 10 }}>
+          <button
+            onClick={() => setShowYarnKey(v => !v)}
+            style={{
+              width: '100%', padding: '10px 14px',
+              background: 'white', border: '1.5px solid #EDE4D8', borderRadius: showYarnKey ? '12px 12px 0 0' : 12,
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+              color: '#6B5744', cursor: 'pointer', textAlign: 'left',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}
+          >
+            <span>🧶 Yarn key</span>
+            <span style={{ color: '#C4614A' }}>{showYarnKey ? '↑ Hide' : '↓ Show'}</span>
+          </button>
+          {showYarnKey && (
+            <div style={{ borderRadius: '0 0 12px 12px', border: '1.5px solid #EDE4D8', borderTop: 'none', overflow: 'hidden' }}>
+              <YarnKey />
+            </div>
+          )}
         </div>
 
         {/* Completion discount card */}

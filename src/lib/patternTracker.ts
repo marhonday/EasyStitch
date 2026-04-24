@@ -9,13 +9,14 @@ export interface TrackedPalette {
 }
 
 export interface TrackedPattern {
-  id:          string
-  name:        string
-  createdAt:   number
-  updatedAt:   number
-  colorMap:    number[][]
-  palette:     TrackedPalette[]
-  emailSaved?: boolean
+  id:           string
+  name:         string
+  createdAt:    number
+  updatedAt:    number
+  colorMap:     number[][]
+  palette:      TrackedPalette[]
+  emailSaved?:  boolean
+  yarnLabels?:  Record<number, string>
   meta: {
     width:          number
     height:         number
@@ -69,6 +70,20 @@ export function markEmailSaved(id: string): void {
   if (!p) return
   p.emailSaved = true
   p.updatedAt  = Date.now()
+  saveAll(all)
+}
+
+export function defaultYarnLabel(i: number): string {
+  return `Color ${String.fromCharCode(65 + i)}`
+}
+
+export function updateYarnLabel(id: string, colorIndex: number, label: string): void {
+  const all = loadAll()
+  const p = all.find(p => p.id === id)
+  if (!p) return
+  if (!p.yarnLabels) p.yarnLabels = {}
+  p.yarnLabels[colorIndex] = label
+  p.updatedAt = Date.now()
   saveAll(all)
 }
 
