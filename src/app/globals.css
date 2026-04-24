@@ -38,16 +38,23 @@
 @media (min-width: 640px) {
   .app-shell {
     display: flex;
-    justify-content: center;
-    background: #EDE4D8;  /* slightly darker outer bg on desktop */
+    flex-direction: column;   /* stack banner / page / footer vertically */
+    align-items: center;      /* center each child horizontally */
+    background: #FAF6EF;     /* same cream as the card — no dark side columns */
   }
 
   .app-shell > * {
     width: 100%;
     max-width: 480px;
     background: #FAF6EF;
-    min-height: 100vh;
     box-shadow: 0 0 60px rgba(44, 34, 24, 0.12);
+  }
+
+  /* Banner and footer don't need page-height treatment */
+  .app-shell > header,
+  .app-shell > footer,
+  .app-shell > .site-banner {
+    box-shadow: none;
   }
 }
 

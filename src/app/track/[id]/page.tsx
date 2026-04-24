@@ -499,7 +499,7 @@ export default function TrackerPage() {
 
   if (isDesktop) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#FAF6EF', overflow: 'hidden' }}>
+      <div className="project-page" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#FAF6EF', overflow: 'hidden' }}>
         <Header />
 
         {/* Two-panel body */}
@@ -675,7 +675,7 @@ export default function TrackerPage() {
   // ════════════════════════════════════════════════════════════════════════════
 
   return (
-    <main style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
+    <main className="project-page" style={{ minHeight: '100vh', background: '#FAF6EF', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 20px 180px' }}>

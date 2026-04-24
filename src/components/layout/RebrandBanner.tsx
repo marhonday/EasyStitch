@@ -20,7 +20,7 @@ export default function RebrandBanner() {
   if (!visible) return null
 
   return (
-    <div style={{ width: '100%', background: '#FEF8F3', borderBottom: '1px solid rgba(196,97,74,0.22)' }}>
+    <div className="site-banner" style={{ width: '100%', background: '#FEF8F3', borderBottom: '1px solid rgba(196,97,74,0.22)' }}>
       <div style={{
         maxWidth: 700,
         margin: '0 auto',
