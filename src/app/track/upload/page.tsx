@@ -29,6 +29,7 @@ export default function TrackUploadPage() {
   // Setup fields
   const [patternName,   setPatternName]   = useState('My Pattern')
   const [stitchStyle,   setStitchStyle]   = useState<StitchStyle>('singleCrochet')
+  const [colorCount,    setColorCount]    = useState<number>(6)
   const [manualCols,    setManualCols]    = useState('')
   const [manualRows,    setManualRows]    = useState('')
   const [isDragging,    setIsDragging]    = useState(false)
@@ -50,7 +51,7 @@ export default function TrackUploadPage() {
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string
       setImageDataUrl(dataUrl)
-      const result = await detectGrid(dataUrl)
+      const result = await detectGrid(dataUrl, colorCount)
       setDetection(result)
       setStep('result')
     }
@@ -80,7 +81,7 @@ export default function TrackUploadPage() {
       const cols = parseInt(manualCols)
       const rows = parseInt(manualRows)
       if (cols > 0 && rows > 0) {
-        result = await detectGridManual(imageDataUrl, cols, rows)
+        result = await detectGridManual(imageDataUrl, cols, rows, colorCount)
       }
     }
 
@@ -307,6 +308,34 @@ export default function TrackUploadPage() {
                   placeholder="My Pattern"
                   style={{ width: '100%', padding: '10px 12px', boxSizing: 'border-box', fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2C2218', background: '#FAF6EF', border: '1.5px solid #E4D9C8', borderRadius: 10, outline: 'none' }}
                 />
+              </div>
+            )}
+
+            {/* Color count */}
+            {detection.status !== 'failed' && (
+              <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #EDE4D8', padding: '14px 16px' }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#6B5744', marginBottom: 10 }}>
+                  Number of colors
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setColorCount(n)}
+                      style={{
+                        width: 44, height: 44,
+                        background: colorCount === n ? 'rgba(196,97,74,0.10)' : '#FAF6EF',
+                        border: `1.5px solid ${colorCount === n ? '#C4614A' : '#EDE4D8'}`,
+                        borderRadius: 10, cursor: 'pointer',
+                        fontFamily: "'DM Sans', sans-serif", fontSize: 14,
+                        fontWeight: colorCount === n ? 700 : 500,
+                        color: colorCount === n ? '#C4614A' : '#6B5744',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

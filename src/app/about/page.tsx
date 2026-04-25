@@ -64,7 +64,7 @@ export default function AboutPage() {
           { emoji: '🔒', title: '100% private', body: 'All image processing happens locally in your browser. Your photos are never uploaded to any server — we never see them.' },
           { emoji: '✨', title: 'No account needed', body: 'No sign-up, no subscription. Open the app, upload a photo, and start stitching.' },
           { emoji: '📋', title: 'Pattern tracker built in', body: 'Upload any existing pattern chart or save a generated one — then follow it row by row with style-correct instructions.' },
-          { emoji: '💛', title: 'Built by a crocheter (adjacent)', body: 'CraftWabi is an independent project built for real crafters. It will always be free. Donations help keep it that way.' },
+          { emoji: '💛', title: 'Built by a crocheter (adjacent)', body: 'CraftWabi is an independent project built for real crafters. Donations help keep it running.' },
         ].map(card => (
           <div key={card.title} style={{ background: 'white', borderRadius: 20, padding: '16px 20px', marginBottom: 12, boxShadow: '0 2px 12px rgba(44,34,24,0.06)' }}>
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>

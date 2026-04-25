@@ -116,15 +116,35 @@ function hexDist(h1: string, h2: string): number {
   return Math.sqrt((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2)
 }
 
-function buildPalette(hexGrid: string[][]): { palette: TrackedPalette[]; colorMap: number[][] } {
+function buildPalette(hexGrid: string[][], maxColors?: number): { palette: TrackedPalette[]; colorMap: number[][] } {
   const reps: string[] = []
-  const colorMap = hexGrid.map(row => row.map(hex => {
+  let colorMap = hexGrid.map(row => row.map(hex => {
     for (let i = 0; i < reps.length; i++) {
       if (hexDist(hex, reps[i]) < 38) return i
     }
     reps.push(hex)
     return reps.length - 1
   }))
+
+  // Merge closest colour pairs until we reach maxColors
+  if (maxColors && reps.length > maxColors) {
+    while (reps.length > maxColors) {
+      let minDist = Infinity, mergeTo = 0, mergeFrom = 1
+      for (let a = 0; a < reps.length; a++) {
+        for (let b = a + 1; b < reps.length; b++) {
+          const d = hexDist(reps[a], reps[b])
+          if (d < minDist) { minDist = d; mergeTo = a; mergeFrom = b }
+        }
+      }
+      reps.splice(mergeFrom, 1)
+      colorMap = colorMap.map(row => row.map(idx => {
+        if (idx === mergeFrom) return mergeTo
+        if (idx > mergeFrom) return idx - 1
+        return idx
+      }))
+    }
+  }
+
   const palette: TrackedPalette[] = reps.map((hex, i) => ({ hex, symbol: SYMS[i % SYMS.length] }))
   return { palette, colorMap }
 }
@@ -155,7 +175,7 @@ function detectLineColor(
 
 // ── Auto-detect ──────────────────────────────────────────────────────────────
 
-export async function detectGrid(dataUrl: string): Promise<GridDetectionResult> {
+export async function detectGrid(dataUrl: string, maxColors?: number): Promise<GridDetectionResult> {
   let canvas: HTMLCanvasElement
   try { canvas = await loadCanvas(dataUrl) }
   catch { return { status: 'failed', tip: 'Could not load image. Try a different file format.' } }
@@ -210,7 +230,7 @@ export async function detectGrid(dataUrl: string): Promise<GridDetectionResult> 
     hexGrid.push(r)
   }
 
-  const { palette, colorMap } = buildPalette(hexGrid)
+  const { palette, colorMap } = buildPalette(hexGrid, maxColors)
 
   if (palette.length > 40) {
     return {
@@ -243,7 +263,7 @@ export async function detectGrid(dataUrl: string): Promise<GridDetectionResult> 
 // ── Manual fallback ──────────────────────────────────────────────────────────
 
 export async function detectGridManual(
-  dataUrl: string, cols: number, rows: number,
+  dataUrl: string, cols: number, rows: number, maxColors?: number,
 ): Promise<GridDetectionResult> {
   let canvas: HTMLCanvasElement
   try { canvas = await loadCanvas(dataUrl, 1200) }
@@ -295,6 +315,6 @@ export async function detectGridManual(
     hexGrid.push(r)
   }
 
-  const { palette, colorMap } = buildPalette(hexGrid)
+  const { palette, colorMap } = buildPalette(hexGrid, maxColors)
   return { status: 'success', colorMap, palette, width: cols, height: rows }
 }

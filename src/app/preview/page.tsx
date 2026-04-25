@@ -12,7 +12,6 @@ import PatternCanvas      from '@/components/preview/PatternCanvas'
 import ColorLegend        from '@/components/preview/ColorLegend'
 import PatternMetadata    from '@/components/preview/PatternMetadata'
 import OriginalImageThumb from '@/components/preview/OriginalImageThumb'
-import RowInstructions    from '@/components/preview/RowInstructions'
 import { usePattern }     from '@/context/PatternContext'
 import { isUnlocked } from '@/lib/unlock'
 import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
@@ -431,15 +430,6 @@ export default function PreviewPage() {
           onColorChange={handleColorChange}
           hasOverrides={Object.keys(colorOverrides).length > 0}
           onResetColors={handleClearOverrides}
-        />
-
-        <RowInstructions
-          pattern={personalizedPattern!}
-          completedRows={completedRows}
-          onToggleRow={handleToggleRow}
-          onResetProgress={handleResetProgress}
-          currentRowNumber={currentRowNumber}
-          patternLabel={patternLabel}
         />
 
         <PatternMetadata meta={personalizedPattern!.meta} />
