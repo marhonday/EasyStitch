@@ -1,13 +1,13 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useMemo, useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Header        from '@/components/layout/Header'
 import StepIndicator from '@/components/ui/StepIndicator'
 import BottomCTA     from '@/components/layout/BottomCTA'
 import { usePattern }            from '@/context/PatternContext'
 import { usePatternGeneration }  from '@/hooks/usePatternGeneration'
-import { GRID_SIZES, STITCH_STYLE_META, MIN_COLORS, MAX_COLORS } from '@/lib/constants'
+import { GRID_SIZES, STITCH_STYLE_META } from '@/lib/constants'
 import { StitchStyle, GridSize, ImageType } from '@/types/pattern'
 
 const IMAGE_TYPE_OPTIONS: { id: ImageType; emoji: string; label: string; hint: string }[] = [
@@ -23,32 +23,10 @@ const STITCH_ICONS: Partial<Record<StitchStyle, string>> = {
   mosaic:        '◈',
 }
 
-// Difficulty tiers — suggest color count based on photo complexity
-const DIFFICULTY_TIERS = [
-  {
-    id:      'simple',
-    label:   'Beginner',
-    emoji:   '🟢',
-    colors:  6,
-    hint:    'Bold shapes, plain background',
-    example: 'Logos, simple icons',
-  },
-  {
-    id:      'medium',
-    label:   'Intermediate',
-    emoji:   '🟡',
-    colors:  12,
-    hint:    'Some detail, light texture',
-    example: 'Portraits, pets with detail',
-  },
-  {
-    id:      'complex',
-    label:   'Expert',
-    emoji:   '🔴',
-    colors:  25,
-    hint:    'Fine detail, many tones',
-    example: 'Landscapes, busy scenes',
-  },
+const COLOR_TIERS = [
+  { id: 'beginner',     label: 'Beginner',     min: 2,  max: 6,  default: 4  },
+  { id: 'intermediate', label: 'Intermediate', min: 7,  max: 12, default: 8  },
+  { id: 'advanced',     label: 'Advanced',     min: 13, max: 30, default: 15 },
 ]
 
 function SettingsInner() {
@@ -75,10 +53,6 @@ function SettingsInner() {
 
 
 
-  function setStitchStyle(style: StitchStyle) {
-    dispatch({ type: 'UPDATE_SETTINGS', payload: { stitchStyle: style } })
-  }
-
   function setGridSize(size: GridSize) {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { gridSize: size } })
   }
@@ -87,15 +61,12 @@ function SettingsInner() {
     dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: count } })
   }
 
-  function applyDifficulty(colors: number) {
-    dispatch({ type: 'UPDATE_SETTINGS', payload: { maxColors: colors } })
+  function tierFromColors(n: number): string {
+    if (n <= 6) return 'beginner'
+    if (n <= 12) return 'intermediate'
+    return 'advanced'
   }
-
-  // Which difficulty tier is currently active (if any)
-  const activeTier = useMemo(() =>
-    DIFFICULTY_TIERS.find(t => t.colors === settings.maxColors)?.id ?? null,
-    [settings.maxColors]
-  )
+  const [activeTier, setActiveTier] = useState(() => tierFromColors(settings.maxColors))
 
   async function handleGenerate() {
     const succeeded = await generate()
@@ -264,51 +235,16 @@ function SettingsInner() {
           )}
         </div>
 
-        {/* ── Stitch Style ─────────────────────────────────────────────── */}
-        <div>
-          <p className="font-body font-semibold text-sm text-ink mb-3">Stitch style</p>
-          <div className="grid grid-cols-2 gap-3">
-            {(Object.keys(STITCH_STYLE_META) as StitchStyle[]).filter(style => STITCH_STYLE_META[style].available).map(style => {
-              const meta     = STITCH_STYLE_META[style]
-              const isActive = settings.stitchStyle === style
-
-              return (
-                <button
-                  key={style}
-                  onClick={() => setStitchStyle(style)}
-                  style={{
-                    ...cardBase,
-                    borderColor:     isActive ? '#C4614A' : '#E8DDD0',
-                    background:      isActive ? 'rgba(196,97,74,0.06)' : 'white',
-                    boxShadow:       isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : '0 1px 4px rgba(44,34,24,0.06)',
-                  }}
-                >
-                  <span style={{ fontSize: 26 }}>{STITCH_ICONS[style]}</span>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13,
-                    color: isActive ? '#C4614A' : '#2C2218',
-                  }}>
-                    {meta.label}
-                  </span>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                    color: isActive ? 'rgba(196,97,74,0.7)' : '#9A8878',
-                    lineHeight: 1.3,
-                  }}>
-                    {meta.description}
-                  </span>
-                  {meta.watchOut && (
-                    <span style={{
-                      fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-                      color: '#b45309', lineHeight: 1.3,
-                    }}>
-                      ⚠ {meta.watchOut}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+        {/* ── Stitch Style — read-only ─────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>Style:</span>
+          <span style={{
+            fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+            color: '#6B5744', background: '#F2EAD8',
+            borderRadius: 999, padding: '4px 12px',
+          }}>
+            {STITCH_ICONS[settings.stitchStyle] ?? ''}{STITCH_ICONS[settings.stitchStyle] ? ' ' : ''}{STITCH_STYLE_META[settings.stitchStyle]?.label ?? settings.stitchStyle}
+          </span>
         </div>
 
         {/* ── Grid Size ────────────────────────────────────────────────── */}
@@ -363,124 +299,66 @@ function SettingsInner() {
           )}
         </div>
 
-        {/* ── Colour Difficulty ────────────────────────────────────────── */}
+        {/* ── Colour count ─────────────────────────────────────────────── */}
         <div>
-          <p className="font-body font-semibold text-sm text-ink mb-1">Photo complexity</p>
-          <p className="font-body text-xs text-ink/40 mb-3">
-            Match to your photo — or dial in the exact count below.
-          </p>
-          <div className="grid grid-cols-3 gap-2 mb-5">
-            {DIFFICULTY_TIERS.map(tier => {
+          <p className="font-body font-semibold text-sm text-ink mb-3">Colour count</p>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            {COLOR_TIERS.map(tier => {
               const isActive = activeTier === tier.id
               return (
                 <button
                   key={tier.id}
-                  onClick={() => applyDifficulty(tier.colors)}
+                  onClick={() => {
+                    setActiveTier(tier.id)
+                    setMaxColors(tier.default)
+                  }}
                   style={{
-                    ...cardBase,
-                    padding: '12px 8px',
-                    borderColor: isActive ? '#C4614A' : '#E8DDD0',
-                    background:  isActive ? 'rgba(196,97,74,0.06)' : 'white',
-                    boxShadow:   isActive ? '0 0 0 3px rgba(196,97,74,0.12)' : '0 1px 4px rgba(44,34,24,0.06)',
-                    gap: 4,
+                    flex: 1, padding: '9px 0', borderRadius: 999,
+                    border: `1.5px solid ${isActive ? '#C4614A' : '#E4D9C8'}`,
+                    background: isActive ? '#C4614A' : 'white',
+                    color: isActive ? 'white' : '#6B5744',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: 18 }}>{tier.emoji}</span>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12,
-                    color: isActive ? '#C4614A' : '#2C2218',
-                  }}>
-                    {tier.label}
-                  </span>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-                    color: '#9A8878', lineHeight: 1.3,
-                  }}>
-                    {tier.colors} colours
-                  </span>
-                  <span style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-                    color: isActive ? 'rgba(196,97,74,0.6)' : '#B8AAA0',
-                    lineHeight: 1.3,
-                  }}>
-                    {tier.hint}
-                  </span>
+                  {tier.label}
                 </button>
               )
             })}
           </div>
-
+          {(() => {
+            const tier = COLOR_TIERS.find(t => t.id === activeTier)!
+            return (
+              <div style={{ background: 'white', borderRadius: 16, padding: '16px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878' }}>
+                    {tier.min}–{tier.max} colours · fewer = easier
+                  </p>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 700, color: '#C4614A', lineHeight: 1 }}>
+                    {settings.maxColors}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={tier.min}
+                  max={tier.max}
+                  step={1}
+                  value={Math.max(tier.min, Math.min(tier.max, settings.maxColors))}
+                  onChange={e => setMaxColors(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: '#C4614A' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>{tier.min}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0' }}>{tier.max}</span>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* ── Customize Pattern ─────────────────────────────────────────── */}
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 0 }}>
-
-              {/* Fine-tune slider */}
-              <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', boxShadow: '0 1px 4px rgba(44,34,24,0.06)' }}>
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="font-body text-sm font-medium text-ink">Fine-tune colours</p>
-                    <p className="font-body text-xs text-ink/40">Fewer = simpler to stitch</p>
-                  </div>
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#C4614A', lineHeight: 1 }}>
-                    {settings.maxColors}
-                  </span>
-                </div>
-                <div className="flex gap-1 mb-3">
-                  {Array.from({ length: MAX_COLORS }).map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        flex: 1, height: 8, borderRadius: 4,
-                        background: i < settings.maxColors ? '#C4614A' : '#E8DDD0',
-                        opacity: i < settings.maxColors ? 1 - (i * 0.55 / settings.maxColors) : 1,
-                        transition: 'all 0.15s ease',
-                      }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="range"
-                  min={MIN_COLORS}
-                  max={MAX_COLORS}
-                  value={settings.maxColors}
-                  onChange={(e) => setMaxColors(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: '#C4614A' }}
-                />
-                <div className="flex justify-between text-xs font-body text-ink/30 mt-1">
-                  <span>{MIN_COLORS} colours</span>
-                  <span>{MAX_COLORS} colours</span>
-                </div>
-                {settings.imageType === 'pixel' && (
-                  <p className="text-xs font-body mt-1" style={{ color: '#9A8878' }}>Stops at however many distinct colours are found</p>
-                )}
-                {state.detectedColors && state.recommendedColors && (
-                  <>
-                    <p className="font-body text-xs text-ink/50 mt-2">
-                      We detected {state.detectedColors} dominant {state.detectedColors === 1 ? 'color' : 'colors'} - recommended: {state.recommendedColors} colors
-                    </p>
-                    {(state.dominantPalette?.length ?? 0) > 0 && (
-                      <div style={{ marginTop: 10 }}>
-                        <p className="font-body text-[11px] text-ink/40 mb-2">Detected dominant swatches</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-                          {(state.dominantPalette ?? []).slice(0, 8).map((swatch, idx) => {
-                            const totalPopulation = (state.dominantPalette ?? []).reduce((sum, item) => sum + item.population, 0)
-                            const pct = totalPopulation > 0 ? Math.round((swatch.population / totalPopulation) * 100) : 0
-                            return (
-                              <div key={`${swatch.hex}-${idx}`} style={{ background: '#FAF6EF', border: '1px solid #E8DDD0', borderRadius: 10, padding: '8px 6px', textAlign: 'center' }}>
-                                <div style={{ width: 22, height: 22, borderRadius: 6, margin: '0 auto 6px', background: swatch.hex, border: '1px solid rgba(44,34,24,0.12)' }} aria-label={`Detected swatch ${swatch.hex}`} />
-                                <p className="font-body text-[10px] text-ink/70" style={{ lineHeight: 1.2 }}>{swatch.hex}</p>
-                                <p className="font-body text-[10px] text-ink/40" style={{ lineHeight: 1.2 }}>{pct}%</p>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
 
               {/* Background colour */}
               <div>
