@@ -621,28 +621,42 @@ function saliencyMedianCut(
   }
   if (allPixels.length === 0) return []
 
-  // ── Step 2: Anchor seeds (same as graphic engine) ─────────────────────────
-  // Seeds the darkest pixel (eyes, pupils, outlines) and most saturated pixels
-  // (fur color, skin tone peaks) — these are the features that define a face/pet
-  let darkest = allPixels[0], lightest = allPixels[0]
-  let mostSat = allPixels[0], secondSat = allPixels[0]
+  // ── Farthest-point anchor seeding ─────────────────────────────────────────
+  // Guarantees anchors are maximally spread across the image's actual color space
+  // Step 1: Always start with darkest pixel (captures eyes, pupils, outlines)
+  let darkest = allPixels[0]
   for (const p of allPixels) {
     if (p.L < darkest.L) darkest = p
-    if (p.L > lightest.L) lightest = p
-    const sat = Math.sqrt(p.a * p.a + p.b * p.b)
-    const s1  = Math.sqrt(mostSat.a  * mostSat.a  + mostSat.b  * mostSat.b)
-    const s2  = Math.sqrt(secondSat.a * secondSat.a + secondSat.b * secondSat.b)
-    if (sat > s1) { secondSat = mostSat; mostSat = p }
-    else if (sat > s2 && labDistance(p, mostSat) > 20) secondSat = p
   }
 
-  // Reserve 2 anchor slots: darkest + most saturated (if distinct enough)
-  // These guarantee eyes/outlines and dominant fur/skin color are in palette
-  const ANCHOR_DISTINCT = 25
+  // Step 2: Farthest-point sampling — each new anchor is the pixel
+  // most perceptually distant from ALL current anchors combined
   const anchors: LabColor[] = [darkest]
-  if (labDistance(mostSat, darkest) > ANCHOR_DISTINCT) anchors.push(mostSat)
+  const ANCHOR_COUNT = Math.min(4, Math.floor(maxColors / 2))
 
-  const anchorSlots = Math.min(anchors.length, Math.floor(maxColors / 2))
+  for (let a = 1; a < ANCHOR_COUNT; a++) {
+    let bestPixel   = allPixels[0]
+    let bestMinDist = -1
+
+    for (const p of allPixels) {
+      // Find this pixel's minimum distance to any existing anchor
+      let minDist = Infinity
+      for (const anchor of anchors) {
+        const d = labDistance(p, anchor)
+        if (d < minDist) minDist = d
+      }
+      // Pick the pixel whose minimum distance to anchors is largest
+      if (minDist > bestMinDist) {
+        bestMinDist = minDist
+        bestPixel   = p
+      }
+    }
+
+    // Only add if meaningfully distinct from existing anchors
+    if (bestMinDist > 15) anchors.push(bestPixel)
+  }
+
+  const anchorSlots = anchors.length
   const remainSlots = Math.max(1, maxColors - anchorSlots)
 
   // ── Step 3: Saliency-weighted pixels for remaining slots ──────────────────
