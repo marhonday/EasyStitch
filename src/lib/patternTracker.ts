@@ -96,6 +96,31 @@ export function updateProgress(id: string, completedRows: number[], currentRow: 
   saveAll(all)
 }
 
+export function updateTrackedCellColor(id: string, row: number, col: number, colorIndex: number): void {
+  const all = loadAll()
+  const p = all.find(p => p.id === id)
+  if (!p) return
+  if (!p.colorMap[row] || typeof p.colorMap[row][col] !== 'number') return
+  p.colorMap[row][col] = colorIndex
+  p.updatedAt = Date.now()
+  saveAll(all)
+}
+
+export function replaceTrackedColor(id: string, fromIndex: number, toIndex: number): void {
+  const all = loadAll()
+  const p = all.find(p => p.id === id)
+  if (!p) return
+  if (fromIndex === toIndex) return
+  for (let r = 0; r < p.colorMap.length; r++) {
+    const row = p.colorMap[r]
+    for (let c = 0; c < row.length; c++) {
+      if (row[c] === fromIndex) row[c] = toIndex
+    }
+  }
+  p.updatedAt = Date.now()
+  saveAll(all)
+}
+
 export function patternFromPatternData(data: PatternData, name: string): TrackedPattern {
   const colorMap = data.grid.map(row => row.map(cell => cell.colorIndex))
   const palette: TrackedPalette[] = data.palette.map(e => ({

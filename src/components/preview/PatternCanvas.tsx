@@ -37,6 +37,8 @@ interface PatternCanvasProps {
   highlightRow?:    number
   /** Colour of the 1 px gap/grid lines between cells. Default white (invisible). */
   gapColor?:        string
+  /** Optional repeating watermark drawn onto the canvas itself. */
+  watermarkText?:   string
 }
 
 
@@ -88,6 +90,7 @@ export default function PatternCanvas({
   onCellTap,
   highlightRow,
   gapColor,
+  watermarkText,
 }: PatternCanvasProps) {
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -120,7 +123,13 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
+    drawPatternToCanvas(canvas, getPatternToRender(), {
+      cellSize,
+      gap: 1,
+      showSymbols,
+      gapColor: gapColor ?? '#FAF6EF',
+      watermarkText,
+    })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
     tfRef.current = INITIAL_TRANSFORM
     applyTransform()
@@ -132,7 +141,13 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
+    drawPatternToCanvas(canvas, getPatternToRender(), {
+      cellSize,
+      gap: 1,
+      showSymbols,
+      gapColor: gapColor ?? '#FAF6EF',
+      watermarkText,
+    })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellOverrides, paletteOverrides, highlightRow])
@@ -149,7 +164,13 @@ export default function PatternCanvas({
     const canvas = canvasRef.current
     if (!canvas || !pattern) return
     const showSymbols = tfRef.current.scale >= 2.5 && cellSize >= 10
-    drawPatternToCanvas(canvas, getPatternToRender(), { cellSize, gap: 1, showSymbols, gapColor: gapColor ?? '#FAF6EF' })
+    drawPatternToCanvas(canvas, getPatternToRender(), {
+      cellSize,
+      gap: 1,
+      showSymbols,
+      gapColor: gapColor ?? '#FAF6EF',
+      watermarkText,
+    })
     if (highlightRow !== undefined) drawRowHighlight(canvas, highlightRow, cellSize)
   }, [pattern, cellSize, cellOverrides, paletteOverrides, highlightRow])
 

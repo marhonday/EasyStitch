@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import ZoomableCanvas from '@/components/preview/ZoomableCanvas'
 import {
   getTracked, updateProgress, markEmailSaved, updateYarnLabel,
+  updateTrackedCellColor, replaceTrackedColor,
   defaultYarnLabel, TrackedPattern,
 } from '@/lib/patternTracker'
 import DiscountClubCard from '@/components/ui/DiscountClubCard'
@@ -170,6 +171,11 @@ export default function TrackerPage() {
   const [editingYarnIndex, setEditingYarnIndex] = useState<number | null>(null)
   const [editingYarnValue, setEditingYarnValue] = useState('')
 
+  // ── Customization state (edit stitches/colors) ───────────────────────────────
+  const [editMode, setEditMode] = useState(false)
+  const [cellPopover, setCellPopover] = useState<{ row: number; col: number; x: number; y: number } | null>(null)
+  const [replacePopover, setReplacePopover] = useState<{ fromIdx: number; x: number; y: number } | null>(null)
+
   // ── Email prompt state ───────────────────────────────────────────────────────
   const [showEmailPrompt, setShowEmailPrompt] = useState(false)
   const [emailInput,      setEmailInput]      = useState('')
@@ -265,6 +271,48 @@ export default function TrackerPage() {
     if (!pattern) return
     updateProgress(pattern.id, Array.from(completed).sort((a, b) => a - b), cur)
   }, [pattern])
+
+  function cellSizeForWidth(containerWidth: number) {
+    if (!pattern) return 8
+    return Math.min(24, Math.max(4, Math.floor(containerWidth / pattern.meta.width)))
+  }
+
+  function handleCanvasClick(e: React.MouseEvent) {
+    if (!editMode || !pattern || !canvasRef.current) return
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    const container = isDesktop ? gridContainerRef.current : containerRef.current
+    const w = container?.getBoundingClientRect().width ?? 320
+    const cellSize = cellSizeForWidth(w)
+    const stride = cellSize + 1
+    const col = Math.floor((e.clientX - rect.left) / stride)
+    const row = Math.floor((e.clientY - rect.top) / stride)
+    if (row < 0 || col < 0 || row >= pattern.meta.height || col >= pattern.meta.width) return
+    setCellPopover({ row, col, x: e.clientX, y: e.clientY })
+  }
+
+  function pickCellColor(nextIdx: number) {
+    if (!pattern || !cellPopover) return
+    updateTrackedCellColor(pattern.id, cellPopover.row, cellPopover.col, nextIdx)
+    setPattern(prev => {
+      if (!prev) return prev
+      const next = { ...prev, colorMap: prev.colorMap.map(r => [...r]) }
+      next.colorMap[cellPopover.row][cellPopover.col] = nextIdx
+      return next
+    })
+    setCellPopover(null)
+  }
+
+  function applyReplace(toIdx: number) {
+    if (!pattern || !replacePopover) return
+    replaceTrackedColor(pattern.id, replacePopover.fromIdx, toIdx)
+    setPattern(prev => {
+      if (!prev) return prev
+      const next = { ...prev, colorMap: prev.colorMap.map(r => r.map(v => (v === replacePopover.fromIdx ? toIdx : v))) }
+      return next
+    })
+    setReplacePopover(null)
+  }
 
   // ── Celebration trigger ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -529,6 +577,29 @@ export default function TrackerPage() {
                 {yarnName(i)}
               </span>
             )}
+            {editMode && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setReplacePopover({ fromIdx: i, x: e.clientX, y: e.clientY })
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid #EDE4D8',
+                  borderRadius: 8,
+                  padding: '3px 8px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  color: '#6B5744',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+                title="Replace this colour everywhere"
+              >
+                Replace
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -580,7 +651,7 @@ export default function TrackerPage() {
             </div>
 
             {/* Grid — fills remaining height */}
-            <div ref={gridContainerRef} style={{ flex: 1, overflow: 'hidden', padding: '0 24px' }}>
+            <div ref={gridContainerRef} style={{ flex: 1, overflow: 'hidden', padding: '0 24px' }} onClick={handleCanvasClick}>
               <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} />
             </div>
 
@@ -801,7 +872,7 @@ export default function TrackerPage() {
 
         {/* Grid — natural height, no cap */}
         <div style={{ width: '100%', maxWidth: 440 }}>
-          <div ref={containerRef} style={{ overflowX: 'auto', overflowY: 'auto' }}>
+          <div ref={containerRef} style={{ overflowX: 'auto', overflowY: 'auto' }} onClick={handleCanvasClick}>
             <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} />
           </div>
         </div>
@@ -902,6 +973,27 @@ export default function TrackerPage() {
           )}
         </div>
 
+        {/* Edit mode toggle (mobile) */}
+        <div style={{ width: '100%', maxWidth: 440, marginTop: 10 }}>
+          <button
+            onClick={() => { setEditMode(v => !v); setCellPopover(null) }}
+            style={{
+              width: '100%', padding: '10px 14px',
+              background: editMode ? 'rgba(196,97,74,0.08)' : 'white',
+              border: `1.5px solid ${editMode ? 'rgba(196,97,74,0.35)' : '#EDE4D8'}`,
+              borderRadius: 12,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              fontWeight: 700,
+              color: editMode ? '#C4614A' : '#6B5744',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            🎨 {editMode ? 'Edit mode ON — tap grid to recolor stitches' : 'Enable edit mode (recolor stitches)'}
+          </button>
+        </div>
+
         {/* Completion discount card */}
         {isComplete && (
           <div style={{ width: '100%', maxWidth: 440, marginTop: 16 }}>
@@ -929,6 +1021,108 @@ export default function TrackerPage() {
 
       {/* Email prompt */}
       {showEmailPrompt && <EmailPrompt />}
+
+      {/* Edit popovers */}
+      {pattern && (cellPopover || replacePopover) && (
+        <div
+          onClick={() => { setCellPopover(null); setReplacePopover(null) }}
+          style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'transparent' }}
+        />
+      )}
+
+      {pattern && cellPopover && (
+        <div
+          style={{
+            position: 'fixed',
+            left: Math.min(cellPopover.x, window.innerWidth - 190),
+            top:  cellPopover.y + 10,
+            zIndex: 221,
+            background: 'white',
+            borderRadius: 14,
+            boxShadow: '0 10px 34px rgba(44,34,24,0.20)',
+            padding: 10,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            maxWidth: 190,
+          }}
+        >
+          <div style={{ width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', marginBottom: 2 }}>
+            Recolor stitch
+          </div>
+          {pattern.palette.map((entry, idx) => (
+            <button
+              key={idx}
+              onClick={() => pickCellColor(idx)}
+              title={entry.label ?? `Color ${idx + 1}`}
+              style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: entry.hex,
+                border: '2px solid rgba(0,0,0,0.10)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, color: 'rgba(255,255,255,0.92)',
+              }}
+            >
+              {entry.symbol}
+            </button>
+          ))}
+          <button
+            onClick={() => setCellPopover(null)}
+            style={{ width: '100%', padding: '4px', background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', cursor: 'pointer' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {pattern && replacePopover && (
+        <div
+          style={{
+            position: 'fixed',
+            left: Math.min(replacePopover.x, window.innerWidth - 220),
+            top:  replacePopover.y + 10,
+            zIndex: 221,
+            background: 'white',
+            borderRadius: 14,
+            boxShadow: '0 10px 34px rgba(44,34,24,0.20)',
+            padding: 10,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            maxWidth: 220,
+          }}
+        >
+          <div style={{ width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', marginBottom: 2 }}>
+            Replace everywhere with…
+          </div>
+          {pattern.palette.map((entry, idx) => (
+            <button
+              key={idx}
+              onClick={() => applyReplace(idx)}
+              disabled={idx === replacePopover.fromIdx}
+              title={entry.label ?? `Color ${idx + 1}`}
+              style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: entry.hex,
+                border: idx === replacePopover.fromIdx ? '2px solid rgba(0,0,0,0.25)' : '2px solid rgba(0,0,0,0.10)',
+                cursor: idx === replacePopover.fromIdx ? 'not-allowed' : 'pointer',
+                opacity: idx === replacePopover.fromIdx ? 0.35 : 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, color: 'rgba(255,255,255,0.92)',
+              }}
+            >
+              {entry.symbol}
+            </button>
+          ))}
+          <button
+            onClick={() => setReplacePopover(null)}
+            style={{ width: '100%', padding: '4px', background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', cursor: 'pointer' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </main>

@@ -110,7 +110,14 @@ export default function PreviewPage() {
 
   function handleInlineDownloadPng() {
     if (!personalizedPattern || !pngCanvasRef.current) return
-    drawPatternToCanvas(pngCanvasRef.current, personalizedPattern, { cellSize: 20, gap: 1, showSymbols: true })
+    const locked = !isUnlocked()
+    drawPatternToCanvas(pngCanvasRef.current, personalizedPattern, {
+      cellSize: locked ? 12 : 20,
+      gap: 1,
+      showSymbols: !locked,
+      watermarkText: locked ? 'CraftWabi Preview' : undefined,
+      watermarkOpacity: 0.16,
+    })
     const dataUrl = pngCanvasRef.current.toDataURL('image/png')
     const link = document.createElement('a')
     link.href = dataUrl
@@ -321,6 +328,7 @@ export default function PreviewPage() {
             onCellTap={handleCellTap}
             highlightRow={highlightGridRow}
             gapColor={gridLineColor}
+            watermarkText={!isUnlocked() ? 'CraftWabi Preview' : undefined}
           />
 
           {/* Grid-line disclaimer */}

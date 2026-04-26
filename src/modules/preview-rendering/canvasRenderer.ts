@@ -20,6 +20,12 @@ export interface DrawOptions {
    * Pass a darker value to show visible grid lines for editing.
    */
   gapColor?:            string
+  /**
+   * Optional repeating watermark rendered ONTO the canvas (not CSS),
+   * so it persists through zoom and screenshots.
+   */
+  watermarkText?:       string
+  watermarkOpacity?:    number
 }
 
 export const PREVIEW_DEFAULTS: DrawOptions = {
@@ -125,6 +131,42 @@ export function drawPatternToCanvas(
         ctx.fillStyle = 'rgba(255,255,255,0.75)'
         ctx.fillText(cell.symbol, x, y)
       }
+    }
+  }
+
+  // ── Watermark overlay ───────────────────────────────────────────────────────
+  if (options.watermarkText) {
+    const text = options.watermarkText.trim()
+    if (text) {
+      const opacity = typeof options.watermarkOpacity === 'number'
+        ? Math.max(0.02, Math.min(0.25, options.watermarkOpacity))
+        : 0.12
+
+      ctx.save()
+      ctx.globalAlpha = opacity
+      ctx.fillStyle = '#2C2218'
+
+      // Scale watermark sizing based on canvas size
+      const base = Math.max(width, height)
+      const fontPx = Math.max(14, Math.min(26, Math.round(base / 42)))
+      const spacing = Math.max(120, Math.min(240, Math.round(base / 6)))
+
+      ctx.font = `600 ${fontPx}px 'DM Sans', sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      // Diagonal repeating pattern
+      ctx.translate(width / 2, height / 2)
+      ctx.rotate(-Math.PI / 6) // -30°
+
+      const diag = Math.sqrt(width * width + height * height)
+      for (let y = -diag; y <= diag; y += spacing) {
+        for (let x = -diag; x <= diag; x += spacing) {
+          ctx.fillText(text, x, y)
+        }
+      }
+
+      ctx.restore()
     }
   }
 
