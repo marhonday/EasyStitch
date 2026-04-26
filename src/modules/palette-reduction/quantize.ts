@@ -627,10 +627,23 @@ function saliencyMedianCut(
 ): ColorEntry[] {
   const { data } = grid
 
-  // ── Step 1: Collect all opaque pixels ─────────────────────────────────────
+  // ── Step 1: Collect non-background opaque pixels ─────────────────────────
+  // Skip pixels within ΔE 15 of pure white — after bg removal (or for photos
+  // with white backdrops) this prevents the fill color wasting an anchor slot.
+  const isBackground = (r: number, g: number, b: number) =>
+    (255 - r) + (255 - g) + (255 - b) < 30
+
   const allPixels: LabColor[] = []
   for (let i = 0; i < data.length; i += 4) {
-    if (data[i + 3] >= 128) allPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]))
+    if (data[i + 3] < 128) continue
+    if (isBackground(data[i], data[i + 1], data[i + 2])) continue
+    allPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]))
+  }
+  // Fallback: if the entire image is background, use all opaque pixels
+  if (allPixels.length === 0) {
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] >= 128) allPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]))
+    }
   }
   if (allPixels.length === 0) return []
 

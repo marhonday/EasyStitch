@@ -32,6 +32,25 @@ export default function BgRemoval({ imageUrl, onAccept, onCancel, onSkip }: BgRe
     runRemoval()
   }, [])
 
+  async function flattenTransparency(blob: Blob, bgColor: string = '#ffffff'): Promise<string> {
+    const img = new Image()
+    const url = URL.createObjectURL(blob)
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve()
+      img.onerror = reject
+      img.src = url
+    })
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(img, 0, 0)
+    URL.revokeObjectURL(url)
+    return canvas.toDataURL('image/jpeg', 0.92)
+  }
+
   async function runRemoval() {
     try {
       setStatus('loading_model')
@@ -48,14 +67,15 @@ export default function BgRemoval({ imageUrl, onAccept, onCancel, onSkip }: BgRe
       const result = await removeBackground(blob, {
         // SharedArrayBuffer-backed multithreading requires cross-origin isolation.
         // If the site isn't isolated, force single-thread mode to avoid runtime errors.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         numThreads: (typeof window !== 'undefined' && (window as any).crossOriginIsolated) ? 6 : 1,
         progress: (key: string, current: number, total: number) => {
           if (total > 0) setProgress(Math.round((current / total) * 100))
         },
-      })
+      } as any)
 
-      const url = URL.createObjectURL(result)
-      setResultUrl(url)
+      const flatUrl = await flattenTransparency(result)
+      setResultUrl(flatUrl)
       setStatus('done')
     } catch (err) {
       console.error('BG removal failed:', err)
@@ -136,7 +156,7 @@ export default function BgRemoval({ imageUrl, onAccept, onCancel, onSkip }: BgRe
             <button onClick={onSkip} style={{ ...btnBase, background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8' }}>
               Skip removal
             </button>
-            <button onClick={() => onAccept(resultUrl)} style={{ ...btnBase, flex: 2, background: '#C4614A', color: 'white', boxShadow: '0 4px 16px rgba(196,97,74,0.28)' }}>
+            <button onClick={() => onAccept(resultUrl!)} style={{ ...btnBase, flex: 2, background: '#C4614A', color: 'white', boxShadow: '0 4px 16px rgba(196,97,74,0.28)' }}>
               Use this ✓
             </button>
           </>
