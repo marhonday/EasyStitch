@@ -63,6 +63,15 @@ function finalizePalette(colors: Array<{r:number,g:number,b:number}>): ColorEntr
   return entries.map((e, i) => ({ ...e, symbol: COLOR_SYMBOLS[i] ?? String(i + 1) }))
 }
 
+/** Perceptually-weighted RGB distance (green 4×, blue 3×, red 2×). */
+function weightedDE(a: {r:number,g:number,b:number}, b: {r:number,g:number,b:number}): number {
+  return Math.sqrt(
+    Math.pow(a.r - b.r, 2) * 2 +
+    Math.pow(a.g - b.g, 2) * 4 +
+    Math.pow(a.b - b.b, 2) * 3
+  )
+}
+
 function parseHexColor(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '')
   return {
@@ -376,73 +385,70 @@ function mergeNearDuplicateCenters(centers: LabColor[], k: number): LabColor[] {
 function kMeansExtract(grid: PixelGrid, maxColors: number): ColorEntry[] {
   const { data } = grid
 
-  // Collect all opaque pixels
-  const allPixels: LabColor[] = []
+  type Group = { rSum: number; gSum: number; bSum: number; count: number; r: number; g: number; b: number }
+  const groups: Group[] = []
+
+  // Step 1 — Group every opaque pixel by ΔE 5 similarity.
+  // Tight threshold collapses JPEG compression noise into one group
+  // while keeping genuinely different colors separate.
+  const CLUSTER_THRESH = 5
   for (let i = 0; i < data.length; i += 4) {
-    if (data[i + 3] >= 128) allPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]))
-  }
-  if (allPixels.length === 0) return []
+    if (data[i + 3] < 128) continue
+    const r = data[i], g = data[i + 1], b = data[i + 2]
 
-  // Find extreme anchors — single real pixels, no averaging drift
-  let darkest = allPixels[0], lightest = allPixels[0]
-  let mostSat = allPixels[0], secondSat = allPixels[0]
-  for (const p of allPixels) {
-    if (p.L < darkest.L) darkest = p
-    if (p.L > lightest.L) lightest = p
-    const sat = Math.sqrt(p.a * p.a + p.b * p.b)
-    const s1  = Math.sqrt(mostSat.a * mostSat.a + mostSat.b * mostSat.b)
-    const s2  = Math.sqrt(secondSat.a * secondSat.a + secondSat.b * secondSat.b)
-    if (sat > s1) { secondSat = mostSat; mostSat = p }
-    else if (sat > s2 && labDistance(p, mostSat) > 20) secondSat = p
-  }
-
-  // Build palette starting from anchors — use the ACTUAL pixel value, not an average
-  // This prevents black drifting to gold, pink drifting to crimson, etc.
-  const DISTINCT = 30  // minimum ΔE to be considered a separate color
-  const seeds: LabColor[] = []
-  for (const candidate of [darkest, lightest, mostSat, secondSat]) {
-    if (seeds.every(s => labDistance(candidate, s) > DISTINCT)) {
-      seeds.push(candidate)
+    let nearest = -1, nearestDist = CLUSTER_THRESH
+    for (let j = 0; j < groups.length; j++) {
+      const d = weightedDE({ r, g, b }, groups[j])
+      if (d < nearestDist) { nearestDist = d; nearest = j }
     }
-    if (seeds.length >= maxColors) break
+
+    if (nearest >= 0) {
+      const grp = groups[nearest]
+      grp.rSum += r; grp.gSum += g; grp.bSum += b; grp.count++
+      grp.r = Math.round(grp.rSum / grp.count)
+      grp.g = Math.round(grp.gSum / grp.count)
+      grp.b = Math.round(grp.bSum / grp.count)
+    } else {
+      groups.push({ rSum: r, gSum: g, bSum: b, count: 1, r, g, b })
+    }
   }
 
-  // If we still need more colors, find them by scanning for unclaimed pixel clusters
-  if (seeds.length < maxColors) {
-    // Mark which pixels are already "claimed" by a seed
-    const unclaimed = allPixels.filter(p => seeds.every(s => labDistance(p, s) > DISTINCT))
+  if (groups.length === 0) return []
 
-    // Find next most common cluster in unclaimed pixels
-    while (seeds.length < maxColors && unclaimed.length > 0) {
-      // Sample unclaimed pixels and find the most "popular" color region
-      const step = Math.max(1, Math.floor(unclaimed.length / 300))
-      const sample = unclaimed.filter((_, i) => i % step === 0)
+  // Step 2 — Sort by pixel count descending (most common colors first)
+  groups.sort((a, b) => b.count - a.count)
 
-      let bestCenter: LabColor | null = null
-      let bestCount = 0
-      for (const candidate of sample) {
-        const count = sample.filter(p => labDistance(p, candidate) < DISTINCT).length
-        if (count > bestCount && seeds.every(s => labDistance(candidate, s) > DISTINCT)) {
-          bestCount = count
-          bestCenter = candidate
-        }
+  // Step 3 — If at or under budget, use them all
+  if (groups.length <= maxColors) {
+    return finalizePalette(groups.map(grp => ({ r: grp.r, g: grp.g, b: grp.b })))
+  }
+
+  // Step 4 — Merge closest pairs until group count equals maxColors.
+  // Combines pixel counts so the merged group's average stays correct.
+  while (groups.length > maxColors) {
+    let minDist = Infinity, mergeI = 0, mergeJ = 1
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        const d = weightedDE(groups[i], groups[j])
+        if (d < minDist) { minDist = d; mergeI = i; mergeJ = j }
       }
-
-      if (!bestCenter) break
-      seeds.push(bestCenter)
-
-      // Remove claimed pixels
-      const toRemove = new Set(unclaimed.map((p, i) => i).filter(i => labDistance(unclaimed[i], bestCenter!) < DISTINCT))
-      unclaimed.splice(0, unclaimed.length, ...unclaimed.filter((_, i) => !toRemove.has(i)))
     }
+    const grpA = groups[mergeI], grpB = groups[mergeJ]
+    const total = grpA.count + grpB.count
+    groups[mergeI] = {
+      rSum: grpA.rSum + grpB.rSum,
+      gSum: grpA.gSum + grpB.gSum,
+      bSum: grpA.bSum + grpB.bSum,
+      count: total,
+      r: Math.round((grpA.rSum + grpB.rSum) / total),
+      g: Math.round((grpA.gSum + grpB.gSum) / total),
+      b: Math.round((grpA.bSum + grpB.bSum) / total),
+    }
+    groups.splice(mergeJ, 1)
   }
 
-  // Convert seed LAB values directly to RGB — no averaging, exact pixel colors
-  return finalizePalette(seeds.map(s => ({
-    r: Math.round(s.r),
-    g: Math.round(s.g),
-    b: Math.round(s.bl),
-  })))
+  // Step 5 — Convert to ColorEntry, sort by perceived lightness
+  return finalizePalette(groups.map(grp => ({ r: grp.r, g: grp.g, b: grp.b })))
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -450,7 +456,7 @@ function kMeansExtract(grid: PixelGrid, maxColors: number): ColorEntry[] {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const MAX_SALIENCY_WEIGHT = 6
-const CENTER_BONUS        = 1.5
+const CENTER_BONUS        = 3.0
 
 function extractSaliencyPixels(grid: PixelGrid): LabColor[] {
   const { data, width, height } = grid
@@ -460,8 +466,8 @@ function extractSaliencyPixels(grid: PixelGrid): LabColor[] {
     labGrid[i] = rgbToLab(data[d], data[d + 1], data[d + 2])
   }
 
-  const marginX = Math.floor(width  * 0.20)
-  const marginY = Math.floor(height * 0.20)
+  const marginX = Math.floor(width  * 0.30)
+  const marginY = Math.floor(height * 0.30)
   const pixels: LabColor[] = []
 
   for (let y = 0; y < height; y++) {
@@ -667,22 +673,48 @@ function saliencyMedianCut(
     anchors.slice(0, anchorSlots).every(a => labDistance(p, a) > CLAIM_DIST)
   )
 
-  const usePixels      = unclaimed.length > remainSlots * 3 ? unclaimed : saliencyPxls
-  const oversampleGoal = Math.min(remainSlots * 4, 80)
-  const buckets        = medianCut(usePixels, oversampleGoal)
+  // ── Impact-maximizing slot allocation ──────────────────────────────────────
+  // Heavily oversample via median cut, then pick via farthest-point so each
+  // added color maximizes perceptual distance from all already-chosen colors.
+  const usePixels = unclaimed.length > remainSlots * 3 ? unclaimed : saliencyPxls
+  const buckets   = medianCut(usePixels, remainSlots * 6)
 
-  const candidates = buckets
+  const mcCandidates: Array<{r:number,g:number,b:number}> = buckets
     .filter(bkt => bkt.pixels.length > 0)
     .map(bkt => {
       let rS=0,gS=0,bS=0
       for (const p of bkt.pixels){rS+=p.r;gS+=p.g;bS+=p.b}
       const n=bkt.pixels.length
-      const r=Math.round(rS/n),g=Math.round(gS/n),b=Math.round(bS/n)
-      return {r,g,b,hex:rgbToHex(r,g,b),lightness:perceivedLightness(r,g,b)}
+      return {r:Math.round(rS/n), g:Math.round(gS/n), b:Math.round(bS/n)}
     })
-  candidates.sort((a,b)=>a.lightness-b.lightness)
-  const candidateEntries: ColorEntry[] = candidates.map((e,i)=>({...e,symbol:COLOR_SYMBOLS[i]??String(i+1)}))
-  const subjectSelected = selectMostDistinct(candidateEntries, remainSlots)
+
+  const anchorRgb = anchors.slice(0, anchorSlots).map(a => ({
+    r: Math.round(a.r), g: Math.round(a.g), b: Math.round(a.bl),
+  }))
+  const subjectRgb: Array<{r:number,g:number,b:number}> = []
+  const mcRemaining = [...mcCandidates]
+
+  while (subjectRgb.length < remainSlots && mcRemaining.length > 0) {
+    const existing = [...anchorRgb, ...subjectRgb]
+    let bestIdx = 0, bestMinDist = -1
+    for (let ci = 0; ci < mcRemaining.length; ci++) {
+      let minDist = Infinity
+      for (const e of existing) {
+        const d = weightedDE(mcRemaining[ci], e)
+        if (d < minDist) minDist = d
+      }
+      if (minDist > bestMinDist) { bestMinDist = minDist; bestIdx = ci }
+    }
+    subjectRgb.push(mcRemaining[bestIdx])
+    mcRemaining.splice(bestIdx, 1)
+  }
+
+  const subjectSelected: ColorEntry[] = subjectRgb.map((c, i) => ({
+    ...c,
+    hex:       rgbToHex(c.r, c.g, c.b),
+    symbol:    COLOR_SYMBOLS[anchorSlots + i] ?? String(anchorSlots + i + 1),
+    lightness: perceivedLightness(c.r, c.g, c.b),
+  }))
 
   // ── Step 4: Combine anchors + saliency colors ──────────────────────────────
   const anchorEntries: ColorEntry[] = anchors.slice(0, anchorSlots).map((a, i) => ({
@@ -695,6 +727,28 @@ function saliencyMedianCut(
   }))
 
   const combined = [...anchorEntries, ...subjectSelected]
+
+  // ── Post-quantization ΔE merge pass ────────────────────────────────────────
+  // Collapse near-duplicate colors so similar shades don't waste palette slots.
+  // Stop merging once no pair is closer than ΔE 12, or palette hits maxColors/2.
+  const MIN_MERGE_DE  = 12
+  const minAfterMerge = Math.max(2, Math.floor(maxColors / 2))
+  let   mergeAgain    = true
+  while (mergeAgain && combined.length > minAfterMerge) {
+    mergeAgain = false
+    let minDist = Infinity, mergeI = -1, mergeJ = -1
+    for (let i = 0; i < combined.length; i++) {
+      for (let j = i + 1; j < combined.length; j++) {
+        const d = weightedDE(combined[i], combined[j])
+        if (d < minDist) { minDist = d; mergeI = i; mergeJ = j }
+      }
+    }
+    if (minDist < MIN_MERGE_DE && mergeI >= 0 && mergeJ >= 0) {
+      combined.splice(mergeJ, 1)
+      mergeAgain = true
+    }
+  }
+
   combined.sort((a,b) => perceivedLightness(a.r,a.g,a.b) - perceivedLightness(b.r,b.g,b.b))
   return combined.map((e,i) => ({...e, symbol: COLOR_SYMBOLS[i]??String(i+1)}))
 }
