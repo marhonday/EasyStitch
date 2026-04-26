@@ -4,9 +4,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useKnittingPattern, getCellWidthMultiplier } from '@/context/KnittingPatternContext'
 import { useProjectStorage } from '@/hooks/useProjectStorage'
-import { useRowProgress }    from '@/hooks/useRowProgress'
-import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
-import RowInstructions from '@/components/preview/RowInstructions'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import ZoomableCanvas  from '@/components/preview/ZoomableCanvas'
 import { STITCH_STYLE_META }   from '@/lib/constants'
 import { logEvent }            from '@/lib/log'
@@ -54,43 +52,19 @@ export default function KnittingExportPage() {
     return `${width}×${height} ${styleLabel}`
   }, [patternData])
 
-  const {
-    completedRows,
-    toggleRow:     handleToggleRow,
-    resetProgress: handleResetProgress,
-  } = useRowProgress(patternKey)
-
-  const totalRows = patternData?.meta.height ?? 0
-
-  const currentRowNumber = useMemo(() => {
-    for (let i = 1; i <= totalRows; i++) {
-      if (!completedRows.has(i)) return i
-    }
-    return totalRows + 1
-  }, [completedRows, totalRows])
-
-  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
-  const highlightGridRow = useMemo(() => {
-    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
-    return totalRows - currentRowNumber
-  }, [totalRows, currentRowNumber])
-
   // Redirect if no pattern
   useEffect(() => {
     if (!patternData) router.replace('/knitting')
   }, [patternData, router])
 
-  // Draw pattern + row highlight whenever pattern, style, or current row changes
+  // Draw pattern preview
   useEffect(() => {
     if (!activePattern || !canvasRef.current) return
     const cellWidthMultiplier = getCellWidthMultiplier(settings.style)
     const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(activePattern.meta.width, activePattern.meta.height))))
     cellSizeRef.current = cs
     drawPatternToCanvas(canvasRef.current, activePattern, { cellSize: cs, gap: 1, showSymbols: false, cellWidthMultiplier })
-    if (highlightGridRow !== undefined) {
-      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
-    }
-  }, [activePattern, settings.style, highlightGridRow])
+  }, [activePattern, settings.style])
 
   if (!patternData) return null
 
@@ -196,7 +170,7 @@ export default function KnittingExportPage() {
         {/* Graph canvas — row highlight drawn on top */}
         <ZoomableCanvas
           canvasRef={canvasRef}
-          showRowHint={highlightGridRow !== undefined}
+          showRowHint={false}
         />
 
         {/* ── Colour palette editor ───────────────────────────────────── */}
@@ -228,26 +202,6 @@ export default function KnittingExportPage() {
             </p>
           </div>
         )}
-
-        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
-        <div style={{ width: '100%', maxWidth: 400 }}>
-          <p style={{
-            fontSize: 11, fontWeight: 500,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
-            marginBottom: 8,
-          }}>
-            Row tracker
-          </p>
-          <RowInstructions
-            pattern={patternData}
-            completedRows={completedRows}
-            onToggleRow={handleToggleRow}
-            onResetProgress={handleResetProgress}
-            currentRowNumber={currentRowNumber}
-            patternLabel={patternLabel}
-          />
-        </div>
 
         {/* Pattern name */}
         <div style={{ width: '100%', maxWidth: 400 }}>

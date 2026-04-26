@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFiletPattern } from '@/context/FiletPatternContext'
-import { useRowProgress }  from '@/hooks/useRowProgress'
-import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
-import RowInstructions from '@/components/preview/RowInstructions'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import ZoomableCanvas  from '@/components/preview/ZoomableCanvas'
 import { logEvent }    from '@/lib/log'
 import { isUnlocked }  from '@/lib/unlock'
@@ -24,55 +22,19 @@ export default function FiletExportPage() {
   const [error,       setError]       = useState<string | null>(null)
   const [patternName, setPatternName] = useState('My Filet Chart')
 
-  // ── Row progress (localStorage-persisted) ─────────────────────────────
-  const patternKey = useMemo(() => {
-    if (!patternData) return ''
-    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
-    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
-  }, [patternData])
-
-  const patternLabel = useMemo(() => {
-    if (!patternData) return ''
-    const { width, height } = patternData.meta
-    return `${width}×${height} Filet Crochet`
-  }, [patternData])
-
-  const {
-    completedRows,
-    toggleRow:     handleToggleRow,
-    resetProgress: handleResetProgress,
-  } = useRowProgress(patternKey)
-
-  const totalRows = patternData?.meta.height ?? 0
-
-  const currentRowNumber = useMemo(() => {
-    for (let i = 1; i <= totalRows; i++) {
-      if (!completedRows.has(i)) return i
-    }
-    return totalRows + 1
-  }, [completedRows, totalRows])
-
-  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
-  const highlightGridRow = useMemo(() => {
-    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
-    return totalRows - currentRowNumber
-  }, [totalRows, currentRowNumber])
 
   // Redirect if no pattern in state
   useEffect(() => {
     if (!patternData) router.replace('/filet')
   }, [patternData, router])
 
-  // Draw pattern + row highlight whenever pattern or current row changes
+  // Draw pattern preview
   useEffect(() => {
     if (!patternData || !canvasRef.current) return
     const cs = Math.max(4, Math.min(16, Math.floor(320 / Math.max(patternData.meta.width, patternData.meta.height))))
     cellSizeRef.current = cs
     drawPatternToCanvas(canvasRef.current, patternData, { cellSize: cs, gap: 1, showSymbols: false })
-    if (highlightGridRow !== undefined) {
-      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
-    }
-  }, [patternData, highlightGridRow])
+  }, [patternData])
 
   if (!patternData) return null
 
@@ -168,7 +130,7 @@ export default function FiletExportPage() {
         {/* Graph canvas — row highlight drawn on top */}
         <ZoomableCanvas
           canvasRef={canvasRef}
-          showRowHint={highlightGridRow !== undefined}
+          showRowHint={false}
         />
 
         {/* Legend */}
@@ -191,26 +153,6 @@ export default function FiletExportPage() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', marginTop: 8 }}>
             Mesh lines shown as gaps between squares
           </p>
-        </div>
-
-        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
-        <div style={{ width: '100%', maxWidth: 400 }}>
-          <p style={{
-            fontSize: 11, fontWeight: 500,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
-            marginBottom: 8,
-          }}>
-            Row tracker
-          </p>
-          <RowInstructions
-            pattern={patternData}
-            completedRows={completedRows}
-            onToggleRow={handleToggleRow}
-            onResetProgress={handleResetProgress}
-            currentRowNumber={currentRowNumber}
-            patternLabel={patternLabel}
-          />
         </div>
 
         {/* Pattern name */}

@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCrossStitch } from '@/context/CrossStitchPatternContext'
-import { useRowProgress }  from '@/hooks/useRowProgress'
-import { drawPatternToCanvas, drawRowHighlight } from '@/modules/preview-rendering/canvasRenderer'
-import RowInstructions from '@/components/preview/RowInstructions'
+import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 import ZoomableCanvas  from '@/components/preview/ZoomableCanvas'
 import { logEvent } from '@/lib/log'
 import { isUnlocked } from '@/lib/unlock'
@@ -35,40 +33,6 @@ export default function CrossStitchExportPage() {
   }, [])
   const activePattern = workingPattern ?? patternData
 
-  // ── Row progress (localStorage-persisted) ─────────────────────────────
-  const patternKey = useMemo(() => {
-    if (!patternData) return ''
-    const { stitchStyle, width, height, colorCount, generatedAt } = patternData.meta
-    return `${stitchStyle}_${width}x${height}_c${colorCount}_${generatedAt}`
-  }, [patternData])
-
-  const patternLabel = useMemo(() => {
-    if (!patternData) return ''
-    const { width, height } = patternData.meta
-    return `${width}×${height} Cross Stitch`
-  }, [patternData])
-
-  const {
-    completedRows,
-    toggleRow:     handleToggleRow,
-    resetProgress: handleResetProgress,
-  } = useRowProgress(patternKey)
-
-  const totalRows = patternData?.meta.height ?? 0
-
-  const currentRowNumber = useMemo(() => {
-    for (let i = 1; i <= totalRows; i++) {
-      if (!completedRows.has(i)) return i
-    }
-    return totalRows + 1
-  }, [completedRows, totalRows])
-
-  // Map instruction row (1 = bottom) → canvas grid row (0 = top)
-  const highlightGridRow = useMemo(() => {
-    if (totalRows === 0 || currentRowNumber > totalRows) return undefined
-    return totalRows - currentRowNumber
-  }, [totalRows, currentRowNumber])
-
   // Redirect if no pattern in state
   useEffect(() => {
     if (!patternData) router.replace('/crossstitch')
@@ -81,10 +45,7 @@ export default function CrossStitchExportPage() {
     cellSizeRef.current = cs
     // showSymbols: true — essential for cross stitch charts
     drawPatternToCanvas(canvasRef.current, activePattern, { cellSize: cs, gap: 1, showSymbols: true })
-    if (highlightGridRow !== undefined) {
-      drawRowHighlight(canvasRef.current, highlightGridRow, cs)
-    }
-  }, [activePattern, highlightGridRow])
+  }, [activePattern])
 
   if (!patternData) return null
 
@@ -195,7 +156,7 @@ export default function CrossStitchExportPage() {
         <ZoomableCanvas
           canvasRef={canvasRef}
           label="Chart preview · symbols shown"
-          showRowHint={highlightGridRow !== undefined}
+          showRowHint={false}
         />
 
         {/* ── Palette editor ──────────────────────────────────────────── */}
@@ -246,26 +207,6 @@ export default function CrossStitchExportPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* ── Row-by-row tracker ───────────────────────────────────────── */}
-        <div style={{ width: '100%', maxWidth: 400 }}>
-          <p style={{
-            fontSize: 11, fontWeight: 500,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: '#6B5744', fontFamily: "'DM Sans', sans-serif",
-            marginBottom: 8,
-          }}>
-            Row tracker
-          </p>
-          <RowInstructions
-            pattern={activePattern ?? patternData}
-            completedRows={completedRows}
-            onToggleRow={handleToggleRow}
-            onResetProgress={handleResetProgress}
-            currentRowNumber={currentRowNumber}
-            patternLabel={patternLabel}
-          />
         </div>
 
         {/* Pattern name */}

@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useFiletPattern } from '@/context/FiletPatternContext'
+import CropTool  from '@/components/upload/CropTool'
+import BgRemoval from '@/components/upload/BgRemoval'
 import { logEvent } from '@/lib/log'
 
 const MAX_EDGE_PX = 1600
@@ -33,6 +35,8 @@ export default function FiletUploadPage() {
   const { state, dispatch } = useFiletPattern()
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
+  const [cropUrl,      setCropUrl]      = useState<string | null>(null)
+  const [bgRemovalUrl, setBgRemovalUrl] = useState<string | null>(null)
 
   useEffect(() => { logEvent('VISIT', 'filet-crochet') }, [])
 
@@ -45,12 +49,38 @@ export default function FiletUploadPage() {
     try {
       const dataUrl = await compressImage(file)
       dispatch({ type: 'SET_IMAGE', payload: dataUrl })
+      setCropUrl(dataUrl)
     } catch {
       setError("Couldn't read that photo. Try a different one.")
     } finally {
       setLoading(false)
       e.target.value = ''
     }
+  }
+
+  if (cropUrl) {
+    return (
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+        <CropTool
+          imageUrl={cropUrl}
+          onConfirm={(url) => { setCropUrl(null); setBgRemovalUrl(url) }}
+          onSkip={() => { const u = cropUrl; setCropUrl(null); setBgRemovalUrl(u) }}
+        />
+      </main>
+    )
+  }
+
+  if (bgRemovalUrl) {
+    return (
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+        <BgRemoval
+          imageUrl={bgRemovalUrl}
+          onAccept={(url) => { setBgRemovalUrl(null); dispatch({ type: 'SET_IMAGE', payload: url }) }}
+          onSkip={() => { const u = bgRemovalUrl; setBgRemovalUrl(null); dispatch({ type: 'SET_IMAGE', payload: u }) }}
+          onCancel={() => { const u = bgRemovalUrl; setBgRemovalUrl(null); setCropUrl(u) }}
+        />
+      </main>
+    )
   }
 
   const hasPhoto = !!state.rawImage
