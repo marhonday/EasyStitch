@@ -46,6 +46,9 @@ export default function BgRemoval({ imageUrl, onAccept, onCancel, onSkip }: BgRe
       const blob   = await res.blob()
 
       const result = await removeBackground(blob, {
+        // SharedArrayBuffer-backed multithreading requires cross-origin isolation.
+        // If the site isn't isolated, force single-thread mode to avoid runtime errors.
+        numThreads: (typeof window !== 'undefined' && (window as any).crossOriginIsolated) ? 6 : 1,
         progress: (key: string, current: number, total: number) => {
           if (total > 0) setProgress(Math.round((current / total) * 100))
         },
