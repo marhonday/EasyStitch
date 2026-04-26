@@ -227,7 +227,8 @@ function applyBackgroundPreference(
   }
 
   while (queue.length) {
-    const idx = queue.shift()!
+    // Avoid O(n²) shift() behavior for larger fills
+    const idx = queue.pop()!
     nextColorMap[idx] = bgIndex
     const row = Math.floor(idx / width)
     const col = idx % width
@@ -386,32 +387,35 @@ function kMeansExtract(grid: PixelGrid, maxColors: number): ColorEntry[] {
   const { data } = grid
 
   type Group = { rSum: number; gSum: number; bSum: number; count: number; r: number; g: number; b: number }
-  const groups: Group[] = []
 
-  // Step 1 — Group every opaque pixel by ΔE 5 similarity.
-  // Tight threshold collapses JPEG compression noise into one group
-  // while keeping genuinely different colors separate.
-  const CLUSTER_THRESH = 5
-  for (let i = 0; i < data.length; i += 4) {
+  // Performance guard:
+  // - Full-size paths can be hundreds of thousands of pixels.
+  // - Avoid O(pixels × groups) by hashing pixels into coarse RGB buckets, then
+  //   only doing expensive pairwise merges on a capped set of top buckets.
+  const totalPx = data.length / 4
+  const step    = Math.max(1, Math.floor(totalPx / 60000)) // cap to ~60k samples
+
+  // 5-bit/channel bucketing (32×32×32 = 32768 buckets) keeps near-colors together
+  // and collapses JPEG noise without quadratic scans.
+  const buckets = new Map<number, Group>()
+  const keyOf = (r: number, g: number, b: number) => ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)
+
+  for (let i = 0; i < data.length; i += 4 * step) {
     if (data[i + 3] < 128) continue
     const r = data[i], g = data[i + 1], b = data[i + 2]
-
-    let nearest = -1, nearestDist = CLUSTER_THRESH
-    for (let j = 0; j < groups.length; j++) {
-      const d = weightedDE({ r, g, b }, groups[j])
-      if (d < nearestDist) { nearestDist = d; nearest = j }
-    }
-
-    if (nearest >= 0) {
-      const grp = groups[nearest]
-      grp.rSum += r; grp.gSum += g; grp.bSum += b; grp.count++
-      grp.r = Math.round(grp.rSum / grp.count)
-      grp.g = Math.round(grp.gSum / grp.count)
-      grp.b = Math.round(grp.bSum / grp.count)
+    const key = keyOf(r, g, b)
+    const existing = buckets.get(key)
+    if (existing) {
+      existing.rSum += r; existing.gSum += g; existing.bSum += b; existing.count++
+      existing.r = Math.round(existing.rSum / existing.count)
+      existing.g = Math.round(existing.gSum / existing.count)
+      existing.b = Math.round(existing.bSum / existing.count)
     } else {
-      groups.push({ rSum: r, gSum: g, bSum: b, count: 1, r, g, b })
+      buckets.set(key, { rSum: r, gSum: g, bSum: b, count: 1, r, g, b })
     }
   }
+
+  const groups: Group[] = Array.from(buckets.values())
 
   if (groups.length === 0) return []
 
@@ -424,7 +428,10 @@ function kMeansExtract(grid: PixelGrid, maxColors: number): ColorEntry[] {
   }
 
   // Step 4 — Merge closest pairs until group count equals maxColors.
-  // Combines pixel counts so the merged group's average stays correct.
+  // Only do O(g²) merging on a capped number of groups for reliability.
+  const MERGE_CANDIDATE_CAP = Math.max(maxColors * 8, 120)
+  groups.splice(MERGE_CANDIDATE_CAP) // keep the most frequent buckets only
+
   while (groups.length > maxColors) {
     let minDist = Infinity, mergeI = 0, mergeJ = 1
     for (let i = 0; i < groups.length; i++) {
@@ -988,6 +995,11 @@ export async function extractPaletteFromFullSize(
 
   // Find palette from full-size pixels
   let palette = kMeansExtract(fullPixels, maxColors)
+  if (!palette.length) {
+    // Safety: if the full-size sampling produced no palette (e.g. fully transparent),
+    // fall back to quantizing the already-resized grid.
+    return quantizeImage(smallGrid, maxColors, 'graphic', backgroundColor)
+  }
   palette = appendDistinctColorsToTarget(fullPixels, palette, maxColors)
   const useTransparencyMask = hasTransparentPixels(smallGrid)
   let backgroundIndex: number | undefined
