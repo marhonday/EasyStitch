@@ -110,3 +110,10 @@ Two engines selected by imageType:
 - Don't search for code when user is brainstorming
 - For theory questions user should use claude.ai not Claude Code
 - Only read files when making actual changes
+
+## Recent changes (post April 2026 CLAUDE.md update)
+- **`b16f569` preview: add watermark + tracker color editing** — preview page gained a watermark; tracker page got per-color editing UI
+- **`d43ec5d` export: remove row tracker + add crop/bg removal** — row tracker section removed from export page; crop and background removal tools added to export flow
+- **`33f523a` fix: speed up full-res palette extraction** — performance fix for `extractPaletteFromFullSize`; was too slow on large images
+- **`7d45803` fix: avoid SharedArrayBuffer crash in bg removal** — background removal was crashing due to SharedArrayBuffer restrictions; patched
+- **`619d000` fix: flatten bg-removal transparency + skip white pixels in anchor seeding** — `BgRemoval.tsx` now flattens transparent PNG onto white canvas (JPEG) before passing to pattern engine, preventing black background in output; `saliencyMedianCut` skips near-white pixels when seeding anchors so white backgrounds don't waste a palette slot (falls back to all pixels if image is entirely white)
