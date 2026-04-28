@@ -102,6 +102,12 @@ export default function PatternCanvas({
   const isPinchingRef = useRef(false)
   const lastTapRef    = useRef<number>(0)
 
+  // Touch tap detection — only fire cell picker on clean taps
+  // (not long-press, not pan, not pinch lift)
+  const touchStartTimeRef = useRef<number>(0)
+  const touchStartPosRef  = useRef<{ x: number; y: number } | null>(null)
+  const touchMovedRef     = useRef(false)
+
   // Whether the user has "entered" the canvas for zoom/pan interaction
   // When false, single-finger touch passes through to the page scroller
   const [zoomMode, setZoomMode] = useState(false)
@@ -190,11 +196,17 @@ export default function PatternCanvas({
       isPinchingRef.current = true
       pinchDistRef.current  = touchDistance(e.touches)
       panPointRef.current   = null
+      // Pinch counts as "moved" so lifting fingers never triggers cell picker
+      touchMovedRef.current = true
       if (!zoomModeRef.current) {
         setZoomMode(true)
         zoomModeRef.current = true
       }
     } else if (e.touches.length === 1) {
+      // Record start state for tap detection
+      touchStartTimeRef.current = Date.now()
+      touchStartPosRef.current  = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      touchMovedRef.current     = false
       if (zoomModeRef.current) {
         // In zoom mode — track for panning
         panPointRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -217,6 +229,13 @@ export default function PatternCanvas({
       applyTransform()
     } else if (e.touches.length === 1 && panPointRef.current && !isPinchingRef.current && zoomModeRef.current) {
       e.preventDefault()
+      // Mark as moved if finger travelled more than 6px from start — suppresses cell tap
+      const start = touchStartPosRef.current
+      if (start) {
+        const dx = Math.abs(e.touches[0].clientX - start.x)
+        const dy = Math.abs(e.touches[0].clientY - start.y)
+        if (dx > 6 || dy > 6) touchMovedRef.current = true
+      }
       const dx = e.touches[0].clientX - panPointRef.current.x
       const dy = e.touches[0].clientY - panPointRef.current.y
       tfRef.current    = { ...tfRef.current, x: tfRef.current.x + dx, y: tfRef.current.y + dy }
@@ -227,6 +246,10 @@ export default function PatternCanvas({
   }, [applyTransform])
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Capture wasPinching BEFORE the block below clears isPinchingRef,
+    // otherwise the check below always sees false when lifting both fingers.
+    const wasPinching = isPinchingRef.current
+
     if (e.touches.length < 2) {
       isPinchingRef.current = false
       pinchDistRef.current  = null
@@ -236,14 +259,21 @@ export default function PatternCanvas({
       const touch = e.changedTouches[0]
       panPointRef.current = null
 
-      const now = Date.now()
+      const now              = Date.now()
       const timeSinceLastTap = now - lastTapRef.current
+      const touchDuration    = now - touchStartTimeRef.current
 
       // Double-tap to reset zoom
       if (timeSinceLastTap < 300 && zoomModeRef.current) {
         exitZoomMode()
-      } else if (timeSinceLastTap > 300 && zoomModeRef.current && !isPinchingRef.current && onCellTap) {
-        // Single tap in zoom mode = cell edit
+      } else if (
+        zoomModeRef.current &&
+        onCellTap &&
+        !wasPinching &&               // not lifting fingers after a pinch
+        !touchMovedRef.current &&     // finger didn't pan
+        touchDuration < 300           // quick tap, not a long-press
+      ) {
+        // Clean single tap in zoom mode → cell edit
         const cell = screenToCell(touch.clientX, touch.clientY)
         if (cell) onCellTap(cell.row, cell.col, touch.clientX, touch.clientY)
       }
@@ -402,7 +432,7 @@ export default function PatternCanvas({
           marginTop:  6,
           lineHeight: 1.6,
         }}>
-          Scroll to zoom · Drag to pan · Tap cell to edit colour
+          Scroll to zoom · Drag to pan{onCellTap ? ' · Tap cell to edit colour' : ''}
           <br />
           <span style={{ fontSize: 11, color: 'rgba(107,87,68,0.65)', fontWeight: 600 }}>
             Grid lines are for editing only — your finished piece has no gaps
