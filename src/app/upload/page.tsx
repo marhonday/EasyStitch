@@ -154,7 +154,7 @@ function UploadInner() {
   // Show crop tool fullscreen
   if (cropUrl) {
     return (
-      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 'none', boxShadow: 'none' }}>
         <CropTool
           imageUrl={cropUrl}
           onConfirm={handleCropConfirm}
@@ -170,7 +170,7 @@ function UploadInner() {
   // Show background removal screen after crop
   if (bgRemovalUrl) {
     return (
-      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+      <main style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 'none', boxShadow: 'none' }}>
         <BgRemoval
           imageUrl={bgRemovalUrl}
           onAccept={handleBgAccept}
