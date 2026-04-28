@@ -24,7 +24,12 @@ class TapestryStrategy implements StitchStrategy {
     const rawGrid   = buildGrid(colorMap, palette, pixelGrid.width, pixelGrid.height)
     const smoothed  = smoothGrid(rawGrid, palette)
 
-    const MAX_CARRIED = 3
+    // Use palette.length (not maxColors) — applyBackgroundPreference in the
+    // quantize step can add a background slot beyond maxColors (e.g. 5 entries
+    // when user chose 4), so rows with all palette entries would still trigger
+    // smearing if the cap was based on maxColors. palette.length is always the
+    // true upper bound of distinct colors any row can contain.
+    const MAX_CARRIED = Math.max(3, palette.length)
     const rowCapped   = simplifyTapestryRows(smoothed, MAX_CARRIED, palette)
 
     const { grid, palette: finalPalette } = compactPalette(rowCapped, palette)
