@@ -9,20 +9,20 @@ import { drawPatternToCanvas } from '@/modules/preview-rendering/canvasRenderer'
 
 // Sample data for the preview grid
 const SAMPLE_PALETTE = [
-  { hex: '#e8786e', symbol: '�', label: 'Terracotta' },
-  { hex: '#89a882', symbol: '?', label: 'Sage green' },
-  { hex: '#c9a96e', symbol: '?', label: 'Warm sand' },
-  { hex: '#faf3e7', symbol: '?', label: 'Cream' },
-  { hex: '#5c7a55', symbol: '?', label: 'Forest' },
+  { hex: '#e8786e', symbol: '■', label: 'Terracotta' },
+  { hex: '#89a882', symbol: '●', label: 'Sage green' },
+  { hex: '#c9a96e', symbol: '◆', label: 'Warm sand' },
+  { hex: '#faf3e7', symbol: '▲', label: 'Cream' },
+  { hex: '#5c7a55', symbol: '★', label: 'Forest' },
 ]
 
 const SAMPLE_ROWS = [
-  { num: 6, sts: 8, runs: '3 �, 2 ?, 3 �' },
-  { num: 5, sts: 8, runs: '2 ?, 4 ?, 2 ?' },
-  { num: 4, sts: 8, runs: '1 �, 6 ?, 1 �' },
-  { num: 3, sts: 8, runs: '4 ?, 2 �, 2 ?', done: true },
-  { num: 2, sts: 8, runs: '3 ?, 2 ?, 3 ?', done: true },
-  { num: 1, sts: 8, runs: '8 �',            done: true },
+  { num: 6, sts: 8, runs: '3 ■, 2 ●, 3 ■' },
+  { num: 5, sts: 8, runs: '2 ◆, 4 ▲, 2 ◆' },
+  { num: 4, sts: 8, runs: '1 ■, 6 ●, 1 ■' },
+  { num: 3, sts: 8, runs: '4 ◆, 2 ■, 2 ●', done: true },
+  { num: 2, sts: 8, runs: '3 ▲, 2 ◆, 3 ▲', done: true },
+  { num: 1, sts: 8, runs: '8 ■',            done: true },
 ]
 
 const SAMPLE_GRID: string[][] = [
@@ -88,14 +88,14 @@ function UnlockInner() {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(196,97,74,0.10)', border: '1px solid rgba(196,97,74,0.25)', borderRadius: 999, padding: '5px 14px', marginBottom: 14 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#C4614A', display: 'inline-block' }} />
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#C4614A', letterSpacing: '0.04em' }}>
-              LAUNCH PRICING � LIMITED TIME
+              LAUNCH PRICING · LIMITED TIME
             </span>
           </div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 10, lineHeight: 1.3 }}>
             Your pattern is ready.
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', lineHeight: 1.65 }}>
-            CraftWabi has built a stitch-by-stitch pattern from your image � unique to you, ready to follow row by row.
+            CraftWabi has built a stitch-by-stitch pattern from your image — unique to you, ready to follow row by row.
           </p>
         </div>
 
@@ -106,22 +106,22 @@ function UnlockInner() {
           </p>
           {[
             {
-              emoji: '??',
+              emoji: '🎨',
               title: 'A pattern built from your image',
-              desc:  'Not a template � every colour, shape, and stitch block is generated from your specific photo. Pets, portraits, logos, and custom art are all supported.',
+              desc:  'Not a template — every colour, shape, and stitch block is generated from your specific photo. Pets, portraits, logos, and custom art are all supported.',
             },
             {
-              emoji: '??',
+              emoji: '📄',
               title: 'Full printable PDF',
-              desc:  'Every row with colour runs, a full colour key, and stitch counts � formatted to print and take to your chair.',
+              desc:  'Every row with colour runs, a full colour key, and stitch counts — formatted to print and take to your chair.',
             },
             {
-              emoji: '??',
+              emoji: '📊',
               title: 'Chart + row-by-row instructions',
               desc:  'Visual grid chart alongside written instructions. Follow whichever format feels natural to you.',
             },
             {
-              emoji: '??',
+              emoji: '⬇️',
               title: 'Download immediately',
               desc:  'PDF and PNG ready the moment payment clears. No account required.',
             },
@@ -136,9 +136,9 @@ function UnlockInner() {
           ))}
           {/* Pricing note */}
           <div style={{ background: '#FAF6EF', borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>??</span>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.55 }}>
-              <strong style={{ color: '#2C2218' }}>Why $2?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing � this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
+              <strong style={{ color: '#2C2218' }}>Why $2?</strong> We&apos;re in early launch. Generating custom patterns from pets, portraits, and detailed images takes real processing — this work is worth significantly more. We&apos;re keeping the price low now so early users get access while we grow. <strong style={{ color: '#C4614A' }}>Pricing will increase as we add features and scale.</strong>
             </p>
           </div>
         </div>
@@ -147,11 +147,11 @@ function UnlockInner() {
         <div style={{ width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 2px 20px rgba(44,34,24,0.08)', overflow: 'hidden', marginBottom: 16 }}>
           <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid #F2EAD8', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: patternData ? '#C4614A' : '#9A8878', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              {patternData ? 'Your pattern � ready to download' : 'Sample � Your Full Pattern Includes'}
+              {patternData ? 'Your pattern — ready to download' : 'Sample — Your Full Pattern Includes'}
             </p>
             {patternData && (
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878' }}>
-                {patternData.meta.width}�{patternData.meta.height} � {patternData.meta.colorCount} colours
+                {patternData.meta.width}×{patternData.meta.height} · {patternData.meta.colorCount} colours
               </p>
             )}
           </div>
@@ -203,12 +203,12 @@ function UnlockInner() {
                     return (
                       <div key={row.num} style={{ padding: '5px 8px', borderRadius: 8, borderLeft: `3px solid ${isCurrent ? '#C4614A' : isDone ? '#4A9050' : 'transparent'}`, background: isCurrent ? 'rgba(196,97,74,0.07)' : isDone ? 'rgba(74,144,80,0.04)' : 'transparent', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <div style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0, background: isDone ? '#4A9050' : 'transparent', border: isDone ? 'none' : `1.5px solid ${isCurrent ? '#C4614A' : '#E4D9C8'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'white', fontWeight: 700 }}>
-                          {isDone ? '?' : ''}
+                          {isDone ? '✓' : ''}
                         </div>
                         <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: isCurrent ? 700 : 500, color: isDone ? '#B8AAA0' : isCurrent ? '#C4614A' : '#2C2218', textDecoration: isDone ? 'line-through' : 'none' }}>
                           R{row.num} ({row.sts} sts): {row.runs}
                         </span>
-                        {isCurrent && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C4614A', fontWeight: 600, marginLeft: 'auto' }}>? now</span>}
+                        {isCurrent && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: '#C4614A', fontWeight: 600, marginLeft: 'auto' }}>▶ now</span>}
                       </div>
                     )
                   })}
@@ -232,16 +232,16 @@ function UnlockInner() {
         {/* -- WYSIWYG disclaimer ------------------------------------------ */}
         <div style={{ width: '100%', maxWidth: 400, background: '#FFFBF5', border: '1.5px solid #EDE4D8', borderRadius: 16, padding: '14px 16px', marginBottom: 12 }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>??</span>
+            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>👁️</span>
             <div>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: '#2C2218', marginBottom: 5 }}>
                 What you see is what you get
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744', lineHeight: 1.6 }}>
-                The pattern you previewed in the app is exactly what you&apos;ll download � CraftWabi generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
+                The pattern you previewed in the app is exactly what you&apos;ll download — CraftWabi generates your pattern directly from your image and settings. We strongly recommend reviewing your pattern preview before purchasing.
               </p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.6, marginTop: 6 }}>
-                We can&apos;t modify, re-generate, or edit your pattern after purchase � the output is unique to your upload and there is no manual adjustment step. If you&apos;d like a different result, adjust your settings and generate again before buying.
+                We can&apos;t modify, re-generate, or edit your pattern after purchase — the output is unique to your upload and there is no manual adjustment step. If you&apos;d like a different result, adjust your settings and generate again before buying.
               </p>
             </div>
           </div>
@@ -269,7 +269,7 @@ function UnlockInner() {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#2C2218' }}>$3</span>
           <div style={{ textAlign: 'left' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: '#C4614A', lineHeight: 1 }}>LAUNCH PRICE</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', lineHeight: 1.3, marginTop: 2 }}>per pattern � price increasing soon</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9A8878', lineHeight: 1.3, marginTop: 2 }}>per pattern · price increasing soon</p>
           </div>
         </div>
 
@@ -291,10 +291,10 @@ function UnlockInner() {
           {busy ? (
             <>
               <span style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', animation: 'es-spin 0.8s linear infinite', display: 'inline-block' }} />
-              Redirecting to payment�
+              Redirecting to payment…
             </>
           ) : (
-            '?? Unlock My Pattern � $3'
+            '🔓 Unlock My Pattern — $3'
           )}
         </button>
 
@@ -303,13 +303,13 @@ function UnlockInner() {
         )}
 
         <p style={{ textAlign: 'center', marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#B8AAA0', lineHeight: 1.5 }}>
-          Secure payment via Stripe � instant download � no account needed
+          Secure payment via Stripe · instant download · no account needed
         </p>
         <button
           onClick={() => router.push('/preview')}
           style={{ display: 'block', width: '100%', marginTop: 6, background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#B8AAA0', cursor: 'pointer', textDecoration: 'underline' }}
         >
-          ? Review my pattern first
+          ← Review my pattern first
         </button>
 
         <style>{`@keyframes es-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>

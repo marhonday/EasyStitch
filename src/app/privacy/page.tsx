@@ -10,12 +10,12 @@ const sections = [
     body: `CraftWabi ("we", "us", "our") is an online tool that converts your photos and images into stitch-by-stitch craft patterns. We are operated as a small independent product. You can reach us at support@craftwabi.com with any privacy-related questions.`,
   },
   {
-    title: '2. What we collect — and what we don\'t',
-    body: `Your images are never uploaded to our servers. All image processing — resizing, colour quantization, and pattern generation — happens entirely inside your browser on your own device. We never see your photos.\n\nWhen you purchase a pattern download, Stripe processes your payment. We receive a confirmation that payment cleared and a Stripe session ID, but we do not receive or store your full card number, billing address, or name.\n\nWe store a small unlock token in your browser's localStorage to confirm that payment was successful. This token expires after 6 hours (single-pattern purchase) or 30 days (monthly plan) and contains no personal information — it is an HMAC of the Stripe session ID.\n\nSaved patterns ("My Patterns") are stored entirely in your browser's localStorage. We never receive or store your pattern data on our servers.`,
+    title: '2. What we collect â€” and what we don\'t',
+    body: `Your images are never uploaded to our servers. All image processing â€” resizing, colour quantization, and pattern generation â€” happens entirely inside your browser on your own device. We never see your photos.\n\nWhen you purchase a pattern download, Stripe processes your payment. We receive a confirmation that payment cleared and a Stripe session ID, but we do not receive or store your full card number, billing address, or name.\n\nWe store a small unlock token in your browser's localStorage to confirm that payment was successful. This token expires after 6 hours (single-pattern purchase) or 30 days (monthly plan) and contains no personal information â€” it is an HMAC of the Stripe session ID.\n\nSaved patterns ("My Patterns") are stored entirely in your browser's localStorage. We never receive or store your pattern data on our servers.`,
   },
   {
     title: '3. Cookies and local storage',
-    body: `We do not use advertising cookies or third-party tracking cookies.\n\nWe use browser localStorage to:\n• Remember your unlock status after payment\n• Save patterns you choose to add to "My Patterns"\n• Remember your most recent pattern settings during your session\n\nThis data lives on your device and is never transmitted to us.`,
+    body: `We do not use advertising cookies or third-party tracking cookies.\n\nWe use browser localStorage to:\nâ€¢ Remember your unlock status after payment\nâ€¢ Save patterns you choose to add to "My Patterns"\nâ€¢ Remember your most recent pattern settings during your session\n\nThis data lives on your device and is never transmitted to us.`,
   },
   {
     title: '4. Stripe payments',
@@ -23,7 +23,7 @@ const sections = [
   },
   {
     title: '5. Analytics and logging',
-    body: `We log basic usage events (e.g. "pattern generated", "PDF downloaded") to understand how the app is being used. These logs contain no personally identifiable information — no IP address, no name, no email. They are used purely for product improvement.`,
+    body: `We log basic usage events (e.g. "pattern generated", "PDF downloaded") to understand how the app is being used. These logs contain no personally identifiable information â€” no IP address, no name, no email. They are used purely for product improvement.`,
   },
   {
     title: '6. Data sharing',
@@ -35,7 +35,7 @@ const sections = [
   },
   {
     title: '8. Your rights',
-    body: `You have the right to:\n• Know what data we hold about you\n• Request deletion of any data we hold\n• Withdraw consent at any time\n\nBecause we hold almost no identifiable data, most requests can be fulfilled simply by clearing your browser's localStorage. For anything related to your Stripe payment record, email us at support@craftwabi.com and we will respond within 5 business days.`,
+    body: `You have the right to:\nâ€¢ Know what data we hold about you\nâ€¢ Request deletion of any data we hold\nâ€¢ Withdraw consent at any time\n\nBecause we hold almost no identifiable data, most requests can be fulfilled simply by clearing your browser's localStorage. For anything related to your Stripe payment record, email us at support@craftwabi.com and we will respond within 5 business days.`,
   },
   {
     title: '9. Children\'s privacy',
@@ -111,13 +111,13 @@ export default function PrivacyPage() {
             onClick={() => router.push('/terms')}
             style={{ width: '100%', padding: '13px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}
           >
-            ?? Terms of Service
+            ğŸ“‹ Terms of Service
           </button>
           <button
             onClick={() => router.push('/')}
             style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}
           >
-            ? Back to CraftWabi
+            â† Back to CraftWabi
           </button>
         </div>
 

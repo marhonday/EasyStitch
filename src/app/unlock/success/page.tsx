@@ -39,17 +39,17 @@ function SuccessInner() {
       {status === 'verifying' && (
         <>
           <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid #E4D9C8', borderTopColor: '#C4614A', animation: 'spin 0.8s linear infinite', marginBottom: 20 }} />
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#6B5744' }}>Confirming your payment…</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: '#6B5744' }}>Confirming your paymentâ€¦</p>
         </>
       )}
       {status === 'done' && (
         <>
-          <div style={{ fontSize: 52, marginBottom: 16 }}>??</div>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>ðŸŽ‰</div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             You&apos;re unlocked!
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', marginBottom: 24 }}>
-            Taking you to your pattern now…
+            Taking you to your pattern nowâ€¦
           </p>
           {/* 50% loyalty reward for buyers */}
           <div style={{ width: '100%', maxWidth: 360 }}>
@@ -59,12 +59,12 @@ function SuccessInner() {
       )}
       {status === 'error' && (
         <>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>??</div>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>ðŸ˜•</div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#2C2218', marginBottom: 8 }}>
             Something went wrong
           </h1>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6B5744', marginBottom: 20 }}>
-            Your payment may have gone through — please contact support@craftwabi.com and we&apos;ll sort it out.
+            Your payment may have gone through â€” please contact support@craftwabi.com and we&apos;ll sort it out.
           </p>
           <button
             onClick={() => nav.replace(returnUrl)}
