@@ -51,6 +51,46 @@ function sampleHex(p: Uint8ClampedArray, cx: number, cy: number, W: number, H: n
   return `#${rr.toString(16).padStart(2,'0')}${gg.toString(16).padStart(2,'0')}${bb.toString(16).padStart(2,'0')}`
 }
 
+// Dominant-color sampler for manual grid detection.
+// Samples a 5×5 grid of points across the inner 60% of a cell (skipping the
+// outer 20% on each side where grid lines and edge blur tend to live), buckets
+// them into 16-unit colour groups to collapse JPEG noise, then returns the
+// centroid of the most-populated bucket — the true solid fill of the cell.
+function dominantCellColor(
+  p: Uint8ClampedArray,
+  cellLeft: number, cellTop: number,
+  cW: number, cH: number,
+  W: number, H: number,
+): string {
+  const STEPS  = 5
+  const MARGIN = 0.2   // skip outer 20% on each side
+
+  const buckets = new Map<string, { r: number; g: number; b: number; n: number }>()
+
+  for (let sy = 0; sy < STEPS; sy++) {
+    for (let sx = 0; sx < STEPS; sx++) {
+      const fx = MARGIN + (1 - 2 * MARGIN) * (STEPS > 1 ? sx / (STEPS - 1) : 0.5)
+      const fy = MARGIN + (1 - 2 * MARGIN) * (STEPS > 1 ? sy / (STEPS - 1) : 0.5)
+      const x  = Math.max(0, Math.min(W - 1, Math.round(cellLeft + fx * cW)))
+      const y  = Math.max(0, Math.min(H - 1, Math.round(cellTop  + fy * cH)))
+      const i  = (y * W + x) * 4
+      const r  = p[i], g = p[i + 1], b = p[i + 2]
+      // Quantize to 16-unit buckets so adjacent JPEG-noise samples share a bin
+      const key = `${Math.round(r / 16)},${Math.round(g / 16)},${Math.round(b / 16)}`
+      const bk  = buckets.get(key)
+      if (bk) { bk.r += r; bk.g += g; bk.b += b; bk.n++ }
+      else       buckets.set(key, { r, g, b, n: 1 })
+    }
+  }
+
+  // Centroid of the largest bucket = the dominant solid color of this cell
+  let best = { n: 0, r: 0, g: 0, b: 0 }
+  for (const v of buckets.values()) if (v.n > best.n) best = v
+
+  const h = (v: number) => Math.round(v / best.n).toString(16).padStart(2, '0')
+  return `#${h(best.r)}${h(best.g)}${h(best.b)}`
+}
+
 // ── Transition detection ─────────────────────────────────────────────────────
 
 function rowTransitions(p: Uint8ClampedArray, y: number, W: number, thr = 28): number[] {
@@ -348,9 +388,7 @@ export async function detectGridManual(
   for (let row = 0; row < rows; row++) {
     const r: string[] = []
     for (let col = 0; col < cols; col++) {
-      const cx = Math.min(W - 1, Math.round(left + col * cW + cW / 2))
-      const cy = Math.min(H - 1, Math.round(top  + row * cH + cH / 2))
-      r.push(sampleHex(p, cx, cy, W, H))
+      r.push(dominantCellColor(p, left + col * cW, top + row * cH, cW, cH, W, H))
     }
     hexGrid.push(r)
   }
