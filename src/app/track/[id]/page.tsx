@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import ZoomableCanvas from '@/components/preview/ZoomableCanvas'
 import {
   getTracked, updateProgress, markEmailSaved, updateYarnLabel,
-  updateTrackedCellColor, replaceTrackedColor,
+  updateTrackedCellColor, updateTrackedPaletteColor,
   defaultYarnLabel, TrackedPattern,
 } from '@/lib/patternTracker'
 import DiscountClubCard from '@/components/ui/DiscountClubCard'
@@ -14,6 +14,125 @@ import { generateInstructions, RowInstruction } from '@/modules/instructions/gen
 import { PatternData, StitchStyle } from '@/types/pattern'
 
 const FORMSPREE_ID = 'mykbzdae'
+
+// ── Craft colour grid ─────────────────────────────────────────────────────────
+
+const CRAFT_COLORS = [
+  // Whites · grays · blacks
+  '#FFFFFF','#F5F0E8','#D6CCC0','#A89880','#7A6855','#4A3728','#2C2218','#000000',
+  // Warm neutrals · beiges
+  '#FFF5E6','#EDD9B8','#D4A96A','#C4813A','#A0623C','#8B5E3C','#6B3D24','#3E1A00',
+  // Pinks
+  '#FFE4EE','#FFB3CC','#FF80AA','#FF4D88','#E91E63','#C2185B','#880E4F','#560027',
+  // Reds
+  '#FFEBEE','#FFCDD2','#EF9A9A','#EF5350','#F44336','#D32F2F','#B71C1C','#7F0000',
+  // Oranges
+  '#FFF3E0','#FFCC80','#FFA726','#FF9800','#F57C00','#E65100','#BF360C','#7B1900',
+  // Yellows · golds
+  '#FFFDE7','#FFF176','#FDD835','#F9A825','#FF8F00','#FF6F00','#E65100','#BF4600',
+  // Greens
+  '#F1F8E9','#C5E1A5','#81C784','#4CAF50','#388E3C','#2E7D32','#1B5E20','#003300',
+  // Teals · mints
+  '#E0F7FA','#80DEEA','#26C6DA','#00BCD4','#0097A7','#00838F','#006064','#003333',
+  // Blues
+  '#E3F2FD','#90CAF9','#42A5F5','#2196F3','#1565C0','#0D47A1','#1A237E','#000051',
+  // Purples · lavenders
+  '#F3E5F5','#CE93D8','#AB47BC','#9C27B0','#7B1FA2','#6A1B9A','#4A148C','#1A0038',
+]
+
+// ── Color picker bottom sheet ─────────────────────────────────────────────────
+
+interface ColorPickerSheetProps {
+  targetIndex: number
+  currentHex:  string
+  yarnName:    string
+  hexInput:    string
+  setHexInput: (v: string) => void
+  onPick:      (hex: string) => void
+  onClose:     () => void
+}
+
+function ColorPickerSheet({ currentHex, yarnName, hexInput, setHexInput, onPick, onClose }: ColorPickerSheetProps) {
+  const rawHex   = hexInput.replace('#', '')
+  const isValid  = /^[0-9A-Fa-f]{6}$/.test(rawHex)
+  const preview  = isValid ? `#${rawHex}` : null
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 480, zIndex: 221,
+      background: 'white', borderRadius: '20px 20px 0 0',
+      padding: '16px 16px max(20px, env(safe-area-inset-bottom))',
+      boxShadow: '0 -8px 40px rgba(44,34,24,0.22)',
+      animation: 'slideUp 0.25s ease-out',
+    }}>
+      <div style={{ width: 36, height: 4, background: '#E4D9C8', borderRadius: 999, margin: '0 auto 14px' }} />
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: currentHex, border: '2px solid rgba(0,0,0,0.12)', flexShrink: 0 }} />
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, color: '#2C2218', flex: 1 }}>
+          Change colour for {yarnName}
+        </p>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 20, color: '#C8BFB0', cursor: 'pointer', lineHeight: 1 }}>×</button>
+      </div>
+
+      {/* Colour grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6, marginBottom: 14 }}>
+        {CRAFT_COLORS.map(hex => (
+          <button
+            key={hex}
+            onClick={() => onPick(hex)}
+            style={{
+              width: '100%', aspectRatio: '1',
+              background: hex,
+              border: hex.toLowerCase() === currentHex.toLowerCase()
+                ? '3px solid #C4614A'
+                : '1.5px solid rgba(0,0,0,0.10)',
+              borderRadius: 8,
+              cursor: 'pointer',
+            }}
+            title={hex}
+          />
+        ))}
+      </div>
+
+      {/* Custom hex input */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+          background: preview ?? '#F5F0E8',
+          border: '1.5px solid rgba(0,0,0,0.10)',
+        }} />
+        <input
+          value={hexInput}
+          onChange={e => setHexInput(e.target.value)}
+          placeholder="#hex or hex code"
+          maxLength={7}
+          style={{
+            flex: 1, padding: '9px 12px',
+            fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#2C2218',
+            background: '#FAF6EF', border: '1.5px solid #E4D9C8', borderRadius: 10,
+            outline: 'none',
+          }}
+        />
+        <button
+          onClick={() => { if (preview) onPick(preview) }}
+          disabled={!isValid}
+          style={{
+            padding: '9px 14px', borderRadius: 10, border: 'none',
+            background: isValid ? '#C4614A' : '#E4D9C8',
+            color: isValid ? 'white' : '#B8AAA0',
+            fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700,
+            cursor: isValid ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Use
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // ── Convert TrackedPattern → minimal PatternData for generateInstructions ─────
 
@@ -174,7 +293,8 @@ export default function TrackerPage() {
   // ── Customization state (edit stitches/colors) ───────────────────────────────
   const [editMode, setEditMode] = useState(false)
   const [cellPopover, setCellPopover] = useState<{ row: number; col: number; x: number; y: number } | null>(null)
-  const [replacePopover, setReplacePopover] = useState<{ fromIdx: number; x: number; y: number } | null>(null)
+  const [colorPickerTarget, setColorPickerTarget] = useState<number | null>(null)
+  const [hexInput, setHexInput] = useState('')
 
   // ── Email prompt state ───────────────────────────────────────────────────────
   const [showEmailPrompt, setShowEmailPrompt] = useState(false)
@@ -305,15 +425,19 @@ export default function TrackerPage() {
     setCellPopover(null)
   }
 
-  function applyReplace(toIdx: number) {
-    if (!pattern || !replacePopover) return
-    replaceTrackedColor(pattern.id, replacePopover.fromIdx, toIdx)
+  function applyColorPick(newHex: string) {
+    if (colorPickerTarget === null || !pattern) return
+    const hex = newHex.startsWith('#') ? newHex.toLowerCase() : `#${newHex.toLowerCase()}`
+    updateTrackedPaletteColor(pattern.id, colorPickerTarget, hex)
     setPattern(prev => {
       if (!prev) return prev
-      const next = { ...prev, colorMap: prev.colorMap.map(r => r.map(v => (v === replacePopover.fromIdx ? toIdx : v))) }
-      return next
+      const nextPalette = prev.palette.map((e, i) =>
+        i === colorPickerTarget ? { ...e, hex } : e
+      )
+      return { ...prev, palette: nextPalette }
     })
-    setReplacePopover(null)
+    setColorPickerTarget(null)
+    setHexInput('')
   }
 
   // ── Celebration trigger ──────────────────────────────────────────────────────
@@ -584,22 +708,23 @@ export default function TrackerPage() {
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  setReplacePopover({ fromIdx: i, x: e.clientX, y: e.clientY })
+                  setColorPickerTarget(i)
+                  setHexInput('')
                 }}
                 style={{
-                  background: 'none',
-                  border: '1px solid #EDE4D8',
+                  background: 'rgba(196,97,74,0.08)',
+                  border: '1px solid rgba(196,97,74,0.25)',
                   borderRadius: 8,
                   padding: '3px 8px',
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 11,
-                  color: '#6B5744',
+                  color: '#C4614A',
                   cursor: 'pointer',
                   flexShrink: 0,
                 }}
-                title="Replace this colour everywhere"
+                title="Change this yarn colour"
               >
-                Replace
+                🎨
               </button>
             )}
           </div>
@@ -1025,10 +1150,10 @@ export default function TrackerPage() {
       {showEmailPrompt && <EmailPrompt />}
 
       {/* Edit popovers */}
-      {pattern && (cellPopover || replacePopover) && (
+      {pattern && (cellPopover || colorPickerTarget !== null) && (
         <div
-          onClick={() => { setCellPopover(null); setReplacePopover(null) }}
-          style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'transparent' }}
+          onClick={() => { setCellPopover(null); setColorPickerTarget(null) }}
+          style={{ position: 'fixed', inset: 0, zIndex: 220, background: colorPickerTarget !== null ? 'rgba(44,34,24,0.45)' : 'transparent' }}
         />
       )}
 
@@ -1078,52 +1203,16 @@ export default function TrackerPage() {
         </div>
       )}
 
-      {pattern && replacePopover && (
-        <div
-          style={{
-            position: 'fixed',
-            left: Math.min(replacePopover.x, window.innerWidth - 220),
-            top:  replacePopover.y + 10,
-            zIndex: 221,
-            background: 'white',
-            borderRadius: 14,
-            boxShadow: '0 10px 34px rgba(44,34,24,0.20)',
-            padding: 10,
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 8,
-            maxWidth: 220,
-          }}
-        >
-          <div style={{ width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', marginBottom: 2 }}>
-            Replace everywhere with…
-          </div>
-          {pattern.palette.map((entry, idx) => (
-            <button
-              key={idx}
-              onClick={() => applyReplace(idx)}
-              disabled={idx === replacePopover.fromIdx}
-              title={entry.label ?? `Color ${idx + 1}`}
-              style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: entry.hex,
-                border: idx === replacePopover.fromIdx ? '2px solid rgba(0,0,0,0.25)' : '2px solid rgba(0,0,0,0.10)',
-                cursor: idx === replacePopover.fromIdx ? 'not-allowed' : 'pointer',
-                opacity: idx === replacePopover.fromIdx ? 0.35 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, color: 'rgba(255,255,255,0.92)',
-              }}
-            >
-              {entry.symbol}
-            </button>
-          ))}
-          <button
-            onClick={() => setReplacePopover(null)}
-            style={{ width: '100%', padding: '4px', background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', cursor: 'pointer' }}
-          >
-            Cancel
-          </button>
-        </div>
+      {pattern && colorPickerTarget !== null && (
+        <ColorPickerSheet
+          targetIndex={colorPickerTarget}
+          currentHex={pattern.palette[colorPickerTarget]?.hex ?? '#000000'}
+          yarnName={yarnName(colorPickerTarget)}
+          hexInput={hexInput}
+          setHexInput={setHexInput}
+          onPick={applyColorPick}
+          onClose={() => { setColorPickerTarget(null); setHexInput('') }}
+        />
       )}
 
       <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>

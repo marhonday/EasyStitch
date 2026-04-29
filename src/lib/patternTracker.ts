@@ -106,6 +106,15 @@ export function updateTrackedCellColor(id: string, row: number, col: number, col
   saveAll(all)
 }
 
+export function updateTrackedPaletteColor(id: string, colorIndex: number, newHex: string): void {
+  const all = loadAll()
+  const p = all.find(p => p.id === id)
+  if (!p || colorIndex < 0 || colorIndex >= p.palette.length) return
+  p.palette[colorIndex].hex = newHex.toLowerCase()
+  p.updatedAt = Date.now()
+  saveAll(all)
+}
+
 export function replaceTrackedColor(id: string, fromIndex: number, toIndex: number): void {
   const all = loadAll()
   const p = all.find(p => p.id === id)
