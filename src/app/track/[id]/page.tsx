@@ -13,7 +13,7 @@ import DiscountClubCard from '@/components/ui/DiscountClubCard'
 import { generateInstructions, RowInstruction } from '@/modules/instructions/generateInstructions'
 import { PatternData, StitchStyle } from '@/types/pattern'
 
-const FORMSPREE_ID = 'mykbzdae'
+// (Formspree replaced by Resend via /api/email)
 
 // ── Save / share bar ─────────────────────────────────────────────────────────
 
@@ -37,10 +37,10 @@ function SaveBar({ patternName, patternId }: { patternName: string; patternId: s
     setEmailStatus('sending')
     const url = typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''
     try {
-      await fetch('https://formspree.io/f/mykbzdae', {
+      await fetch('/api/email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ email: email.trim(), pattern_name: patternName, pattern_id: patternId, restore_link: url }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), pattern_name: patternName, restore_link: url }),
       })
       setEmailStatus('sent')
       setTimeout(() => { setShowEmail(false); setEmailStatus('idle'); setEmail('') }, 2000)
@@ -586,14 +586,12 @@ export default function TrackerPage() {
     const base = typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''
     const restoreLink = `${base}?row=${currentStep}`
     try {
-      await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      await fetch('/api/email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email:        emailInput.trim(),
-          pattern_id:   pattern.id,
           pattern_name: pattern.name,
-          current_row:  currentStep + 1,
           restore_link: restoreLink,
         }),
       })
