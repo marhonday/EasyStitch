@@ -1079,6 +1079,37 @@ export default function TrackerPage() {
         {/* Email prompt */}
         {showEmailPrompt && <EmailPrompt />}
 
+        {/* Edit popovers (desktop) */}
+        {pattern && (cellPopover || colorPickerTarget !== null) && (
+          <div
+            onClick={() => { setCellPopover(null); setColorPickerTarget(null) }}
+            style={{ position: 'fixed', inset: 0, zIndex: 220, background: colorPickerTarget !== null ? 'rgba(44,34,24,0.45)' : 'transparent' }}
+          />
+        )}
+        {pattern && cellPopover && (
+          <div style={{ position: 'fixed', left: Math.min(cellPopover.x, window.innerWidth - 190), top: cellPopover.y + 10, zIndex: 221, background: 'white', borderRadius: 14, boxShadow: '0 10px 34px rgba(44,34,24,0.20)', padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8, maxWidth: 190 }}>
+            <div style={{ width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: '#9A8878', marginBottom: 2 }}>Recolor stitch</div>
+            {pattern.palette.map((entry, idx) => (
+              <button key={idx} onClick={() => pickCellColor(idx)} title={entry.label ?? `Color ${idx + 1}`}
+                style={{ width: 32, height: 32, borderRadius: 8, background: entry.hex, border: '2px solid rgba(0,0,0,0.10)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'rgba(255,255,255,0.92)' }}>
+                {entry.symbol}
+              </button>
+            ))}
+            <button onClick={() => setCellPopover(null)} style={{ width: '100%', padding: '4px', background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C8BFB0', cursor: 'pointer' }}>Cancel</button>
+          </div>
+        )}
+        {pattern && colorPickerTarget !== null && (
+          <ColorPickerSheet
+            targetIndex={colorPickerTarget}
+            currentHex={pattern.palette[colorPickerTarget]?.hex ?? '#000000'}
+            yarnName={yarnName(colorPickerTarget)}
+            hexInput={hexInput}
+            setHexInput={setHexInput}
+            onPick={applyColorPick}
+            onClose={() => { setColorPickerTarget(null); setHexInput('') }}
+          />
+        )}
+
         <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
       </div>
     )
