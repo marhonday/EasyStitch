@@ -1,4 +1,4 @@
-ï»¿'use client'
+'use client'
 
 import { useRouter } from 'next/navigation'
 
@@ -7,23 +7,23 @@ const LAST_UPDATED = 'April 2025'
 const sections = [
   {
     title: '1. Acceptance of terms',
-    body: `By using CraftWabi ("the Service") you agree to these Terms of Service. If you do not agree, please do not use the Service. We may update these terms at any time â€” continued use after an update constitutes acceptance.`,
+    body: `By using CraftWabi ("the Service") you agree to these Terms of Service. If you do not agree, please do not use the Service. We may update these terms at any time — continued use after an update constitutes acceptance.`,
   },
   {
     title: '2. What CraftWabi is',
-    body: `CraftWabi is a digital pattern generation and project tracking tool for fibre arts â€” crochet, knitting, cross-stitch, diamond painting, and paint by number. It is not a sewing tool, physical kit, or sewing pattern service.\n\nThe Service converts images you provide into colour-by-colour stitch graph patterns for personal, non-commercial use, and provides a row-by-row project tracker to help you follow your pattern. All image processing and pattern generation happens entirely in your browser â€” your images are never uploaded to our servers.`,
+    body: `CraftWabi is a digital pattern generation and project tracking tool for fibre arts — crochet, knitting, cross-stitch, diamond painting, and paint by number. It is not a sewing tool, physical kit, or sewing pattern service.\n\nThe Service converts images you provide into colour-by-colour stitch graph patterns for personal, non-commercial use, and provides a row-by-row project tracker to help you follow your pattern. All image processing and pattern generation happens entirely in your browser — your images are never uploaded to our servers.`,
   },
   {
     title: '3. What you\'re buying',
-    body: `When you purchase a pattern download you are paying for:\nâ€¢ A PDF file containing the pattern generated from your specific image and settings\nâ€¢ A PNG image of the pattern chart\nâ€¢ Access to those files for download during the active unlock window (6 hours for a single-pattern purchase)\n\nThe pattern is generated automatically from your image and the settings you choose. You preview the pattern in the app before purchasing. What you see in the preview is what you receive â€” no manual adjustment or redesign is included.\n\nAll sales are final. Because the pattern is generated from your specific image and delivered digitally, we do not offer refunds once the files have been downloaded. If you encounter a technical error that prevents download after payment, contact us at support@CraftWabi.app and we will make it right.`,
+    body: `When you purchase a pattern download you are paying for:\n• A PDF file containing the pattern generated from your specific image and settings\n• A PNG image of the pattern chart\n• Access to those files for download during the active unlock window (6 hours for a single-pattern purchase)\n\nThe pattern is generated automatically from your image and the settings you choose. You preview the pattern in the app before purchasing. What you see in the preview is what you receive — no manual adjustment or redesign is included.\n\nAll sales are final. Because the pattern is generated from your specific image and delivered digitally, we do not offer refunds once the files have been downloaded. If you encounter a technical error that prevents download after payment, contact us at support@craftwabi.com and we will make it right.`,
   },
   {
     title: '4. Pattern quality and image responsibility',
-    body: `Pattern quality depends on the image you provide and the settings you choose. CraftWabi provides a live preview before purchase so you can see exactly what your pattern will look like.\n\nWe strongly recommend:\nâ€¢ Reviewing your pattern preview carefully before purchasing\nâ€¢ Using the highest-quality, clearest image available\nâ€¢ Experimenting with colour count and style settings before buying\n\nWe cannot regenerate, modify, or edit your pattern after purchase. If you would like a different result, adjust your settings and generate a new pattern before purchasing again.\n\nBy uploading an image you confirm that you have the right to use it (you took the photo, created the graphic, or have appropriate permission from the rights holder). You are solely responsible for ensuring you hold the necessary rights to any image you provide. CraftWabi is not liable for any copyright infringement or intellectual property claim arising from images you supply.`,
+    body: `Pattern quality depends on the image you provide and the settings you choose. CraftWabi provides a live preview before purchase so you can see exactly what your pattern will look like.\n\nWe strongly recommend:\n• Reviewing your pattern preview carefully before purchasing\n• Using the highest-quality, clearest image available\n• Experimenting with colour count and style settings before buying\n\nWe cannot regenerate, modify, or edit your pattern after purchase. If you would like a different result, adjust your settings and generate a new pattern before purchasing again.\n\nBy uploading an image you confirm that you have the right to use it (you took the photo, created the graphic, or have appropriate permission from the rights holder). You are solely responsible for ensuring you hold the necessary rights to any image you provide. CraftWabi is not liable for any copyright infringement or intellectual property claim arising from images you supply.`,
   },
   {
-    title: '5. Your content â€” ownership and our non-claim',
-    body: `Images you upload are processed entirely within your browser and are never transmitted to or stored on our servers. CraftWabi does not claim any ownership of, license to, or rights over any image you upload or any pattern generated from it.\n\nPatterns generated from your images belong to you. You retain full ownership of your source images at all times. CraftWabi's role is solely to process your image locally and produce a craft pattern at your direction â€” we are a tool, not a co-creator or rights holder.\n\nWe do not use your images for training, advertising, or any other purpose. Your images exist only in your browser session and are discarded when you close or reset the app.`,
+    title: '5. Your content — ownership and our non-claim',
+    body: `Images you upload are processed entirely within your browser and are never transmitted to or stored on our servers. CraftWabi does not claim any ownership of, license to, or rights over any image you upload or any pattern generated from it.\n\nPatterns generated from your images belong to you. You retain full ownership of your source images at all times. CraftWabi's role is solely to process your image locally and produce a craft pattern at your direction — we are a tool, not a co-creator or rights holder.\n\nWe do not use your images for training, advertising, or any other purpose. Your images exist only in your browser session and are discarded when you close or reset the app.`,
   },
   {
     title: '6. Intellectual property',
@@ -31,7 +31,7 @@ const sections = [
   },
   {
     title: '7. Prohibited uses',
-    body: `You agree not to:\nâ€¢ Use the Service for any unlawful purpose\nâ€¢ Upload images you do not have rights to use\nâ€¢ Attempt to reverse-engineer, scrape, or copy the pattern generation software\nâ€¢ Use automated tools to generate patterns in bulk\nâ€¢ Resell access to the Service or generated patterns`,
+    body: `You agree not to:\n• Use the Service for any unlawful purpose\n• Upload images you do not have rights to use\n• Attempt to reverse-engineer, scrape, or copy the pattern generation software\n• Use automated tools to generate patterns in bulk\n• Resell access to the Service or generated patterns`,
   },
   {
     title: '8. Disclaimer of warranties',
@@ -47,7 +47,7 @@ const sections = [
   },
   {
     title: '11. Contact',
-    body: `For any questions about these terms, email us at support@CraftWabi.app.`,
+    body: `For any questions about these terms, email us at support@craftwabi.com.`,
   },
 ]
 
@@ -111,13 +111,13 @@ export default function TermsPage() {
             onClick={() => router.push('/privacy')}
             style={{ width: '100%', padding: '13px', background: 'white', color: '#6B5744', border: '1.5px solid #E4D9C8', borderRadius: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: 'pointer' }}
           >
-            ğŸ”’ Privacy Policy
+            ?? Privacy Policy
           </button>
           <button
             onClick={() => router.push('/')}
             style={{ width: '100%', padding: '12px', background: 'transparent', color: '#9A8878', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer' }}
           >
-            â† Back to CraftWabi
+            ? Back to CraftWabi
           </button>
         </div>
 
