@@ -157,9 +157,12 @@ function hexDist(h1: string, h2: string): number {
 }
 
 function buildPalette(hexGrid: string[][], maxColors?: number): { palette: TrackedPalette[]; colorMap: number[][] } {
-  // Adaptive clustering radius — looser when targeting few colors so JPEG noise
-  // collapses into the dominant solid color rather than surviving as a stray cluster
-  const clusterThr = !maxColors ? 38 : maxColors <= 6 ? 65 : maxColors <= 10 ? 50 : 38
+  // Small fixed threshold — just collapses JPEG noise between cells of the
+  // same true color (~5-15 units/channel variation from lighting/compression).
+  // Deliberately kept tight (32) so genuinely distinct colors (brown vs red,
+  // dist ~85) are NEVER merged here. The merge step below handles reduction to
+  // maxColors and is smarter about which clusters to combine.
+  const CLUSTER_THR = 32
 
   const reps: string[] = []
   const sums: Array<{ r: number; g: number; b: number; n: number }> = []
@@ -168,7 +171,7 @@ function buildPalette(hexGrid: string[][], maxColors?: number): { palette: Track
   // accumulating running sums so we can compute centroid representatives later
   let colorMap: number[][] = hexGrid.map(row => row.map(hex => {
     for (let i = 0; i < reps.length; i++) {
-      if (hexDist(hex, reps[i]) < clusterThr) {
+      if (hexDist(hex, reps[i]) < CLUSTER_THR) {
         sums[i].r += parseInt(hex.slice(1, 3), 16)
         sums[i].g += parseInt(hex.slice(3, 5), 16)
         sums[i].b += parseInt(hex.slice(5, 7), 16)
@@ -195,8 +198,10 @@ function buildPalette(hexGrid: string[][], maxColors?: number): { palette: Track
   }
 
   // Merge down to maxColors — prefer absorbing rare/close clusters first so
-  // dominant solid colors survive and minor outliers (compression artefacts,
-  // grid-line bleed) get absorbed into the nearest large cluster
+  // dominant solid colors survive and noise outliers get absorbed.
+  // Score = dist × log(smaller_cluster_size): rare clusters cost least to absorb,
+  // so a 5-cell noise cluster merges before two large real-color clusters.
+  // When merging, always keep the larger cluster's representative color.
   if (maxColors && reps.length > maxColors) {
     const sizes = sums.map(s => s.n)
 
@@ -204,15 +209,11 @@ function buildPalette(hexGrid: string[][], maxColors?: number): { palette: Track
       let best = Infinity, keepIdx = 0, dropIdx = 1
       for (let a = 0; a < reps.length; a++) {
         for (let b = a + 1; b < reps.length; b++) {
-          // Rare clusters cost less to absorb; close colors cost less to merge.
-          // Multiplying dist by log of the smaller cluster size means truly rare
-          // outlier clusters get merged away first regardless of distance.
           const score = hexDist(reps[a], reps[b]) * (1 + Math.log(1 + Math.min(sizes[a], sizes[b])))
           if (score < best) {
-            best     = score
-            // Keep the dominant (larger) cluster's color as representative
-            keepIdx  = sizes[a] >= sizes[b] ? a : b
-            dropIdx  = sizes[a] >= sizes[b] ? b : a
+            best    = score
+            keepIdx = sizes[a] >= sizes[b] ? a : b
+            dropIdx = sizes[a] >= sizes[b] ? b : a
           }
         }
       }
