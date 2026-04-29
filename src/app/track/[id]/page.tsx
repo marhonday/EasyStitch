@@ -15,6 +15,87 @@ import { PatternData, StitchStyle } from '@/types/pattern'
 
 const FORMSPREE_ID = 'mykbzdae'
 
+// ── Save / share bar ─────────────────────────────────────────────────────────
+
+function SaveBar({ patternName, patternId }: { patternName: string; patternId: string }) {
+  const [copied, setCopied] = useState(false)
+  const [showEmail, setShowEmail] = useState(false)
+  const [email, setEmail] = useState('')
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+
+  function copyLink() {
+    const url = typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  async function sendEmail(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setEmailStatus('sending')
+    const url = typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''
+    try {
+      await fetch('https://formspree.io/f/mykbzdae', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: email.trim(), pattern_name: patternName, pattern_id: patternId, restore_link: url }),
+      })
+      setEmailStatus('sent')
+      setTimeout(() => { setShowEmail(false); setEmailStatus('idle'); setEmail('') }, 2000)
+    } catch { setEmailStatus('idle') }
+  }
+
+  return (
+    <div style={{ background: 'white', border: '1.5px solid #EDE4D8', borderRadius: 12, padding: '10px 12px' }}>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: '#9A8878', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+        Save your pattern link
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          onClick={copyLink}
+          style={{
+            flex: 1, padding: '8px 10px', borderRadius: 9, border: '1.5px solid #EDE4D8',
+            background: copied ? 'rgba(74,144,80,0.08)' : '#FAF6EF',
+            fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+            color: copied ? '#4A9050' : '#6B5744', cursor: 'pointer',
+          }}
+        >
+          {copied ? '✓ Copied!' : '📋 Copy link'}
+        </button>
+        <button
+          onClick={() => setShowEmail(v => !v)}
+          style={{
+            flex: 1, padding: '8px 10px', borderRadius: 9,
+            border: `1.5px solid ${showEmail ? 'rgba(196,97,74,0.35)' : '#EDE4D8'}`,
+            background: showEmail ? 'rgba(196,97,74,0.07)' : '#FAF6EF',
+            fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+            color: showEmail ? '#C4614A' : '#6B5744', cursor: 'pointer',
+          }}
+        >
+          ✉️ Email link
+        </button>
+      </div>
+      {showEmail && (
+        <form onSubmit={sendEmail} style={{ marginTop: 8, display: 'flex', gap: 6 }}>
+          <input
+            type="email" value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="your@email.com" required
+            style={{ flex: 1, padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#2C2218', background: '#FAF6EF', border: '1.5px solid #E4D9C8', borderRadius: 9, outline: 'none' }}
+          />
+          <button
+            type="submit" disabled={emailStatus === 'sending'}
+            style={{ padding: '8px 12px', background: emailStatus === 'sent' ? '#4A9050' : '#C4614A', color: 'white', border: 'none', borderRadius: 9, fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+          >
+            {emailStatus === 'sent' ? '✓' : emailStatus === 'sending' ? '…' : 'Send'}
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
 // ── Craft colour grid ─────────────────────────────────────────────────────────
 
 const CRAFT_COLORS = [
@@ -397,21 +478,23 @@ export default function TrackerPage() {
     return Math.min(24, Math.max(4, Math.floor(containerWidth / pattern.meta.width)))
   }
 
-  function handleCanvasClick(e: React.MouseEvent) {
+  function hitTestCanvas(clientX: number, clientY: number) {
     if (!editMode || !pattern || !canvasRef.current) return
     const canvas = canvasRef.current
-    const rect = canvas.getBoundingClientRect()
+    const rect   = canvas.getBoundingClientRect()
     const container = isDesktop ? gridContainerRef.current : containerRef.current
-    const w = container?.getBoundingClientRect().width ?? 320
+    const w      = container?.getBoundingClientRect().width ?? 320
     const cellSize = cellSizeForWidth(w)
     const stride = cellSize + 1
-    // rect.width reflects CSS transform scale, so dividing by it normalises to canvas pixels
     const scaleX = rect.width > 0 ? canvas.width / rect.width : 1
-    const col = Math.floor((e.clientX - rect.left) * scaleX / stride)
-    const row = Math.floor((e.clientY - rect.top) * scaleX / stride)
+    const col = Math.floor((clientX - rect.left) * scaleX / stride)
+    const row = Math.floor((clientY - rect.top)  * scaleX / stride)
     if (row < 0 || col < 0 || row >= pattern.meta.height || col >= pattern.meta.width) return
-    setCellPopover({ row, col, x: e.clientX, y: e.clientY })
+    setCellPopover({ row, col, x: clientX, y: clientY })
   }
+
+  function handleCanvasClick(e: React.MouseEvent) { hitTestCanvas(e.clientX, e.clientY) }
+  function handleCanvasTap(cx: number, cy: number) { hitTestCanvas(cx, cy) }
 
   function pickCellColor(nextIdx: number) {
     if (!pattern || !cellPopover) return
@@ -779,7 +862,7 @@ export default function TrackerPage() {
 
             {/* Grid — fills remaining height */}
             <div ref={gridContainerRef} style={{ flex: 1, overflow: 'hidden', padding: '0 24px' }} onClick={handleCanvasClick}>
-              <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} />
+              <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} onTap={editMode ? handleCanvasTap : undefined} />
             </div>
 
             {/* Bottom strip */}
@@ -862,7 +945,26 @@ export default function TrackerPage() {
             ref={rightPanelRef}
             style={{ overflowY: 'auto', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}
           >
-            {/* Yarn key — always visible at top */}
+            {/* Save / share */}
+            <SaveBar patternName={pattern!.name} patternId={pattern!.id} />
+
+            {/* Edit mode toggle */}
+            <button
+              onClick={() => { setEditMode(v => !v); setCellPopover(null) }}
+              style={{
+                width: '100%', padding: '10px 14px',
+                background: editMode ? 'rgba(196,97,74,0.08)' : 'white',
+                border: `1.5px solid ${editMode ? 'rgba(196,97,74,0.35)' : '#EDE4D8'}`,
+                borderRadius: 12,
+                fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700,
+                color: editMode ? '#C4614A' : '#6B5744',
+                cursor: 'pointer', textAlign: 'left' as const,
+              }}
+            >
+              🎨 {editMode ? 'Edit mode ON — click grid cells to recolor' : 'Enable edit mode'}
+            </button>
+
+            {/* Yarn key */}
             <YarnKey />
 
             {/* Jump to diagonal/row input */}
@@ -1000,7 +1102,7 @@ export default function TrackerPage() {
         {/* Grid — natural height, no cap */}
         <div style={{ width: '100%', maxWidth: 440 }}>
           <div ref={containerRef} style={{ overflowX: 'auto', overflowY: 'auto' }} onClick={handleCanvasClick}>
-            <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} />
+            <ZoomableCanvas canvasRef={canvasRef} showRowHint={true} onTap={editMode ? handleCanvasTap : undefined} />
           </div>
         </div>
 
@@ -1078,26 +1180,9 @@ export default function TrackerPage() {
           )}
         </div>
 
-        {/* Yarn key — collapsible */}
+        {/* Save / share */}
         <div style={{ width: '100%', maxWidth: 440, marginTop: 10 }}>
-          <button
-            onClick={() => setShowYarnKey(v => !v)}
-            style={{
-              width: '100%', padding: '10px 14px',
-              background: 'white', border: '1.5px solid #EDE4D8', borderRadius: showYarnKey ? '12px 12px 0 0' : 12,
-              fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
-              color: '#6B5744', cursor: 'pointer', textAlign: 'left',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}
-          >
-            <span>🧶 Yarn key</span>
-            <span style={{ color: '#C4614A' }}>{showYarnKey ? '↑ Hide' : '↓ Show'}</span>
-          </button>
-          {showYarnKey && (
-            <div style={{ borderRadius: '0 0 12px 12px', border: '1.5px solid #EDE4D8', borderTop: 'none', overflow: 'hidden' }}>
-              <YarnKey />
-            </div>
-          )}
+          <SaveBar patternName={pattern!.name} patternId={pattern!.id} />
         </div>
 
         {/* Edit mode toggle (mobile) */}
@@ -1117,8 +1202,30 @@ export default function TrackerPage() {
               textAlign: 'left',
             }}
           >
-            🎨 {editMode ? 'Edit mode ON — tap grid to recolor stitches' : 'Enable edit mode (recolor stitches)'}
+            🎨 {editMode ? 'Edit mode ON — tap grid or 🎨 yarn key' : 'Enable edit mode (recolor)'}
           </button>
+        </div>
+
+        {/* Yarn key — collapsible */}
+        <div style={{ width: '100%', maxWidth: 440, marginTop: 10 }}>
+          <button
+            onClick={() => setShowYarnKey(v => !v)}
+            style={{
+              width: '100%', padding: '10px 14px',
+              background: 'white', border: '1.5px solid #EDE4D8', borderRadius: showYarnKey ? '12px 12px 0 0' : 12,
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+              color: '#6B5744', cursor: 'pointer', textAlign: 'left' as const,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}
+          >
+            <span>🧶 Yarn key</span>
+            <span style={{ color: '#C4614A' }}>{showYarnKey ? '↑ Hide' : '↓ Show'}</span>
+          </button>
+          {showYarnKey && (
+            <div style={{ borderRadius: '0 0 12px 12px', border: '1.5px solid #EDE4D8', borderTop: 'none', overflow: 'hidden' }}>
+              <YarnKey />
+            </div>
+          )}
         </div>
 
         {/* Completion discount card */}

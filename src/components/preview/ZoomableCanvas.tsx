@@ -3,9 +3,10 @@
 import { RefObject, useRef, useCallback, useEffect } from 'react'
 
 interface ZoomableCanvasProps {
-  canvasRef: RefObject<HTMLCanvasElement>
-  label?: string
+  canvasRef:  RefObject<HTMLCanvasElement>
+  label?:     string
   showRowHint?: boolean
+  onTap?:     (clientX: number, clientY: number) => void
 }
 
 interface Transform { scale: number; x: number; y: number }
@@ -20,7 +21,7 @@ function touchDist(t: React.TouchList): number {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-export default function ZoomableCanvas({ canvasRef, label, showRowHint }: ZoomableCanvasProps) {
+export default function ZoomableCanvas({ canvasRef, label, showRowHint, onTap }: ZoomableCanvasProps) {
   const outerRef    = useRef<HTMLDivElement>(null)
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const tfRef       = useRef<Transform>({ ...INITIAL })
@@ -31,10 +32,12 @@ export default function ZoomableCanvas({ canvasRef, label, showRowHint }: Zoomab
   const draggedRef   = useRef(false)
 
   // Touch pinch/pan
-  const pinchDistRef  = useRef<number | null>(null)
-  const panTouchRef   = useRef<{ x: number; y: number } | null>(null)
-  const isPinchingRef = useRef(false)
-  const lastTapRef    = useRef<number>(0)
+  const pinchDistRef    = useRef<number | null>(null)
+  const panTouchRef     = useRef<{ x: number; y: number } | null>(null)
+  const isPinchingRef   = useRef(false)
+  const lastTapRef      = useRef<number>(0)
+  const tapStartPosRef  = useRef<{ x: number; y: number; t: number } | null>(null)
+  const tapMovedRef     = useRef(false)
 
   const applyTransform = useCallback(() => {
     const el = wrapperRef.current
@@ -100,12 +103,20 @@ export default function ZoomableCanvas({ canvasRef, label, showRowHint }: Zoomab
       pinchDistRef.current  = touchDist(e.touches)
       isPinchingRef.current = true
       panTouchRef.current   = null
+      tapStartPosRef.current = null
     } else if (e.touches.length === 1) {
-      panTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      panTouchRef.current    = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      tapStartPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }
+      tapMovedRef.current    = false
     }
   }, [])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1 && tapStartPosRef.current) {
+      const dx = Math.abs(e.touches[0].clientX - tapStartPosRef.current.x)
+      const dy = Math.abs(e.touches[0].clientY - tapStartPosRef.current.y)
+      if (dx > 6 || dy > 6) tapMovedRef.current = true
+    }
     if (e.touches.length === 2 && pinchDistRef.current !== null) {
       e.preventDefault()
       const newDist = touchDist(e.touches)
@@ -131,20 +142,34 @@ export default function ZoomableCanvas({ canvasRef, label, showRowHint }: Zoomab
   }, [applyTransform])
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const wasPinching = isPinchingRef.current
     if (e.touches.length < 2) {
       isPinchingRef.current = false
       pinchDistRef.current  = null
     }
     if (e.touches.length === 0) {
       panTouchRef.current = null
-      const now = Date.now()
+      const now      = Date.now()
+      const start    = tapStartPosRef.current
+      const duration = start ? now - start.t : 999
+      // Double-tap → reset zoom
       if (now - lastTapRef.current < 300) {
         tfRef.current = { ...INITIAL }
         applyTransform()
+      } else if (
+        onTap && start &&
+        !wasPinching &&
+        !tapMovedRef.current &&
+        duration < 300
+      ) {
+        // Clean single tap — let caller handle it (e.g. cell recolor)
+        const t = e.changedTouches[0]
+        onTap(t.clientX, t.clientY)
       }
       lastTapRef.current = now
+      tapStartPosRef.current = null
     }
-  }, [applyTransform])
+  }, [applyTransform, onTap])
 
   return (
     <div style={{ width: '100%', background: 'white', borderRadius: 20, padding: 12, boxShadow: '0 2px 16px rgba(44,34,24,0.08)' }}>
