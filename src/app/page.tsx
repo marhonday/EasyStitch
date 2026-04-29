@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function HomePage() {
   const router = useRouter()
@@ -9,7 +10,9 @@ export default function HomePage() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: '#FAF6EF',
+      backgroundImage: 'url(/hero.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center top',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -21,56 +24,61 @@ export default function HomePage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 'max(20px, env(safe-area-inset-top)) 20px 0',
       }}>
-        <span style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 22, fontWeight: 700,
-          color: '#2C2218',
-        }}>
-          CraftWabi 🧶
-        </span>
+        <Image
+          src="/header logo.png"
+          alt="CraftWabi"
+          width={200}
+          height={60}
+          style={{ objectFit: 'contain', height: 54, width: 'auto' }}
+          priority
+        />
       </header>
 
-      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      {/* ── Hero tagline ────────────────────────────────────────────────────── */}
       <section style={{
         width: '100%', maxWidth: 440,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '32px 20px 12px',
+        padding: '24px 20px 16px',
         textAlign: 'center',
       }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: 'rgba(196,97,74,0.10)', color: '#C4614A',
+          background: 'rgba(255,255,255,0.20)',
+          backdropFilter: 'blur(6px)',
+          color: 'white',
           borderRadius: 999, padding: '6px 14px',
           fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
-          marginBottom: 18,
+          marginBottom: 14,
+          border: '1px solid rgba(255,255,255,0.30)',
         }}>
           Free · no account · no download needed
         </div>
 
         <h1 style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: 32, fontWeight: 700,
-          color: '#2C2218', lineHeight: 1.2,
-          marginBottom: 12, maxWidth: 320,
+          fontSize: 30, fontWeight: 700,
+          color: 'white',
+          lineHeight: 1.2,
+          marginBottom: 10, maxWidth: 320,
+          textShadow: '0 2px 12px rgba(0,0,0,0.3)',
         }}>
           Your all-in-one<br />
-          <span style={{ color: '#C4614A' }}>crochet &amp; stitch studio.</span>
+          <span style={{ color: '#AAEEAA' }}>crochet &amp; stitch studio.</span>
         </h1>
 
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
-          fontSize: 14, color: '#6B5744',
+          fontSize: 13, color: 'rgba(255,255,255,0.85)',
           lineHeight: 1.65, maxWidth: 300,
-          marginBottom: 8,
+          textShadow: '0 1px 6px rgba(0,0,0,0.25)',
         }}>
           Browse ready-made patterns, convert any photo into a stitch chart, or track a project row by row — all free.
         </p>
       </section>
 
-      {/* ── 3 main paths ───────────────────────────────────────────────────── */}
-      <section style={{ width: '100%', maxWidth: 440, padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* ── 4 main paths ───────────────────────────────────────────────────── */}
+      <section style={{ width: '100%', maxWidth: 440, padding: '4px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Browse Patterns */}
         <PathCard
           href="/shop"
           emoji="🛍️"
@@ -81,7 +89,6 @@ export default function HomePage() {
           accent="#C4614A"
         />
 
-        {/* Convert a Photo */}
         <PathCard
           href="/create"
           emoji="📸"
@@ -92,7 +99,6 @@ export default function HomePage() {
           accent="#2C7A4B"
         />
 
-        {/* Track Progress */}
         <PathCard
           href="/track/upload"
           emoji="📋"
@@ -103,7 +109,6 @@ export default function HomePage() {
           accent="#7C5CBF"
         />
 
-        {/* Paint by Number */}
         <PathCard
           href="/pbn"
           emoji="🎨"
@@ -117,8 +122,8 @@ export default function HomePage() {
       </section>
 
       {/* ── Quick links row ───────────────────────────────────────────────── */}
-      <section style={{ width: '100%', maxWidth: 440, padding: '20px 20px 0' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <section style={{ width: '100%', maxWidth: 440, padding: '16px 20px 0' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
             { label: 'Gallery',  path: '/gallery', emoji: '🖼️' },
             { label: 'FAQ',      path: '/faq',     emoji: '❓' },
@@ -131,9 +136,12 @@ export default function HomePage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '7px 14px',
-                background: 'white', border: '1.5px solid #E4D9C8',
+                background: 'rgba(255,255,255,0.18)',
+                backdropFilter: 'blur(6px)',
+                border: '1px solid rgba(255,255,255,0.30)',
                 borderRadius: 999,
-                fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6B5744',
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                color: 'white',
                 cursor: 'pointer',
               }}
             >
@@ -143,7 +151,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Bottom padding for faith footer ──────────────────────────────── */}
       <div style={{ height: 60 }} />
 
     </main>
@@ -167,62 +174,53 @@ function PathCard({
     <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
       <div
         style={{
-          background: 'white', borderRadius: 18,
-          border: '1.5px solid #EDE4D8',
-          padding: '18px 16px',
-          boxShadow: '0 2px 12px rgba(44,34,24,0.06)',
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: 18,
+          border: '1px solid rgba(255,255,255,0.6)',
+          padding: '16px 16px',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
           display: 'flex', alignItems: 'center', gap: 16,
           transition: 'transform 0.13s, box-shadow 0.13s',
           cursor: 'pointer',
         }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'
-          ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 5px 20px rgba(44,34,24,0.10)'
+          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.25)'
         }}
         onMouseLeave={e => {
           (e.currentTarget as HTMLDivElement).style.transform = ''
-          ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(44,34,24,0.06)'
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)'
         }}
       >
-        {/* Icon */}
         <div style={{
-          width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+          width: 52, height: 52, borderRadius: 14, flexShrink: 0,
           background: `${accent}18`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28,
+          fontSize: 26,
         }}>
           {emoji}
         </div>
 
-        {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
-            <p style={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 700, fontSize: 15, color: '#2C2218',
-            }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 15, color: '#2C2218' }}>
               {title}
             </p>
             <span style={{
               fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 700,
-              color: badgeColor,
-              background: `${badgeColor}18`,
+              color: badgeColor, background: `${badgeColor}18`,
               borderRadius: 999, padding: '2px 8px',
-              textTransform: 'uppercase', letterSpacing: '0.04em',
-              flexShrink: 0,
+              textTransform: 'uppercase' as const, letterSpacing: '0.04em', flexShrink: 0,
             }}>
               {badge}
             </span>
           </div>
-          <p style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12, color: '#9A8878', lineHeight: 1.45,
-          }}
-          dangerouslySetInnerHTML={{ __html: description }}
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9A8878', lineHeight: 1.45 }}
+            dangerouslySetInnerHTML={{ __html: description }}
           />
         </div>
 
-        {/* Arrow */}
         <span style={{ fontSize: 18, color: accent, flexShrink: 0 }}>→</span>
       </div>
     </Link>

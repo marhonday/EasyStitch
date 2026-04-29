@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title:       'CraftWabi — Free Photo to Crochet Pattern Generator & Row Tracker',
   description: 'Turn any photo into a crochet, cross-stitch, or knitting pattern for free — C2C, graphgan, tapestry, filet, and more. Free online row counter and progress tracker. No account, no download.',
   manifest:    '/manifest.json',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
+  openGraph: {
+    images: [{ url: '/hero.png', width: 1344, height: 896 }],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

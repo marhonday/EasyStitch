@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 import { WIZARD_STEPS } from '@/lib/constants'
 import { usePattern } from '@/context/PatternContext'
 
@@ -70,9 +71,20 @@ export default function Header({ title }: HeaderProps) {
         </button>
 
         {/* Logo */}
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: 'rgba(44,34,24,0.75)', fontWeight: 600 }}>
-          {title ?? 'CraftWabi'}
-        </span>
+        {title ? (
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: 'rgba(44,34,24,0.75)', fontWeight: 600 }}>
+            {title}
+          </span>
+        ) : (
+          <Image
+            src="/header logo.png"
+            alt="CraftWabi"
+            width={160}
+            height={48}
+            style={{ objectFit: 'contain', height: 38, width: 'auto' }}
+            priority
+          />
+        )}
 
         {/* Menu button */}
         <button
