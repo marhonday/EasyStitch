@@ -117,31 +117,71 @@ function hexDist(h1: string, h2: string): number {
 }
 
 function buildPalette(hexGrid: string[][], maxColors?: number): { palette: TrackedPalette[]; colorMap: number[][] } {
+  // Adaptive clustering radius — looser when targeting few colors so JPEG noise
+  // collapses into the dominant solid color rather than surviving as a stray cluster
+  const clusterThr = !maxColors ? 38 : maxColors <= 6 ? 65 : maxColors <= 10 ? 50 : 38
+
   const reps: string[] = []
-  let colorMap = hexGrid.map(row => row.map(hex => {
+  const sums: Array<{ r: number; g: number; b: number; n: number }> = []
+
+  // First pass: assign each cell to the nearest cluster within threshold,
+  // accumulating running sums so we can compute centroid representatives later
+  let colorMap: number[][] = hexGrid.map(row => row.map(hex => {
     for (let i = 0; i < reps.length; i++) {
-      if (hexDist(hex, reps[i]) < 38) return i
+      if (hexDist(hex, reps[i]) < clusterThr) {
+        sums[i].r += parseInt(hex.slice(1, 3), 16)
+        sums[i].g += parseInt(hex.slice(3, 5), 16)
+        sums[i].b += parseInt(hex.slice(5, 7), 16)
+        sums[i].n++
+        return i
+      }
     }
     reps.push(hex)
+    sums.push({
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+      n: 1,
+    })
     return reps.length - 1
   }))
 
-  // Merge closest colour pairs until we reach maxColors
+  // Replace first-seen reps with centroid of each cluster — avoids a stray
+  // JPEG artifact becoming the "representative" for a large solid-color region
+  for (let i = 0; i < sums.length; i++) {
+    const { r, g, b, n } = sums[i]
+    const h = (v: number) => Math.round(v / n).toString(16).padStart(2, '0')
+    reps[i] = `#${h(r)}${h(g)}${h(b)}`
+  }
+
+  // Merge down to maxColors — prefer absorbing rare/close clusters first so
+  // dominant solid colors survive and minor outliers (compression artefacts,
+  // grid-line bleed) get absorbed into the nearest large cluster
   if (maxColors && reps.length > maxColors) {
+    const sizes = sums.map(s => s.n)
+
     while (reps.length > maxColors) {
-      let minDist = Infinity, mergeTo = 0, mergeFrom = 1
+      let best = Infinity, keepIdx = 0, dropIdx = 1
       for (let a = 0; a < reps.length; a++) {
         for (let b = a + 1; b < reps.length; b++) {
-          const d = hexDist(reps[a], reps[b])
-          if (d < minDist) { minDist = d; mergeTo = a; mergeFrom = b }
+          // Rare clusters cost less to absorb; close colors cost less to merge.
+          // Multiplying dist by log of the smaller cluster size means truly rare
+          // outlier clusters get merged away first regardless of distance.
+          const score = hexDist(reps[a], reps[b]) * (1 + Math.log(1 + Math.min(sizes[a], sizes[b])))
+          if (score < best) {
+            best     = score
+            // Keep the dominant (larger) cluster's color as representative
+            keepIdx  = sizes[a] >= sizes[b] ? a : b
+            dropIdx  = sizes[a] >= sizes[b] ? b : a
+          }
         }
       }
-      reps.splice(mergeFrom, 1)
-      colorMap = colorMap.map(row => row.map(idx => {
-        if (idx === mergeFrom) return mergeTo
-        if (idx > mergeFrom) return idx - 1
-        return idx
-      }))
+      sizes[keepIdx] += sizes[dropIdx]
+      reps.splice(dropIdx, 1)
+      sizes.splice(dropIdx, 1)
+      colorMap = colorMap.map(row => row.map(c =>
+        c === dropIdx ? keepIdx : c > dropIdx ? c - 1 : c
+      ))
     }
   }
 
