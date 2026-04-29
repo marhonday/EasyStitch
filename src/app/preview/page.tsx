@@ -325,7 +325,11 @@ export default function PreviewPage() {
             cellSize={14}
             cellOverrides={cellOverrides}
             paletteOverrides={personalizedPattern!.palette}
-            onCellTap={handleCellTap}
+            onCellTap={
+              (patternData.meta.stitchStyle === 'crossStitch' || patternData.meta.stitchStyle === 'knitting')
+                ? undefined
+                : handleCellTap
+            }
             highlightRow={highlightGridRow}
             gapColor={gridLineColor}
             watermarkText={!isUnlocked() ? 'CraftWabi Preview' : undefined}

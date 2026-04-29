@@ -285,8 +285,10 @@ export default function TrackerPage() {
     const w = container?.getBoundingClientRect().width ?? 320
     const cellSize = cellSizeForWidth(w)
     const stride = cellSize + 1
-    const col = Math.floor((e.clientX - rect.left) / stride)
-    const row = Math.floor((e.clientY - rect.top) / stride)
+    // rect.width reflects CSS transform scale, so dividing by it normalises to canvas pixels
+    const scaleX = rect.width > 0 ? canvas.width / rect.width : 1
+    const col = Math.floor((e.clientX - rect.left) * scaleX / stride)
+    const row = Math.floor((e.clientY - rect.top) * scaleX / stride)
     if (row < 0 || col < 0 || row >= pattern.meta.height || col >= pattern.meta.width) return
     setCellPopover({ row, col, x: e.clientX, y: e.clientY })
   }
