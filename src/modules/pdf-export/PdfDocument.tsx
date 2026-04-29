@@ -1,7 +1,7 @@
 /**
  * pdf-export/PdfDocument.tsx
  *
- * Root @react-pdf/renderer Document — assembles pages, slices grid into row
+ * Root @react-pdf/renderer Document â€” assembles pages, slices grid into row
  * bands, appends colour key + instructions on the final page.
  *
  * FIX #8: computeGridPages and rowsLastPage were imported/computed but never
@@ -10,8 +10,8 @@
  *
  * Multi-page strategy:
  * We build bands in two passes:
- *   Pass 1 — build all bands using middlePage row count
- *   Pass 2 — if the last band has too many rows for lastPage budget, split it
+ *   Pass 1 â€” build all bands using middlePage row count
+ *   Pass 2 â€” if the last band has too many rows for lastPage budget, split it
  * This avoids the "we don't know which is last" chicken-and-egg problem.
  */
 
@@ -47,7 +47,7 @@ const LABEL_H    = 16    // "Pattern Grid" section label (first page only)
 export default function PdfDocument({ pattern, title = 'My Crochet Pattern', includeInstructions = true, cellWidthMultiplier = 1 }: PdfDocumentProps) {
   const { grid, palette, meta } = pattern
   const styleLabel = STITCH_STYLE_META[meta.stitchStyle]?.label ?? meta.stitchStyle
-  const subtitle   = `${meta.width}×${meta.height} · ${meta.colorCount} colours · ${styleLabel}`
+  const subtitle   = `${meta.width}Ã—${meta.height} Â· ${meta.colorCount} colours Â· ${styleLabel}`
 
   const cellSize = computePdfCellSize(meta.width, LAYOUT.gridColW)
 
@@ -123,7 +123,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
               }}>
                 <Text style={{ fontSize: 8, color: COLORS.inkLight }}>{title}</Text>
                 <Text style={{ fontSize: 8, color: COLORS.inkLight }}>
-                  Rows {band.startRow + 1}–{band.startRow + band.rows.length}
+                  Rows {band.startRow + 1}&ndash;{band.startRow + band.rows.length}
                 </Text>
               </View>
             )}
@@ -142,7 +142,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
                 />
               </View>
 
-              {/* Colour key — first page only */}
+              {/* Colour key â€” first page only */}
               {isFirst && (
                 <View style={styles.keyColumn}>
                   <PdfColorKey
@@ -153,7 +153,7 @@ export default function PdfDocument({ pattern, title = 'My Crochet Pattern', inc
               )}
             </View>
 
-            {/* Instructions — last page only, if enabled */}
+            {/* Instructions â€” last page only, if enabled */}
             {isLast && includeInstructions && <PdfInstructions stitchStyle={meta.stitchStyle} />}
 
             {/* Footer */}
